@@ -1,0 +1,2 @@
+mmpdb fragment compound_smiles_20180123.csv -o compound_smiles_20180123.fragments
+mmpdb index compound_smiles_20180123.fragments -o compound_smiles_20180123.mmpdb
