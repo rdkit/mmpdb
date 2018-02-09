@@ -1,0 +1,423 @@
+Using fragment filters: {'--max-variable-heavies': '10'}
+Loaded fragment record 0('[*]c1ccccc1', '1', 1)
+->
+('phenol', '1', '[*]O', '0', 'N')
+---------------------
+('[*]O', '1', 1)
+->
+('phenol', '1', '[*]c1ccccc1', '0', 'N')
+---------------------
+('[*]c1ccccc1O', '1', 1)
+->
+('catechol', '1', '[*]O', '0', 'N')
+---------------------
+('[*]O', '1', 1)
+->
+('catechol', '1', '[*]c1ccccc1O', '0', 'N')
+---------------------
+('[*]O.[*]O', '11', 2)
+->
+('catechol', '11', '[*]c1ccccc1[*]', '01', 'N')
+---------------------
+('[*]c1ccccc1O', '1', 1)
+->
+('2-aminophenol', '1', '[*]N', '0', 'N')
+---------------------
+('[*]c1ccccc1N', '1', 1)
+->
+('2-aminophenol', '1', '[*]O', '0', 'N')
+---------------------
+('[*]O', '1', 1)
+->
+('2-aminophenol', '1', '[*]c1ccccc1N', '0', 'N')
+---------------------
+('[*]N', '1', 1)
+->
+('2-aminophenol', '1', '[*]c1ccccc1O', '0', 'N')
+---------------------
+('[*]N.[*]O', '12', 2)
+->
+('2-aminophenol', '11', '[*]c1ccccc1[*]', '01', 'N')
+---------------------
+('[*]c1ccccc1O', '1', 1)
+->
+('2-chlorophenol', '1', '[*]Cl', '0', 'N')
+---------------------
+('[*]c1ccccc1Cl', '1', 1)
+->
+('2-chlorophenol', '1', '[*]O', '0', 'N')
+---------------------
+('[*]O', '1', 1)
+->
+('2-chlorophenol', '1', '[*]c1ccccc1Cl', '0', 'N')
+---------------------
+('[*]Cl', '1', 1)
+->
+('2-chlorophenol', '1', '[*]c1ccccc1O', '0', 'N')
+---------------------
+('[*]Cl.[*]O', '12', 2)
+->
+('2-chlorophenol', '11', '[*]c1ccccc1[*]', '01', 'N')
+---------------------
+('[*]c1ccccc1N', '1', 1)
+->
+('o-phenylenediamine', '1', '[*]N', '0', 'N')
+---------------------
+('[*]N', '1', 1)
+->
+('o-phenylenediamine', '1', '[*]c1ccccc1N', '0', 'N')
+---------------------
+('[*]N.[*]N', '11', 2)
+->
+('o-phenylenediamine', '11', '[*]c1ccccc1[*]', '01', 'N')
+---------------------
+('[*]c1cc(O)ccc1N', '1', 1)
+->
+('amidol', '1', '[*]N', '0', 'N')
+---------------------
+('[*]c1ccc(O)cc1N', '1', 1)
+->
+('amidol', '1', '[*]N', '0', 'N')
+---------------------
+('[*]c1ccc(N)c(N)c1', '1', 1)
+->
+('amidol', '1', '[*]O', '0', 'N')
+---------------------
+('[*]N', '1', 1)
+->
+('amidol', '1', '[*]c1cc(O)ccc1N', '0', 'N')
+---------------------
+('[*]O', '1', 1)
+->
+('amidol', '1', '[*]c1ccc(N)c(N)c1', '0', 'N')
+---------------------
+('[*]N', '1', 1)
+->
+('amidol', '1', '[*]c1ccc(O)cc1N', '0', 'N')
+---------------------
+('[*]N.[*]O', '12', 2)
+->
+('amidol', '12', '[*]c1ccc(N)c([*])c1', '10', 'N')
+---------------------
+('[*]N.[*]N', '11', 2)
+->
+('amidol', '12', '[*]c1ccc(O)cc1[*]', '01', 'N')
+---------------------
+('[*]N.[*]O', '12', 2)
+->
+('amidol', '12', '[*]c1ccc([*])c(N)c1', '10', 'N')
+---------------------
+('[*]N.[*]N.[*]O', '112', 3)
+->
+('amidol', '123', '[*]c1ccc([*])c([*])c1', '201', 'N')
+---------------------
+('[*]c1cc(O)ccc1O', '1', 1)
+->
+('hydroxyquinol', '1', '[*]O', '0', 'N')
+---------------------
+('[*]c1ccc(O)c(O)c1', '1', 1)
+->
+('hydroxyquinol', '1', '[*]O', '0', 'N')
+---------------------
+('[*]c1ccc(O)cc1O', '1', 1)
+->
+('hydroxyquinol', '1', '[*]O', '0', 'N')
+---------------------
+('[*]O', '1', 1)
+->
+('hydroxyquinol', '1', '[*]c1cc(O)ccc1O', '0', 'N')
+---------------------
+('[*]O', '1', 1)
+->
+('hydroxyquinol', '1', '[*]c1ccc(O)c(O)c1', '0', 'N')
+---------------------
+('[*]O', '1', 1)
+->
+('hydroxyquinol', '1', '[*]c1ccc(O)cc1O', '0', 'N')
+---------------------
+('[*]O.[*]O', '11', 2)
+->
+('hydroxyquinol', '12', '[*]c1ccc(O)c([*])c1', '01', 'N')
+---------------------
+('[*]O.[*]O', '11', 2)
+->
+('hydroxyquinol', '12', '[*]c1ccc(O)cc1[*]', '01', 'N')
+---------------------
+('[*]O.[*]O', '11', 2)
+->
+('hydroxyquinol', '12', '[*]c1ccc([*])c(O)c1', '01', 'N')
+---------------------
+('[*]O.[*]O.[*]O', '111', 3)
+->
+('hydroxyquinol', '123', '[*]c1ccc([*])c([*])c1', '012', 'N')
+---------------------
+('[*]c1ccccc1', '1', 1)
+->
+('phenylamine', '1', '[*]N', '0', 'N')
+---------------------
+('[*]N', '1', 1)
+->
+('phenylamine', '1', '[*]c1ccccc1', '0', 'N')
+---------------------
+('[*]C1CCCC1', '1', 1)
+->
+('cyclopentanol', '1', '[*]N', '0', 'N')
+---------------------
+('[*]N', '1', 1)
+->
+('cyclopentanol', '1', '[*]C1CCCC1', '0', 'N')
+---------------------
+<mmpdblib.index_algorithm.FragmentIndex object at 0x7f6b797fd048>
+Constant fragment matches 0/10 (0.0%)QQQ
+1: 2-aminophenol 1 [*]c1ccccc1O 0 N
+2: o-phenylenediamine 1 [*]c1ccccc1N 0 N
+o-phenylenediamine 2-aminophenol [*:1]c1ccccc1N>>[*:1]c1ccccc1O [*:1]N 5
+QQQ
+1: 2-aminophenol 1 [*]c1ccccc1O 0 N
+2: amidol 1 [*]c1cc(O)ccc1N 0 N
+amidol 2-aminophenol [*:1]c1cc(O)ccc1N>>[*:1]c1ccccc1O [*:1]N 5
+QQQ
+1: 2-aminophenol 1 [*]c1ccccc1O 0 N
+2: amidol 1 [*]c1ccc(O)cc1N 0 N
+amidol 2-aminophenol [*:1]c1ccc(O)cc1N>>[*:1]c1ccccc1O [*:1]N 5
+QQQ
+1: 2-aminophenol 1 [*]c1ccccc1O 0 N
+2: phenylamine 1 [*]c1ccccc1 0 N
+phenylamine 2-aminophenol [*:1]c1ccccc1>>[*:1]c1ccccc1O [*:1]N 5
+QQQ
+1: 2-aminophenol 1 [*]c1ccccc1O 0 N
+2: cyclopentanol 1 [*]C1CCCC1 0 N
+cyclopentanol 2-aminophenol [*:1]C1CCCC1>>[*:1]c1ccccc1O [*:1]N 5
+QQQ
+1: o-phenylenediamine 1 [*]c1ccccc1N 0 N
+2: amidol 1 [*]c1cc(O)ccc1N 0 N
+amidol o-phenylenediamine [*:1]c1cc(O)ccc1N>>[*:1]c1ccccc1N [*:1]N 5
+QQQ
+1: o-phenylenediamine 1 [*]c1ccccc1N 0 N
+2: amidol 1 [*]c1ccc(O)cc1N 0 N
+amidol o-phenylenediamine [*:1]c1ccc(O)cc1N>>[*:1]c1ccccc1N [*:1]N 5
+QQQ
+1: o-phenylenediamine 1 [*]c1ccccc1N 0 N
+2: phenylamine 1 [*]c1ccccc1 0 N
+phenylamine o-phenylenediamine [*:1]c1ccccc1>>[*:1]c1ccccc1N [*:1]N 5
+QQQ
+1: o-phenylenediamine 1 [*]c1ccccc1N 0 N
+2: cyclopentanol 1 [*]C1CCCC1 0 N
+cyclopentanol o-phenylenediamine [*:1]C1CCCC1>>[*:1]c1ccccc1N [*:1]N 5
+QQQ
+1: amidol 1 [*]c1cc(O)ccc1N 0 N
+2: amidol 1 [*]c1ccc(O)cc1N 0 N
+QQQ
+1: amidol 1 [*]c1cc(O)ccc1N 0 N
+2: phenylamine 1 [*]c1ccccc1 0 N
+amidol phenylamine [*:1]c1cc(O)ccc1N>>[*:1]c1ccccc1 [*:1]N 5
+QQQ
+1: amidol 1 [*]c1cc(O)ccc1N 0 N
+2: cyclopentanol 1 [*]C1CCCC1 0 N
+cyclopentanol amidol [*:1]C1CCCC1>>[*:1]c1cc(O)ccc1N [*:1]N 5
+QQQ
+1: amidol 1 [*]c1ccc(O)cc1N 0 N
+2: phenylamine 1 [*]c1ccccc1 0 N
+amidol phenylamine [*:1]c1ccc(O)cc1N>>[*:1]c1ccccc1 [*:1]N 5
+QQQ
+1: amidol 1 [*]c1ccc(O)cc1N 0 N
+2: cyclopentanol 1 [*]C1CCCC1 0 N
+cyclopentanol amidol [*:1]C1CCCC1>>[*:1]c1ccc(O)cc1N [*:1]N 5
+QQQ
+1: phenylamine 1 [*]c1ccccc1 0 N
+2: cyclopentanol 1 [*]C1CCCC1 0 N
+cyclopentanol phenylamine [*:1]C1CCCC1>>[*:1]c1ccccc1 [*:1]N 5
+QQQ
+1: o-phenylenediamine 11 [*]c1ccccc1[*] 01 N
+2: amidol 12 [*]c1ccc(O)cc1[*] 01 N
+amidol o-phenylenediamine [*:1]c1ccc(O)cc1[*:2]>>[*:1]c1ccccc1[*:2] [*:1]N.[*:2]N 5
+QQQ
+1: 2-aminophenol 11 [*]c1ccccc1[*] 01 N
+2: amidol 12 [*]c1ccc(N)c([*])c1 10 N
+amidol 2-aminophenol [*:1]c1ccc(N)c([*:2])c1>>[*:1]c1ccccc1[*:2] [*:2]N.[*:1]O 5
+QQQ
+1: 2-aminophenol 11 [*]c1ccccc1[*] 01 N
+2: amidol 12 [*]c1ccc([*])c(N)c1 10 N
+amidol 2-aminophenol [*:1]c1ccc([*:2])c(N)c1>>[*:1]c1ccccc1[*:2] [*:2]N.[*:1]O 5
+QQQ
+1: amidol 12 [*]c1ccc(N)c([*])c1 10 N
+2: amidol 12 [*]c1ccc([*])c(N)c1 10 N
+QQQ
+1: phenol 1 [*]c1ccccc1 0 N
+2: catechol 1 [*]c1ccccc1O 0 N
+phenol catechol [*:1]c1ccccc1>>[*:1]c1ccccc1O [*:1]O 5
+QQQ
+1: phenol 1 [*]c1ccccc1 0 N
+2: 2-aminophenol 1 [*]c1ccccc1N 0 N
+phenol 2-aminophenol [*:1]c1ccccc1>>[*:1]c1ccccc1N [*:1]O 5
+QQQ
+1: phenol 1 [*]c1ccccc1 0 N
+2: 2-chlorophenol 1 [*]c1ccccc1Cl 0 N
+phenol 2-chlorophenol [*:1]c1ccccc1>>[*:1]c1ccccc1Cl [*:1]O 5
+QQQ
+1: phenol 1 [*]c1ccccc1 0 N
+2: amidol 1 [*]c1ccc(N)c(N)c1 0 N
+amidol phenol [*:1]c1ccc(N)c(N)c1>>[*:1]c1ccccc1 [*:1]O 5
+QQQ
+1: phenol 1 [*]c1ccccc1 0 N
+2: hydroxyquinol 1 [*]c1cc(O)ccc1O 0 N
+hydroxyquinol phenol [*:1]c1cc(O)ccc1O>>[*:1]c1ccccc1 [*:1]O 5
+QQQ
+1: phenol 1 [*]c1ccccc1 0 N
+2: hydroxyquinol 1 [*]c1ccc(O)c(O)c1 0 N
+hydroxyquinol phenol [*:1]c1ccc(O)c(O)c1>>[*:1]c1ccccc1 [*:1]O 5
+QQQ
+1: phenol 1 [*]c1ccccc1 0 N
+2: hydroxyquinol 1 [*]c1ccc(O)cc1O 0 N
+hydroxyquinol phenol [*:1]c1ccc(O)cc1O>>[*:1]c1ccccc1 [*:1]O 5
+QQQ
+1: catechol 1 [*]c1ccccc1O 0 N
+2: 2-aminophenol 1 [*]c1ccccc1N 0 N
+2-aminophenol catechol [*:1]c1ccccc1N>>[*:1]c1ccccc1O [*:1]O 5
+QQQ
+1: catechol 1 [*]c1ccccc1O 0 N
+2: 2-chlorophenol 1 [*]c1ccccc1Cl 0 N
+2-chlorophenol catechol [*:1]c1ccccc1Cl>>[*:1]c1ccccc1O [*:1]O 5
+QQQ
+1: catechol 1 [*]c1ccccc1O 0 N
+2: amidol 1 [*]c1ccc(N)c(N)c1 0 N
+amidol catechol [*:1]c1ccc(N)c(N)c1>>[*:1]c1ccccc1O [*:1]O 5
+QQQ
+1: catechol 1 [*]c1ccccc1O 0 N
+2: hydroxyquinol 1 [*]c1cc(O)ccc1O 0 N
+hydroxyquinol catechol [*:1]c1cc(O)ccc1O>>[*:1]c1ccccc1O [*:1]O 5
+QQQ
+1: catechol 1 [*]c1ccccc1O 0 N
+2: hydroxyquinol 1 [*]c1ccc(O)c(O)c1 0 N
+hydroxyquinol catechol [*:1]c1ccc(O)c(O)c1>>[*:1]c1ccccc1O [*:1]O 5
+QQQ
+1: catechol 1 [*]c1ccccc1O 0 N
+2: hydroxyquinol 1 [*]c1ccc(O)cc1O 0 N
+hydroxyquinol catechol [*:1]c1ccc(O)cc1O>>[*:1]c1ccccc1O [*:1]O 5
+QQQ
+1: 2-aminophenol 1 [*]c1ccccc1N 0 N
+2: 2-chlorophenol 1 [*]c1ccccc1Cl 0 N
+2-chlorophenol 2-aminophenol [*:1]c1ccccc1Cl>>[*:1]c1ccccc1N [*:1]O 5
+QQQ
+1: 2-aminophenol 1 [*]c1ccccc1N 0 N
+2: amidol 1 [*]c1ccc(N)c(N)c1 0 N
+amidol 2-aminophenol [*:1]c1ccc(N)c(N)c1>>[*:1]c1ccccc1N [*:1]O 5
+QQQ
+1: 2-aminophenol 1 [*]c1ccccc1N 0 N
+2: hydroxyquinol 1 [*]c1cc(O)ccc1O 0 N
+hydroxyquinol 2-aminophenol [*:1]c1cc(O)ccc1O>>[*:1]c1ccccc1N [*:1]O 5
+QQQ
+1: 2-aminophenol 1 [*]c1ccccc1N 0 N
+2: hydroxyquinol 1 [*]c1ccc(O)c(O)c1 0 N
+hydroxyquinol 2-aminophenol [*:1]c1ccc(O)c(O)c1>>[*:1]c1ccccc1N [*:1]O 5
+QQQ
+1: 2-aminophenol 1 [*]c1ccccc1N 0 N
+2: hydroxyquinol 1 [*]c1ccc(O)cc1O 0 N
+hydroxyquinol 2-aminophenol [*:1]c1ccc(O)cc1O>>[*:1]c1ccccc1N [*:1]O 5
+QQQ
+1: 2-chlorophenol 1 [*]c1ccccc1Cl 0 N
+2: amidol 1 [*]c1ccc(N)c(N)c1 0 N
+amidol 2-chlorophenol [*:1]c1ccc(N)c(N)c1>>[*:1]c1ccccc1Cl [*:1]O 5
+QQQ
+1: 2-chlorophenol 1 [*]c1ccccc1Cl 0 N
+2: hydroxyquinol 1 [*]c1cc(O)ccc1O 0 N
+hydroxyquinol 2-chlorophenol [*:1]c1cc(O)ccc1O>>[*:1]c1ccccc1Cl [*:1]O 5
+QQQ
+1: 2-chlorophenol 1 [*]c1ccccc1Cl 0 N
+2: hydroxyquinol 1 [*]c1ccc(O)c(O)c1 0 N
+hydroxyquinol 2-chlorophenol [*:1]c1ccc(O)c(O)c1>>[*:1]c1ccccc1Cl [*:1]O 5
+QQQ
+1: 2-chlorophenol 1 [*]c1ccccc1Cl 0 N
+2: hydroxyquinol 1 [*]c1ccc(O)cc1O 0 N
+hydroxyquinol 2-chlorophenol [*:1]c1ccc(O)cc1O>>[*:1]c1ccccc1Cl [*:1]O 5
+QQQ
+1: amidol 1 [*]c1ccc(N)c(N)c1 0 N
+2: hydroxyquinol 1 [*]c1cc(O)ccc1O 0 N
+hydroxyquinol amidol [*:1]c1cc(O)ccc1O>>[*:1]c1ccc(N)c(N)c1 [*:1]O 5
+QQQ
+1: amidol 1 [*]c1ccc(N)c(N)c1 0 N
+2: hydroxyquinol 1 [*]c1ccc(O)c(O)c1 0 N
+amidol hydroxyquinol [*:1]c1ccc(N)c(N)c1>>[*:1]c1ccc(O)c(O)c1 [*:1]O 5
+QQQ
+1: amidol 1 [*]c1ccc(N)c(N)c1 0 N
+2: hydroxyquinol 1 [*]c1ccc(O)cc1O 0 N
+amidol hydroxyquinol [*:1]c1ccc(N)c(N)c1>>[*:1]c1ccc(O)cc1O [*:1]O 5
+QQQ
+1: hydroxyquinol 1 [*]c1cc(O)ccc1O 0 N
+2: hydroxyquinol 1 [*]c1ccc(O)c(O)c1 0 N
+QQQ
+1: hydroxyquinol 1 [*]c1cc(O)ccc1O 0 N
+2: hydroxyquinol 1 [*]c1ccc(O)cc1O 0 N
+QQQ
+1: hydroxyquinol 1 [*]c1ccc(O)c(O)c1 0 N
+2: hydroxyquinol 1 [*]c1ccc(O)cc1O 0 N
+QQQ
+1: catechol 11 [*]c1ccccc1[*] 01 N
+2: hydroxyquinol 12 [*]c1ccc(O)c([*])c1 01 N
+hydroxyquinol catechol [*:1]c1ccc(O)c([*:2])c1>>[*:1]c1ccccc1[*:2] [*:1]O.[*:2]O 5
+QQQ
+1: catechol 11 [*]c1ccccc1[*] 01 N
+2: hydroxyquinol 12 [*]c1ccc(O)cc1[*] 01 N
+hydroxyquinol catechol [*:1]c1ccc(O)cc1[*:2]>>[*:1]c1ccccc1[*:2] [*:1]O.[*:2]O 5
+QQQ
+1: catechol 11 [*]c1ccccc1[*] 01 N
+2: hydroxyquinol 12 [*]c1ccc([*])c(O)c1 01 N
+hydroxyquinol catechol [*:1]c1ccc([*:2])c(O)c1>>[*:1]c1ccccc1[*:2] [*:1]O.[*:2]O 5
+QQQ
+1: hydroxyquinol 12 [*]c1ccc(O)c([*])c1 01 N
+2: hydroxyquinol 12 [*]c1ccc(O)cc1[*] 01 N
+QQQ
+1: hydroxyquinol 12 [*]c1ccc(O)c([*])c1 01 N
+2: hydroxyquinol 12 [*]c1ccc([*])c(O)c1 01 N
+QQQ
+1: hydroxyquinol 12 [*]c1ccc(O)cc1[*] 01 N
+2: hydroxyquinol 12 [*]c1ccc([*])c(O)c1 01 N
+QQQ
+1: amidol 1 [*]O 0 N
+2: o-phenylenediamine 1 [*:1][H] 0 N
+o-phenylenediamine amidol [*:1][H]>>[*:1]O [*:1]c1ccc(N)c(N)c1 5
+QQQ
+1: hydroxyquinol 1 [*]O 0 N
+2: catechol 1 [*:1][H] 0 N
+catechol hydroxyquinol [*:1][H]>>[*:1]O [*:1]c1ccc(O)c(O)c1 5
+QQQ
+1: phenol 1 [*]O 0 N
+2: phenylamine 1 [*]N 0 N
+phenylamine phenol [*:1]N>>[*:1]O [*:1]c1ccccc1 5
+QQQ
+1: 2-aminophenol 1 [*]O 0 N
+2: o-phenylenediamine 1 [*]N 0 N
+o-phenylenediamine 2-aminophenol [*:1]N>>[*:1]O [*:1]c1ccccc1N 5
+QQQ
+1: 2-aminophenol 1 [*]O 0 N
+2: phenylamine 1 [*:1][H] 0 N
+phenylamine 2-aminophenol [*:1][H]>>[*:1]O [*:1]c1ccccc1N 5
+QQQ
+1: o-phenylenediamine 1 [*]N 0 N
+2: phenylamine 1 [*:1][H] 0 N
+phenylamine o-phenylenediamine [*:1][H]>>[*:1]N [*:1]c1ccccc1N 5
+QQQ
+1: catechol 1 [*]O 0 N
+2: 2-aminophenol 1 [*]N 0 N
+2-aminophenol catechol [*:1]N>>[*:1]O [*:1]c1ccccc1O 5
+QQQ
+1: catechol 1 [*]O 0 N
+2: 2-chlorophenol 1 [*]Cl 0 N
+2-chlorophenol catechol [*:1]Cl>>[*:1]O [*:1]c1ccccc1O 5
+QQQ
+1: catechol 1 [*]O 0 N
+2: phenol 1 [*:1][H] 0 N
+phenol catechol [*:1][H]>>[*:1]O [*:1]c1ccccc1O 5
+QQQ
+1: 2-aminophenol 1 [*]N 0 N
+2: 2-chlorophenol 1 [*]Cl 0 N
+2-chlorophenol 2-aminophenol [*:1]Cl>>[*:1]N [*:1]c1ccccc1O 5
+QQQ
+1: 2-aminophenol 1 [*]N 0 N
+2: phenol 1 [*:1][H] 0 N
+phenol 2-aminophenol [*:1][H]>>[*:1]N [*:1]c1ccccc1O 5
+QQQ
+1: 2-chlorophenol 1 [*]Cl 0 N
+2: phenol 1 [*:1][H] 0 N
+phenol 2-chlorophenol [*:1][H]>>[*:1]Cl [*:1]c1ccccc1O 5
+Building index ...Analyzing database ...Computing sizes ...
