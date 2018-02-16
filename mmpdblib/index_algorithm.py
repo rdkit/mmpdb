@@ -498,7 +498,9 @@ def load_fragment_index(fragment_reader, fragment_filter=None, selected_ids=None
                 (record.id, fragmentation.variable_symmetry_class,
                  fragmentation.variable_smiles, fragmentation.attachment_order,
                  fragmentation.enumeration_label))
-            
+            print((fragmentation.constant_smiles, fragmentation.constant_symmetry_class, fragmentation.num_cuts),"-->",(record.id, fragmentation.variable_symmetry_class,
+                 fragmentation.variable_smiles, fragmentation.attachment_order,
+                 fragmentation.enumeration_label))
             if fragmentation.num_cuts == 1:
                 constant_smiles_to_hydrogen_constant_smiles[
                     fragmentation.constant_smiles] = fragmentation.constant_with_H_smiles
@@ -718,9 +720,9 @@ def find_matched_molecular_pairs(
         for num_cuts, constant_smiles, constant_symmetry_class, matches in it:
             for offset, (id1, symmetry_class1, smiles1, attachment_order1, enumeration_label1) in enumerate(matches):
                 for (id2, symmetry_class2, smiles2, attachment_order2, enumeration_label2) in matches[offset+1:]:
-                    ## print("QQQ")
-                    ## print("1:", id1, symmetry_class1, smiles1, attachment_order1, enumeration_label1)
-                    ## print("2:", id2, symmetry_class2, smiles2, attachment_order2, enumeration_label2)
+                    #print("QQQ")
+                    #print("1:", id1, symmetry_class1, smiles1, attachment_order1, enumeration_label1)
+                    #print("2:", id2, symmetry_class2, smiles2, attachment_order2, enumeration_label2)
                     # Eliminate duplicates based on id or matching variable fragment
                     if id1 == id2:
                         continue
@@ -813,8 +815,10 @@ def find_matched_molecular_pairs(
                             if max_radius is None:
                                 # skip this pair
                                 continue
-                        
-                        yield MatchedMolecularPair(tmp_id1, tmp_id2, smirks, tmp_constant_smiles, max_radius)
+                        mmp=MatchedMolecularPair(tmp_id1, tmp_id2, smirks, tmp_constant_smiles, max_radius)
+                        #print("Pair: ",tmp_id1, tmp_id2, smirks, tmp_constant_smiles, max_radius)
+                        #print(mmp)
+                        yield mmp
 
 ###
 class BaseWriter(object):

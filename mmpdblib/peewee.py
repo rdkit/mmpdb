@@ -2738,6 +2738,7 @@ class SelectQuery(Query):
         return self._aggregate(aggregation).scalar(convert=convert)
 
     def count(self, clear_limit=False):
+        # type: (object) -> object
         if self._distinct or self._group_by or self._limit or self._offset:
             return self.wrapped_count(clear_limit=clear_limit)
 

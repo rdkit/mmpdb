@@ -1,0 +1,49 @@
+WARNING: APSW not installed. Falling back to Python's sqlite3 module.
+Preparing record 0Fragmented record 0/1 (0.0%)Processing fragment Fragmentation(1, 'N', 7, '1', '[*]c1cccnc1O', '0', 1, '1', '[*]O', 'O')
+  variable '[*]c1cccnc1O' not found as SMILES '[*:1]c1cccnc1O'
+  No matching rule SMILES found. Skipping fragment.
+Processing fragment Fragmentation(1, 'N', 1, '1', '[*]O', '0', 7, '1', '[*]c1cccnc1O', 'Oc1ccccn1')
+  variable '[*]O' matches SMILES '[*:1]O' (id 18)
+ Evaluating 1 possible rule SMILES: ['1']
+ Evaluate constant '[*]c1cccnc1O' with permutation '1' against rules using SMILES [*:1]O (18)
+Processing fragment Fragmentation(2, 'N', 6, '12', '[*]c1cccnc1[*]', '01', 2, '11', '[*]O.[*]O', None)
+  variable '[*]c1cccnc1[*]' not found as SMILES '[*:1]c1cccnc1[*:2]'
+  variable '[*]c1cccnc1[*]' not found as SMILES '[*:2]c1cccnc1[*:1]'
+  No matching rule SMILES found. Skipping fragment.
+Processing fragment Fragmentation(1, 'N', 1, '1', '[*]O', '0', 7, '1', '[*]c1ncccc1O', 'Oc1cccnc1')
+  variable '[*]O' matches SMILES '[*:1]O' (id 18)
+ Evaluating 1 possible rule SMILES: ['1']
+ Evaluate constant '[*]c1ncccc1O' with permutation '1' against rules using SMILES [*:1]O (18)
+Processing fragment Fragmentation(1, 'N', 7, '1', '[*]c1ncccc1O', '0', 1, '1', '[*]O', 'O')
+  variable '[*]c1ncccc1O' not found as SMILES '[*:1]c1ncccc1O'
+  No matching rule SMILES found. Skipping fragment.
+     Rule 41:  '[*]c1cccnc1O' + '[*:1][H]' -> 'Oc1ccccn1'
+     Rule 41:  '[*]c1cccnc1O' + '[*:1][H]' -> 'Oc1ccccn1'
+     Rule 41:  '[*]c1cccnc1O' + '[*:1][H]' -> 'Oc1ccccn1'
+     Rule 42:  '[*]c1cccnc1O' + '[*:1]N' -> 'Nc1cccnc1O'
+     Rule 42:  '[*]c1cccnc1O' + '[*:1]N' -> 'Nc1cccnc1O'
+     Rule 42:  '[*]c1cccnc1O' + '[*:1]N' -> 'Nc1cccnc1O'
+     Rule 44:  '[*]c1cccnc1O' + '[*:1]Cl' -> 'Oc1ncccc1Cl'
+     Rule 44:  '[*]c1cccnc1O' + '[*:1]Cl' -> 'Oc1ncccc1Cl'
+     Rule 44:  '[*]c1cccnc1O' + '[*:1]Cl' -> 'Oc1ncccc1Cl'
+     Rule 41:  '[*]c1ncccc1O' + '[*:1][H]' -> 'Oc1cccnc1'
+     Rule 41:  '[*]c1ncccc1O' + '[*:1][H]' -> 'Oc1cccnc1'
+     Rule 42:  '[*]c1ncccc1O' + '[*:1]N' -> 'Nc1ncccc1O'
+     Rule 42:  '[*]c1ncccc1O' + '[*:1]N' -> 'Nc1ncccc1O'
+     Rule 44:  '[*]c1ncccc1O' + '[*:1]Cl' -> 'Oc1cccnc1Cl'
+     Rule 44:  '[*]c1ncccc1O' + '[*:1]Cl' -> 'Oc1cccnc1Cl'
+== Product SMILES in database: 6 ==
+Evaluating the 3 rule environments for 'Nc1cccnc1O'
+Evaluating the 2 rule environments for 'Nc1ncccc1O'
+Evaluating the 3 rule environments for 'Oc1ccccn1'
+Evaluating the 2 rule environments for 'Oc1cccnc1'
+Evaluating the 2 rule environments for 'Oc1cccnc1Cl'
+Evaluating the 3 rule environments for 'Oc1ncccc1Cl'
+PRE:  defaultdict(<class 'set'>, {})
+ID	SMILES
+1	Nc1cccnc1O
+2	Nc1ncccc1O
+3	Oc1ccccn1
+4	Oc1cccnc1
+5	Oc1cccnc1Cl
+6	Oc1ncccc1Cl

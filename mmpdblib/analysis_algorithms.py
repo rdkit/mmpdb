@@ -860,7 +860,9 @@ def make_transform(
     # Map from the destination SMILES to the set of rule environments
     # The RHS set contains (rule_id, rule_environment_id, is_reversed) tuples.
     product_rule_environment_table = defaultdict(set)
-    
+    for keys, values in product_rule_environment_table.items():
+        print(keys)
+        print(values)
     # Hold the welded molecules in case I need them for a substructure search
     
     # For each variable fragment (single, double, or triple cut) and
@@ -870,7 +872,8 @@ def make_transform(
     # environments with radius >= the radius given as input argument.
 
     to_weld = []
-    
+    explain("Fragments: ")
+
     # This includes the possible fragments of hydrogens
     for frag in transform_fragments:
         ## Note on terminology:
@@ -900,25 +903,21 @@ def make_transform(
         for permutation, permuted_variable_smiles in enumerate_permutations(dataset, frag.variable_smiles):
             permuted_variable_smiles_id = dataset.get_rule_smiles_id(permuted_variable_smiles, cursor=cursor)
             if permuted_variable_smiles_id is not None:
-                explain("  variable %r matches SMILES %r (id %d)", 
-                        frag.variable_smiles, permuted_variable_smiles, permuted_variable_smiles_id)
+                explain("  variable %r matches SMILES %r (id %d)", frag.variable_smiles, permuted_variable_smiles, permuted_variable_smiles_id)
                 query_possibilities.append( (permutation, permuted_variable_smiles, permuted_variable_smiles_id) )
             else:
-                explain("  variable %r not found as SMILES %r",
-                        frag.variable_smiles, permuted_variable_smiles)
+                explain("  variable %r not found as SMILES %r", frag.variable_smiles, permuted_variable_smiles)
 
         if not query_possibilities:
             explain("  No matching rule SMILES found. Skipping fragment.")
             continue
 
-        explain(" Evaluating %d possible rule SMILES: %s", 
-                len(query_possibilities), sorted(x[0] for x in query_possibilities))
+        explain(" Evaluating %d possible rule SMILES: %s", len(query_possibilities), sorted(x[0] for x in query_possibilities))
 
         # We now have a canonical variable part, and the assignment to the constant part.
         # Get its fingerprints.
         
-        all_center_fps = environment.compute_constant_center_fingerprints(
-            frag.constant_smiles, min_radius=min_radius)
+        all_center_fps = environment.compute_constant_center_fingerprints(frag.constant_smiles, min_radius=min_radius)
 
         # For each possible way to represent the variable SMILES:
         #   Find all of the pairs which use the same SMILES id as the variable

@@ -186,7 +186,6 @@ def index_command(parser, args):
         fragment_index, index_options,
         reporter=reporter)
 
-
     with index_algorithm.open_mmpa_writer(args.output, format=args.out,
                                    title=title,
                                    fragment_options=fragment_reader.options,

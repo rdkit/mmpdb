@@ -1,0 +1,115 @@
+WARNING: APSW not installed. Falling back to Python's sqlite3 module.
+Preparing record 0Fragmented record 0/1 (0.0%)Processing fragment Fragmentation(1, 'N', 7, '1', '[*]c1ccccc1O', '0', 1, '1', '[*]O', 'O')
+  variable '[*]c1ccccc1O' matches SMILES '[*:1]c1ccccc1O' (id 1)
+ Evaluating 1 possible rule SMILES: ['1']
+ Evaluate constant '[*]O' with permutation '1' against rules using SMILES [*:1]c1ccccc1O (1)
+Processing fragment Fragmentation(1, 'N', 1, '1', '[*]O', '0', 7, '1', '[*]c1ccccc1O', 'Oc1ccccc1')
+  variable '[*]O' matches SMILES '[*:1]O' (id 18)
+ Evaluating 1 possible rule SMILES: ['1']
+ Evaluate constant '[*]c1ccccc1O' with permutation '1' against rules using SMILES [*:1]O (18)
+Processing fragment Fragmentation(2, 'N', 6, '11', '[*]c1ccccc1[*]', '01', 2, '11', '[*]O.[*]O', None)
+  variable '[*]c1ccccc1[*]' matches SMILES '[*:1]c1ccccc1[*:2]' (id 7)
+  variable '[*]c1ccccc1[*]' not found as SMILES '[*:2]c1ccccc1[*:1]'
+ Evaluating 1 possible rule SMILES: ['12']
+ Evaluate constant '[*]O.[*]O' with permutation '12' against rules using SMILES [*:1]c1ccccc1[*:2] (7)
+     Rule 0:  '[*]O' + '[*:1]c1ccccc1N' -> 'Nc1ccccc1O'
+     Rule 0:  '[*]O' + '[*:1]c1ccccc1N' -> 'Nc1ccccc1O'
+     Rule 0:  '[*]O' + '[*:1]c1ccccc1N' -> 'Nc1ccccc1O'
+     Rule 0:  '[*]O' + '[*:1]c1ccccc1N' -> 'Nc1ccccc1O'
+     Rule 0:  '[*]O' + '[*:1]c1ccccc1N' -> 'Nc1ccccc1O'
+     Rule 0:  '[*]O' + '[*:1]c1ccccc1N' -> 'Nc1ccccc1O'
+     Rule 1:  '[*]O' + '[*:1]c1cc(O)ccc1N' -> 'Nc1ccc(O)cc1O'
+     Rule 2:  '[*]O' + '[*:1]c1ccc(O)cc1N' -> 'Nc1cc(O)ccc1O'
+     Rule 3:  '[*]O' + '[*:1]c1ccccc1' -> 'Oc1ccccc1'
+     Rule 3:  '[*]O' + '[*:1]c1ccccc1' -> 'Oc1ccccc1'
+     Rule 3:  '[*]O' + '[*:1]c1ccccc1' -> 'Oc1ccccc1'
+     Rule 3:  '[*]O' + '[*:1]c1ccccc1' -> 'Oc1ccccc1'
+     Rule 3:  '[*]O' + '[*:1]c1ccccc1' -> 'Oc1ccccc1'
+     Rule 3:  '[*]O' + '[*:1]c1ccccc1' -> 'Oc1ccccc1'
+     Rule 4:  '[*]O' + '[*:1]C1CCCC1' -> 'OC1CCCC1'
+     Rule 22:  '[*]O' + '[*:1]c1ccccc1Cl' -> 'Oc1ccccc1Cl'
+     Rule 22:  '[*]O' + '[*:1]c1ccccc1Cl' -> 'Oc1ccccc1Cl'
+     Rule 22:  '[*]O' + '[*:1]c1ccccc1Cl' -> 'Oc1ccccc1Cl'
+     Rule 22:  '[*]O' + '[*:1]c1ccccc1Cl' -> 'Oc1ccccc1Cl'
+     Rule 22:  '[*]O' + '[*:1]c1ccccc1Cl' -> 'Oc1ccccc1Cl'
+     Rule 22:  '[*]O' + '[*:1]c1ccccc1Cl' -> 'Oc1ccccc1Cl'
+     Rule 23:  '[*]O' + '[*:1]c1ccc(N)c(N)c1' -> 'Nc1ccc(O)cc1N'
+     Rule 23:  '[*]O' + '[*:1]c1ccc(N)c(N)c1' -> 'Nc1ccc(O)cc1N'
+     Rule 23:  '[*]O' + '[*:1]c1ccc(N)c(N)c1' -> 'Nc1ccc(O)cc1N'
+     Rule 23:  '[*]O' + '[*:1]c1ccc(N)c(N)c1' -> 'Nc1ccc(O)cc1N'
+     Rule 23:  '[*]O' + '[*:1]c1ccc(N)c(N)c1' -> 'Nc1ccc(O)cc1N'
+     Rule 23:  '[*]O' + '[*:1]c1ccc(N)c(N)c1' -> 'Nc1ccc(O)cc1N'
+     Rule 24:  '[*]O' + '[*:1]c1cc(O)ccc1O' -> 'Oc1ccc(O)c(O)c1'
+     Rule 24:  '[*]O' + '[*:1]c1cc(O)ccc1O' -> 'Oc1ccc(O)c(O)c1'
+     Rule 24:  '[*]O' + '[*:1]c1cc(O)ccc1O' -> 'Oc1ccc(O)c(O)c1'
+     Rule 24:  '[*]O' + '[*:1]c1cc(O)ccc1O' -> 'Oc1ccc(O)c(O)c1'
+     Rule 24:  '[*]O' + '[*:1]c1cc(O)ccc1O' -> 'Oc1ccc(O)c(O)c1'
+     Rule 24:  '[*]O' + '[*:1]c1cc(O)ccc1O' -> 'Oc1ccc(O)c(O)c1'
+     Rule 25:  '[*]O' + '[*:1]c1ccc(O)c(O)c1' -> 'Oc1ccc(O)c(O)c1'
+     Rule 25:  '[*]O' + '[*:1]c1ccc(O)c(O)c1' -> 'Oc1ccc(O)c(O)c1'
+     Rule 25:  '[*]O' + '[*:1]c1ccc(O)c(O)c1' -> 'Oc1ccc(O)c(O)c1'
+     Rule 25:  '[*]O' + '[*:1]c1ccc(O)c(O)c1' -> 'Oc1ccc(O)c(O)c1'
+     Rule 25:  '[*]O' + '[*:1]c1ccc(O)c(O)c1' -> 'Oc1ccc(O)c(O)c1'
+     Rule 25:  '[*]O' + '[*:1]c1ccc(O)c(O)c1' -> 'Oc1ccc(O)c(O)c1'
+     Rule 26:  '[*]O' + '[*:1]c1ccc(O)cc1O' -> 'Oc1ccc(O)c(O)c1'
+     Rule 26:  '[*]O' + '[*:1]c1ccc(O)cc1O' -> 'Oc1ccc(O)c(O)c1'
+     Rule 26:  '[*]O' + '[*:1]c1ccc(O)cc1O' -> 'Oc1ccc(O)c(O)c1'
+     Rule 26:  '[*]O' + '[*:1]c1ccc(O)cc1O' -> 'Oc1ccc(O)c(O)c1'
+     Rule 26:  '[*]O' + '[*:1]c1ccc(O)cc1O' -> 'Oc1ccc(O)c(O)c1'
+     Rule 26:  '[*]O' + '[*:1]c1ccc(O)cc1O' -> 'Oc1ccc(O)c(O)c1'
+     Rule 41:  '[*]c1ccccc1O' + '[*:1][H]' -> 'Oc1ccccc1'
+     Rule 41:  '[*]c1ccccc1O' + '[*:1][H]' -> 'Oc1ccccc1'
+     Rule 41:  '[*]c1ccccc1O' + '[*:1][H]' -> 'Oc1ccccc1'
+     Rule 41:  '[*]c1ccccc1O' + '[*:1][H]' -> 'Oc1ccccc1'
+     Rule 41:  '[*]c1ccccc1O' + '[*:1][H]' -> 'Oc1ccccc1'
+     Rule 41:  '[*]c1ccccc1O' + '[*:1][H]' -> 'Oc1ccccc1'
+     Rule 42:  '[*]c1ccccc1O' + '[*:1]N' -> 'Nc1ccccc1O'
+     Rule 42:  '[*]c1ccccc1O' + '[*:1]N' -> 'Nc1ccccc1O'
+     Rule 42:  '[*]c1ccccc1O' + '[*:1]N' -> 'Nc1ccccc1O'
+     Rule 42:  '[*]c1ccccc1O' + '[*:1]N' -> 'Nc1ccccc1O'
+     Rule 42:  '[*]c1ccccc1O' + '[*:1]N' -> 'Nc1ccccc1O'
+     Rule 42:  '[*]c1ccccc1O' + '[*:1]N' -> 'Nc1ccccc1O'
+     Rule 44:  '[*]c1ccccc1O' + '[*:1]Cl' -> 'Oc1ccccc1Cl'
+     Rule 44:  '[*]c1ccccc1O' + '[*:1]Cl' -> 'Oc1ccccc1Cl'
+     Rule 44:  '[*]c1ccccc1O' + '[*:1]Cl' -> 'Oc1ccccc1Cl'
+     Rule 44:  '[*]c1ccccc1O' + '[*:1]Cl' -> 'Oc1ccccc1Cl'
+     Rule 44:  '[*]c1ccccc1O' + '[*:1]Cl' -> 'Oc1ccccc1Cl'
+     Rule 44:  '[*]c1ccccc1O' + '[*:1]Cl' -> 'Oc1ccccc1Cl'
+     Rule 14:  '[*]O.[*]O' + '[*:1]c1ccc(O)cc1[*:2]' -> 'Oc1ccc(O)c(O)c1'
+     Rule 14:  '[*]O.[*]O' + '[*:1]c1ccc(O)cc1[*:2]' -> 'Oc1ccc(O)c(O)c1'
+     Rule 14:  '[*]O.[*]O' + '[*:1]c1ccc(O)cc1[*:2]' -> 'Oc1ccc(O)c(O)c1'
+     Rule 14:  '[*]O.[*]O' + '[*:1]c1ccc(O)cc1[*:2]' -> 'Oc1ccc(O)c(O)c1'
+     Rule 14:  '[*]O.[*]O' + '[*:1]c1ccc(O)cc1[*:2]' -> 'Oc1ccc(O)c(O)c1'
+     Rule 14:  '[*]O.[*]O' + '[*:1]c1ccc(O)cc1[*:2]' -> 'Oc1ccc(O)c(O)c1'
+     Rule 15:  '[*]O.[*]O' + '[*:1]c1ccc(N)c([*:2])c1' -> 'Nc1ccc(O)cc1O'
+     Rule 16:  '[*]O.[*]O' + '[*:1]c1ccc([*:2])c(N)c1' -> 'Nc1cc(O)ccc1O'
+     Rule 39:  '[*]O.[*]O' + '[*:1]c1ccc(O)c([*:2])c1' -> 'Oc1ccc(O)c(O)c1'
+     Rule 39:  '[*]O.[*]O' + '[*:1]c1ccc(O)c([*:2])c1' -> 'Oc1ccc(O)c(O)c1'
+     Rule 39:  '[*]O.[*]O' + '[*:1]c1ccc(O)c([*:2])c1' -> 'Oc1ccc(O)c(O)c1'
+     Rule 39:  '[*]O.[*]O' + '[*:1]c1ccc(O)c([*:2])c1' -> 'Oc1ccc(O)c(O)c1'
+     Rule 39:  '[*]O.[*]O' + '[*:1]c1ccc(O)c([*:2])c1' -> 'Oc1ccc(O)c(O)c1'
+     Rule 39:  '[*]O.[*]O' + '[*:1]c1ccc(O)c([*:2])c1' -> 'Oc1ccc(O)c(O)c1'
+     Rule 40:  '[*]O.[*]O' + '[*:1]c1ccc([*:2])c(O)c1' -> 'Oc1ccc(O)c(O)c1'
+     Rule 40:  '[*]O.[*]O' + '[*:1]c1ccc([*:2])c(O)c1' -> 'Oc1ccc(O)c(O)c1'
+     Rule 40:  '[*]O.[*]O' + '[*:1]c1ccc([*:2])c(O)c1' -> 'Oc1ccc(O)c(O)c1'
+     Rule 40:  '[*]O.[*]O' + '[*:1]c1ccc([*:2])c(O)c1' -> 'Oc1ccc(O)c(O)c1'
+     Rule 40:  '[*]O.[*]O' + '[*:1]c1ccc([*:2])c(O)c1' -> 'Oc1ccc(O)c(O)c1'
+     Rule 40:  '[*]O.[*]O' + '[*:1]c1ccc([*:2])c(O)c1' -> 'Oc1ccc(O)c(O)c1'
+== Product SMILES in database: 8 ==
+Evaluating the 2 rule environments for 'Nc1cc(O)ccc1O'
+Evaluating the 6 rule environments for 'Nc1ccc(O)cc1N'
+Evaluating the 2 rule environments for 'Nc1ccc(O)cc1O'
+Evaluating the 12 rule environments for 'Nc1ccccc1O'
+Evaluating the 1 rule environments for 'OC1CCCC1'
+Evaluating the 36 rule environments for 'Oc1ccc(O)c(O)c1'
+Evaluating the 12 rule environments for 'Oc1ccccc1'
+Evaluating the 12 rule environments for 'Oc1ccccc1Cl'
+ID	SMILES
+1	Nc1cc(O)ccc1O
+2	Nc1ccc(O)cc1N
+3	Nc1ccc(O)cc1O
+4	Nc1ccccc1O
+5	OC1CCCC1
+6	Oc1ccc(O)c(O)c1
+7	Oc1ccccc1
+8	Oc1ccccc1Cl

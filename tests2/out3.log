@@ -1,0 +1,938 @@
+-----------------------------
+Num pairs:  <generator object find_matched_molecular_pairs at 0x7f5e1a2009e8>
+QQQ
+1: 2-aminophenol 1 [*]c1ccccc1O 0 N
+2: o-phenylenediamine 1 [*]c1ccccc1N 0 N
+= Check 0 =
+ mol1: o-phenylenediamine [*]c1ccccc1N 1 0
+ constant: [*]N 1
+ mol2: 2-aminophenol [*]c1ccccc1O 1 0
+ smirks: [*:1]c1ccccc1N>>[*:1]c1ccccc1O
+ new constant: [*:1]N
+ LHS  got: Nc1ccccc1N from c%911ccccc1N.N%91
+ expected: Nc1ccccc1N
+ RHS  got: Nc1ccccc1O from c%911ccccc1O.N%91
+ expected: Nc1ccccc1O
+   Good!
+Pair:  o-phenylenediamine 2-aminophenol [*:1]c1ccccc1N>>[*:1]c1ccccc1O [*:1]N 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e1a47f4a8>
+QQQ
+1: 2-aminophenol 1 [*]c1ccccc1O 0 N
+2: amidol 1 [*]c1cc(O)ccc1N 0 N
+= Check 1 =
+ mol1: amidol [*]c1cc(O)ccc1N 1 0
+ constant: [*]N 1
+ mol2: 2-aminophenol [*]c1ccccc1O 1 0
+ smirks: [*:1]c1cc(O)ccc1N>>[*:1]c1ccccc1O
+ new constant: [*:1]N
+ LHS  got: Nc1ccc(O)cc1N from c%911cc(O)ccc1N.N%91
+ expected: Nc1ccc(O)cc1N
+ RHS  got: Nc1ccccc1O from c%911ccccc1O.N%91
+ expected: Nc1ccccc1O
+   Good!
+Pair:  amidol 2-aminophenol [*:1]c1cc(O)ccc1N>>[*:1]c1ccccc1O [*:1]N 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e1a20d4a8>
+QQQ
+1: 2-aminophenol 1 [*]c1ccccc1O 0 N
+2: amidol 1 [*]c1ccc(O)cc1N 0 N
+= Check 2 =
+ mol1: amidol [*]c1ccc(O)cc1N 1 0
+ constant: [*]N 1
+ mol2: 2-aminophenol [*]c1ccccc1O 1 0
+ smirks: [*:1]c1ccc(O)cc1N>>[*:1]c1ccccc1O
+ new constant: [*:1]N
+ LHS  got: Nc1ccc(O)cc1N from c%911ccc(O)cc1N.N%91
+ expected: Nc1ccc(O)cc1N
+ RHS  got: Nc1ccccc1O from c%911ccccc1O.N%91
+ expected: Nc1ccccc1O
+   Good!
+Pair:  amidol 2-aminophenol [*:1]c1ccc(O)cc1N>>[*:1]c1ccccc1O [*:1]N 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e1a47f4a8>
+QQQ
+1: 2-aminophenol 1 [*]c1ccccc1O 0 N
+2: phenylamine 1 [*]c1ccccc1 0 N
+= Check 3 =
+ mol1: phenylamine [*]c1ccccc1 1 0
+ constant: [*]N 1
+ mol2: 2-aminophenol [*]c1ccccc1O 1 0
+ smirks: [*:1]c1ccccc1>>[*:1]c1ccccc1O
+ new constant: [*:1]N
+ LHS  got: Nc1ccccc1 from c%911ccccc1.N%91
+ expected: Nc1ccccc1
+ RHS  got: Nc1ccccc1O from c%911ccccc1O.N%91
+ expected: Nc1ccccc1O
+   Good!
+Pair:  phenylamine 2-aminophenol [*:1]c1ccccc1>>[*:1]c1ccccc1O [*:1]N 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e1a20d4a8>
+QQQ
+1: 2-aminophenol 1 [*]c1ccccc1O 0 N
+2: cyclopentanol 1 [*]C1CCCC1 0 N
+= Check 4 =
+ mol1: cyclopentanol [*]C1CCCC1 1 0
+ constant: [*]N 1
+ mol2: 2-aminophenol [*]c1ccccc1O 1 0
+ smirks: [*:1]C1CCCC1>>[*:1]c1ccccc1O
+ new constant: [*:1]N
+ LHS  got: NC1CCCC1 from C%911CCCC1.N%91
+ expected: NC1CCCC1
+ RHS  got: Nc1ccccc1O from c%911ccccc1O.N%91
+ expected: Nc1ccccc1O
+   Good!
+Pair:  cyclopentanol 2-aminophenol [*:1]C1CCCC1>>[*:1]c1ccccc1O [*:1]N 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e19da93b8>
+QQQ
+1: o-phenylenediamine 1 [*]c1ccccc1N 0 N
+2: amidol 1 [*]c1cc(O)ccc1N 0 N
+= Check 5 =
+ mol1: amidol [*]c1cc(O)ccc1N 1 0
+ constant: [*]N 1
+ mol2: o-phenylenediamine [*]c1ccccc1N 1 0
+ smirks: [*:1]c1cc(O)ccc1N>>[*:1]c1ccccc1N
+ new constant: [*:1]N
+ LHS  got: Nc1ccc(O)cc1N from c%911cc(O)ccc1N.N%91
+ expected: Nc1ccc(O)cc1N
+ RHS  got: Nc1ccccc1N from c%911ccccc1N.N%91
+ expected: Nc1ccccc1N
+   Good!
+Pair:  amidol o-phenylenediamine [*:1]c1cc(O)ccc1N>>[*:1]c1ccccc1N [*:1]N 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e19da9408>
+QQQ
+1: o-phenylenediamine 1 [*]c1ccccc1N 0 N
+2: amidol 1 [*]c1ccc(O)cc1N 0 N
+= Check 6 =
+ mol1: amidol [*]c1ccc(O)cc1N 1 0
+ constant: [*]N 1
+ mol2: o-phenylenediamine [*]c1ccccc1N 1 0
+ smirks: [*:1]c1ccc(O)cc1N>>[*:1]c1ccccc1N
+ new constant: [*:1]N
+ LHS  got: Nc1ccc(O)cc1N from c%911ccc(O)cc1N.N%91
+ expected: Nc1ccc(O)cc1N
+ RHS  got: Nc1ccccc1N from c%911ccccc1N.N%91
+ expected: Nc1ccccc1N
+   Good!
+Pair:  amidol o-phenylenediamine [*:1]c1ccc(O)cc1N>>[*:1]c1ccccc1N [*:1]N 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e19da93b8>
+QQQ
+1: o-phenylenediamine 1 [*]c1ccccc1N 0 N
+2: phenylamine 1 [*]c1ccccc1 0 N
+= Check 7 =
+ mol1: phenylamine [*]c1ccccc1 1 0
+ constant: [*]N 1
+ mol2: o-phenylenediamine [*]c1ccccc1N 1 0
+ smirks: [*:1]c1ccccc1>>[*:1]c1ccccc1N
+ new constant: [*:1]N
+ LHS  got: Nc1ccccc1 from c%911ccccc1.N%91
+ expected: Nc1ccccc1
+ RHS  got: Nc1ccccc1N from c%911ccccc1N.N%91
+ expected: Nc1ccccc1N
+   Good!
+Pair:  phenylamine o-phenylenediamine [*:1]c1ccccc1>>[*:1]c1ccccc1N [*:1]N 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e19da9408>
+QQQ
+1: o-phenylenediamine 1 [*]c1ccccc1N 0 N
+2: cyclopentanol 1 [*]C1CCCC1 0 N
+= Check 8 =
+ mol1: cyclopentanol [*]C1CCCC1 1 0
+ constant: [*]N 1
+ mol2: o-phenylenediamine [*]c1ccccc1N 1 0
+ smirks: [*:1]C1CCCC1>>[*:1]c1ccccc1N
+ new constant: [*:1]N
+ LHS  got: NC1CCCC1 from C%911CCCC1.N%91
+ expected: NC1CCCC1
+ RHS  got: Nc1ccccc1N from c%911ccccc1N.N%91
+ expected: Nc1ccccc1N
+   Good!
+Pair:  cyclopentanol o-phenylenediamine [*:1]C1CCCC1>>[*:1]c1ccccc1N [*:1]N 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e19da93b8>
+QQQ
+1: amidol 1 [*]c1cc(O)ccc1N 0 N
+2: amidol 1 [*]c1ccc(O)cc1N 0 N
+QQQ
+1: amidol 1 [*]c1cc(O)ccc1N 0 N
+2: phenylamine 1 [*]c1ccccc1 0 N
+= Check 9 =
+ mol1: amidol [*]c1cc(O)ccc1N 1 0
+ constant: [*]N 1
+ mol2: phenylamine [*]c1ccccc1 1 0
+ smirks: [*:1]c1cc(O)ccc1N>>[*:1]c1ccccc1
+ new constant: [*:1]N
+ LHS  got: Nc1ccc(O)cc1N from c%911cc(O)ccc1N.N%91
+ expected: Nc1ccc(O)cc1N
+ RHS  got: Nc1ccccc1 from c%911ccccc1.N%91
+ expected: Nc1ccccc1
+   Good!
+Pair:  amidol phenylamine [*:1]c1cc(O)ccc1N>>[*:1]c1ccccc1 [*:1]N 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e19da9408>
+QQQ
+1: amidol 1 [*]c1cc(O)ccc1N 0 N
+2: cyclopentanol 1 [*]C1CCCC1 0 N
+= Check 10 =
+ mol1: cyclopentanol [*]C1CCCC1 1 0
+ constant: [*]N 1
+ mol2: amidol [*]c1cc(O)ccc1N 1 0
+ smirks: [*:1]C1CCCC1>>[*:1]c1cc(O)ccc1N
+ new constant: [*:1]N
+ LHS  got: NC1CCCC1 from C%911CCCC1.N%91
+ expected: NC1CCCC1
+ RHS  got: Nc1ccc(O)cc1N from c%911cc(O)ccc1N.N%91
+ expected: Nc1ccc(O)cc1N
+   Good!
+Pair:  cyclopentanol amidol [*:1]C1CCCC1>>[*:1]c1cc(O)ccc1N [*:1]N 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e19da93b8>
+QQQ
+1: amidol 1 [*]c1ccc(O)cc1N 0 N
+2: phenylamine 1 [*]c1ccccc1 0 N
+= Check 11 =
+ mol1: amidol [*]c1ccc(O)cc1N 1 0
+ constant: [*]N 1
+ mol2: phenylamine [*]c1ccccc1 1 0
+ smirks: [*:1]c1ccc(O)cc1N>>[*:1]c1ccccc1
+ new constant: [*:1]N
+ LHS  got: Nc1ccc(O)cc1N from c%911ccc(O)cc1N.N%91
+ expected: Nc1ccc(O)cc1N
+ RHS  got: Nc1ccccc1 from c%911ccccc1.N%91
+ expected: Nc1ccccc1
+   Good!
+Pair:  amidol phenylamine [*:1]c1ccc(O)cc1N>>[*:1]c1ccccc1 [*:1]N 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e19da9408>
+QQQ
+1: amidol 1 [*]c1ccc(O)cc1N 0 N
+2: cyclopentanol 1 [*]C1CCCC1 0 N
+= Check 12 =
+ mol1: cyclopentanol [*]C1CCCC1 1 0
+ constant: [*]N 1
+ mol2: amidol [*]c1ccc(O)cc1N 1 0
+ smirks: [*:1]C1CCCC1>>[*:1]c1ccc(O)cc1N
+ new constant: [*:1]N
+ LHS  got: NC1CCCC1 from C%911CCCC1.N%91
+ expected: NC1CCCC1
+ RHS  got: Nc1ccc(O)cc1N from c%911ccc(O)cc1N.N%91
+ expected: Nc1ccc(O)cc1N
+   Good!
+Pair:  cyclopentanol amidol [*:1]C1CCCC1>>[*:1]c1ccc(O)cc1N [*:1]N 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e19da93b8>
+QQQ
+1: phenylamine 1 [*]c1ccccc1 0 N
+2: cyclopentanol 1 [*]C1CCCC1 0 N
+= Check 13 =
+ mol1: cyclopentanol [*]C1CCCC1 1 0
+ constant: [*]N 1
+ mol2: phenylamine [*]c1ccccc1 1 0
+ smirks: [*:1]C1CCCC1>>[*:1]c1ccccc1
+ new constant: [*:1]N
+ LHS  got: NC1CCCC1 from C%911CCCC1.N%91
+ expected: NC1CCCC1
+ RHS  got: Nc1ccccc1 from c%911ccccc1.N%91
+ expected: Nc1ccccc1
+   Good!
+Pair:  cyclopentanol phenylamine [*:1]C1CCCC1>>[*:1]c1ccccc1 [*:1]N 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e19da9638>
+QQQ
+1: o-phenylenediamine 11 [*]c1ccccc1[*] 01 N
+2: amidol 12 [*]c1ccc(O)cc1[*] 01 N
+= Check 14 =
+ mol1: amidol [*]c1ccc(O)cc1[*] 12 01
+ constant: [*]N.[*]N 11
+ mol2: o-phenylenediamine [*]c1ccccc1[*] 11 01
+ smirks: [*:1]c1ccc(O)cc1[*:2]>>[*:1]c1ccccc1[*:2]
+ new constant: [*:1]N.[*:2]N
+ LHS  got: Nc1ccc(O)cc1N from c%911ccc(O)cc1%92.N%91.N%92
+ expected: Nc1ccc(O)cc1N
+ RHS  got: Nc1ccccc1N from c%911ccccc1%92.N%91.N%92
+ expected: Nc1ccccc1N
+   Good!
+Pair:  amidol o-phenylenediamine [*:1]c1ccc(O)cc1[*:2]>>[*:1]c1ccccc1[*:2] [*:1]N.[*:2]N 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e19da9688>
+QQQ
+1: 2-aminophenol 11 [*]c1ccccc1[*] 01 N
+2: amidol 12 [*]c1ccc(N)c([*])c1 10 N
+= Check 15 =
+ mol1: amidol [*]c1ccc(N)c([*])c1 12 10
+ constant: [*]N.[*]O 12
+ mol2: 2-aminophenol [*]c1ccccc1[*] 11 01
+ smirks: [*:1]c1ccc(N)c([*:2])c1>>[*:1]c1ccccc1[*:2]
+ new constant: [*:2]N.[*:1]O
+ LHS  got: Nc1ccc(O)cc1N from c%911ccc(N)c%92c1.N%92.O%91
+ expected: Nc1ccc(O)cc1N
+ RHS  got: Nc1ccccc1O from c%911ccccc1%92.N%92.O%91
+ expected: Nc1ccccc1O
+   Good!
+Pair:  amidol 2-aminophenol [*:1]c1ccc(N)c([*:2])c1>>[*:1]c1ccccc1[*:2] [*:2]N.[*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e19da9728>
+QQQ
+1: 2-aminophenol 11 [*]c1ccccc1[*] 01 N
+2: amidol 12 [*]c1ccc([*])c(N)c1 10 N
+= Check 16 =
+ mol1: amidol [*]c1ccc([*])c(N)c1 12 10
+ constant: [*]N.[*]O 12
+ mol2: 2-aminophenol [*]c1ccccc1[*] 11 01
+ smirks: [*:1]c1ccc([*:2])c(N)c1>>[*:1]c1ccccc1[*:2]
+ new constant: [*:2]N.[*:1]O
+ LHS  got: Nc1ccc(O)cc1N from c%911ccc%92c(N)c1.N%92.O%91
+ expected: Nc1ccc(O)cc1N
+ RHS  got: Nc1ccccc1O from c%911ccccc1%92.N%92.O%91
+ expected: Nc1ccccc1O
+   Good!
+Pair:  amidol 2-aminophenol [*:1]c1ccc([*:2])c(N)c1>>[*:1]c1ccccc1[*:2] [*:2]N.[*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e19da96d8>
+QQQ
+1: amidol 12 [*]c1ccc(N)c([*])c1 10 N
+2: amidol 12 [*]c1ccc([*])c(N)c1 10 N
+QQQ
+1: phenol 1 [*]c1ccccc1 0 N
+2: catechol 1 [*]c1ccccc1O 0 N
+= Check 17 =
+ mol1: phenol [*]c1ccccc1 1 0
+ constant: [*]O 1
+ mol2: catechol [*]c1ccccc1O 1 0
+ smirks: [*:1]c1ccccc1>>[*:1]c1ccccc1O
+ new constant: [*:1]O
+ LHS  got: Oc1ccccc1 from c%911ccccc1.O%91
+ expected: Oc1ccccc1
+ RHS  got: Oc1ccccc1O from c%911ccccc1O.O%91
+ expected: Oc1ccccc1O
+   Good!
+Pair:  phenol catechol [*:1]c1ccccc1>>[*:1]c1ccccc1O [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e19da9728>
+QQQ
+1: phenol 1 [*]c1ccccc1 0 N
+2: 2-aminophenol 1 [*]c1ccccc1N 0 N
+= Check 18 =
+ mol1: phenol [*]c1ccccc1 1 0
+ constant: [*]O 1
+ mol2: 2-aminophenol [*]c1ccccc1N 1 0
+ smirks: [*:1]c1ccccc1>>[*:1]c1ccccc1N
+ new constant: [*:1]O
+ LHS  got: Oc1ccccc1 from c%911ccccc1.O%91
+ expected: Oc1ccccc1
+ RHS  got: Nc1ccccc1O from c%911ccccc1N.O%91
+ expected: Nc1ccccc1O
+   Good!
+Pair:  phenol 2-aminophenol [*:1]c1ccccc1>>[*:1]c1ccccc1N [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e19da99f8>
+QQQ
+1: phenol 1 [*]c1ccccc1 0 N
+2: 2-chlorophenol 1 [*]c1ccccc1Cl 0 N
+= Check 19 =
+ mol1: phenol [*]c1ccccc1 1 0
+ constant: [*]O 1
+ mol2: 2-chlorophenol [*]c1ccccc1Cl 1 0
+ smirks: [*:1]c1ccccc1>>[*:1]c1ccccc1Cl
+ new constant: [*:1]O
+ LHS  got: Oc1ccccc1 from c%911ccccc1.O%91
+ expected: Oc1ccccc1
+ RHS  got: Oc1ccccc1Cl from c%911ccccc1Cl.O%91
+ expected: Oc1ccccc1Cl
+   Good!
+Pair:  phenol 2-chlorophenol [*:1]c1ccccc1>>[*:1]c1ccccc1Cl [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e19da9728>
+QQQ
+1: phenol 1 [*]c1ccccc1 0 N
+2: amidol 1 [*]c1ccc(N)c(N)c1 0 N
+= Check 20 =
+ mol1: amidol [*]c1ccc(N)c(N)c1 1 0
+ constant: [*]O 1
+ mol2: phenol [*]c1ccccc1 1 0
+ smirks: [*:1]c1ccc(N)c(N)c1>>[*:1]c1ccccc1
+ new constant: [*:1]O
+ LHS  got: Nc1ccc(O)cc1N from c%911ccc(N)c(N)c1.O%91
+ expected: Nc1ccc(O)cc1N
+ RHS  got: Oc1ccccc1 from c%911ccccc1.O%91
+ expected: Oc1ccccc1
+   Good!
+Pair:  amidol phenol [*:1]c1ccc(N)c(N)c1>>[*:1]c1ccccc1 [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e19da99f8>
+QQQ
+1: phenol 1 [*]c1ccccc1 0 N
+2: hydroxyquinol 1 [*]c1cc(O)ccc1O 0 N
+= Check 21 =
+ mol1: hydroxyquinol [*]c1cc(O)ccc1O 1 0
+ constant: [*]O 1
+ mol2: phenol [*]c1ccccc1 1 0
+ smirks: [*:1]c1cc(O)ccc1O>>[*:1]c1ccccc1
+ new constant: [*:1]O
+ LHS  got: Oc1ccc(O)c(O)c1 from c%911cc(O)ccc1O.O%91
+ expected: Oc1ccc(O)c(O)c1
+ RHS  got: Oc1ccccc1 from c%911ccccc1.O%91
+ expected: Oc1ccccc1
+   Good!
+Pair:  hydroxyquinol phenol [*:1]c1cc(O)ccc1O>>[*:1]c1ccccc1 [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e19da9728>
+QQQ
+1: phenol 1 [*]c1ccccc1 0 N
+2: hydroxyquinol 1 [*]c1ccc(O)c(O)c1 0 N
+= Check 22 =
+ mol1: hydroxyquinol [*]c1ccc(O)c(O)c1 1 0
+ constant: [*]O 1
+ mol2: phenol [*]c1ccccc1 1 0
+ smirks: [*:1]c1ccc(O)c(O)c1>>[*:1]c1ccccc1
+ new constant: [*:1]O
+ LHS  got: Oc1ccc(O)c(O)c1 from c%911ccc(O)c(O)c1.O%91
+ expected: Oc1ccc(O)c(O)c1
+ RHS  got: Oc1ccccc1 from c%911ccccc1.O%91
+ expected: Oc1ccccc1
+   Good!
+Pair:  hydroxyquinol phenol [*:1]c1ccc(O)c(O)c1>>[*:1]c1ccccc1 [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e19da99f8>
+QQQ
+1: phenol 1 [*]c1ccccc1 0 N
+2: hydroxyquinol 1 [*]c1ccc(O)cc1O 0 N
+= Check 23 =
+ mol1: hydroxyquinol [*]c1ccc(O)cc1O 1 0
+ constant: [*]O 1
+ mol2: phenol [*]c1ccccc1 1 0
+ smirks: [*:1]c1ccc(O)cc1O>>[*:1]c1ccccc1
+ new constant: [*:1]O
+ LHS  got: Oc1ccc(O)c(O)c1 from c%911ccc(O)cc1O.O%91
+ expected: Oc1ccc(O)c(O)c1
+ RHS  got: Oc1ccccc1 from c%911ccccc1.O%91
+ expected: Oc1ccccc1
+   Good!
+Pair:  hydroxyquinol phenol [*:1]c1ccc(O)cc1O>>[*:1]c1ccccc1 [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e19da9728>
+QQQ
+1: catechol 1 [*]c1ccccc1O 0 N
+2: 2-aminophenol 1 [*]c1ccccc1N 0 N
+= Check 24 =
+ mol1: 2-aminophenol [*]c1ccccc1N 1 0
+ constant: [*]O 1
+ mol2: catechol [*]c1ccccc1O 1 0
+ smirks: [*:1]c1ccccc1N>>[*:1]c1ccccc1O
+ new constant: [*:1]O
+ LHS  got: Nc1ccccc1O from c%911ccccc1N.O%91
+ expected: Nc1ccccc1O
+ RHS  got: Oc1ccccc1O from c%911ccccc1O.O%91
+ expected: Oc1ccccc1O
+   Good!
+Pair:  2-aminophenol catechol [*:1]c1ccccc1N>>[*:1]c1ccccc1O [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e19da99f8>
+QQQ
+1: catechol 1 [*]c1ccccc1O 0 N
+2: 2-chlorophenol 1 [*]c1ccccc1Cl 0 N
+= Check 25 =
+ mol1: 2-chlorophenol [*]c1ccccc1Cl 1 0
+ constant: [*]O 1
+ mol2: catechol [*]c1ccccc1O 1 0
+ smirks: [*:1]c1ccccc1Cl>>[*:1]c1ccccc1O
+ new constant: [*:1]O
+ LHS  got: Oc1ccccc1Cl from c%911ccccc1Cl.O%91
+ expected: Oc1ccccc1Cl
+ RHS  got: Oc1ccccc1O from c%911ccccc1O.O%91
+ expected: Oc1ccccc1O
+   Good!
+Pair:  2-chlorophenol catechol [*:1]c1ccccc1Cl>>[*:1]c1ccccc1O [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e19da9728>
+QQQ
+1: catechol 1 [*]c1ccccc1O 0 N
+2: amidol 1 [*]c1ccc(N)c(N)c1 0 N
+= Check 26 =
+ mol1: amidol [*]c1ccc(N)c(N)c1 1 0
+ constant: [*]O 1
+ mol2: catechol [*]c1ccccc1O 1 0
+ smirks: [*:1]c1ccc(N)c(N)c1>>[*:1]c1ccccc1O
+ new constant: [*:1]O
+ LHS  got: Nc1ccc(O)cc1N from c%911ccc(N)c(N)c1.O%91
+ expected: Nc1ccc(O)cc1N
+ RHS  got: Oc1ccccc1O from c%911ccccc1O.O%91
+ expected: Oc1ccccc1O
+   Good!
+Pair:  amidol catechol [*:1]c1ccc(N)c(N)c1>>[*:1]c1ccccc1O [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e19da99f8>
+QQQ
+1: catechol 1 [*]c1ccccc1O 0 N
+2: hydroxyquinol 1 [*]c1cc(O)ccc1O 0 N
+= Check 27 =
+ mol1: hydroxyquinol [*]c1cc(O)ccc1O 1 0
+ constant: [*]O 1
+ mol2: catechol [*]c1ccccc1O 1 0
+ smirks: [*:1]c1cc(O)ccc1O>>[*:1]c1ccccc1O
+ new constant: [*:1]O
+ LHS  got: Oc1ccc(O)c(O)c1 from c%911cc(O)ccc1O.O%91
+ expected: Oc1ccc(O)c(O)c1
+ RHS  got: Oc1ccccc1O from c%911ccccc1O.O%91
+ expected: Oc1ccccc1O
+   Good!
+Pair:  hydroxyquinol catechol [*:1]c1cc(O)ccc1O>>[*:1]c1ccccc1O [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e19da9728>
+QQQ
+1: catechol 1 [*]c1ccccc1O 0 N
+2: hydroxyquinol 1 [*]c1ccc(O)c(O)c1 0 N
+= Check 28 =
+ mol1: hydroxyquinol [*]c1ccc(O)c(O)c1 1 0
+ constant: [*]O 1
+ mol2: catechol [*]c1ccccc1O 1 0
+ smirks: [*:1]c1ccc(O)c(O)c1>>[*:1]c1ccccc1O
+ new constant: [*:1]O
+ LHS  got: Oc1ccc(O)c(O)c1 from c%911ccc(O)c(O)c1.O%91
+ expected: Oc1ccc(O)c(O)c1
+ RHS  got: Oc1ccccc1O from c%911ccccc1O.O%91
+ expected: Oc1ccccc1O
+   Good!
+Pair:  hydroxyquinol catechol [*:1]c1ccc(O)c(O)c1>>[*:1]c1ccccc1O [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e19da99f8>
+QQQ
+1: catechol 1 [*]c1ccccc1O 0 N
+2: hydroxyquinol 1 [*]c1ccc(O)cc1O 0 N
+= Check 29 =
+ mol1: hydroxyquinol [*]c1ccc(O)cc1O 1 0
+ constant: [*]O 1
+ mol2: catechol [*]c1ccccc1O 1 0
+ smirks: [*:1]c1ccc(O)cc1O>>[*:1]c1ccccc1O
+ new constant: [*:1]O
+ LHS  got: Oc1ccc(O)c(O)c1 from c%911ccc(O)cc1O.O%91
+ expected: Oc1ccc(O)c(O)c1
+ RHS  got: Oc1ccccc1O from c%911ccccc1O.O%91
+ expected: Oc1ccccc1O
+   Good!
+Pair:  hydroxyquinol catechol [*:1]c1ccc(O)cc1O>>[*:1]c1ccccc1O [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e1a47f4a8>
+QQQ
+1: 2-aminophenol 1 [*]c1ccccc1N 0 N
+2: 2-chlorophenol 1 [*]c1ccccc1Cl 0 N
+= Check 30 =
+ mol1: 2-chlorophenol [*]c1ccccc1Cl 1 0
+ constant: [*]O 1
+ mol2: 2-aminophenol [*]c1ccccc1N 1 0
+ smirks: [*:1]c1ccccc1Cl>>[*:1]c1ccccc1N
+ new constant: [*:1]O
+ LHS  got: Oc1ccccc1Cl from c%911ccccc1Cl.O%91
+ expected: Oc1ccccc1Cl
+ RHS  got: Nc1ccccc1O from c%911ccccc1N.O%91
+ expected: Nc1ccccc1O
+   Good!
+Pair:  2-chlorophenol 2-aminophenol [*:1]c1ccccc1Cl>>[*:1]c1ccccc1N [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e1a20d4a8>
+QQQ
+1: 2-aminophenol 1 [*]c1ccccc1N 0 N
+2: amidol 1 [*]c1ccc(N)c(N)c1 0 N
+= Check 31 =
+ mol1: amidol [*]c1ccc(N)c(N)c1 1 0
+ constant: [*]O 1
+ mol2: 2-aminophenol [*]c1ccccc1N 1 0
+ smirks: [*:1]c1ccc(N)c(N)c1>>[*:1]c1ccccc1N
+ new constant: [*:1]O
+ LHS  got: Nc1ccc(O)cc1N from c%911ccc(N)c(N)c1.O%91
+ expected: Nc1ccc(O)cc1N
+ RHS  got: Nc1ccccc1O from c%911ccccc1N.O%91
+ expected: Nc1ccccc1O
+   Good!
+Pair:  amidol 2-aminophenol [*:1]c1ccc(N)c(N)c1>>[*:1]c1ccccc1N [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e1a47f4a8>
+QQQ
+1: 2-aminophenol 1 [*]c1ccccc1N 0 N
+2: hydroxyquinol 1 [*]c1cc(O)ccc1O 0 N
+= Check 32 =
+ mol1: hydroxyquinol [*]c1cc(O)ccc1O 1 0
+ constant: [*]O 1
+ mol2: 2-aminophenol [*]c1ccccc1N 1 0
+ smirks: [*:1]c1cc(O)ccc1O>>[*:1]c1ccccc1N
+ new constant: [*:1]O
+ LHS  got: Oc1ccc(O)c(O)c1 from c%911cc(O)ccc1O.O%91
+ expected: Oc1ccc(O)c(O)c1
+ RHS  got: Nc1ccccc1O from c%911ccccc1N.O%91
+ expected: Nc1ccccc1O
+   Good!
+Pair:  hydroxyquinol 2-aminophenol [*:1]c1cc(O)ccc1O>>[*:1]c1ccccc1N [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e1a20d4a8>
+QQQ
+1: 2-aminophenol 1 [*]c1ccccc1N 0 N
+2: hydroxyquinol 1 [*]c1ccc(O)c(O)c1 0 N
+= Check 33 =
+ mol1: hydroxyquinol [*]c1ccc(O)c(O)c1 1 0
+ constant: [*]O 1
+ mol2: 2-aminophenol [*]c1ccccc1N 1 0
+ smirks: [*:1]c1ccc(O)c(O)c1>>[*:1]c1ccccc1N
+ new constant: [*:1]O
+ LHS  got: Oc1ccc(O)c(O)c1 from c%911ccc(O)c(O)c1.O%91
+ expected: Oc1ccc(O)c(O)c1
+ RHS  got: Nc1ccccc1O from c%911ccccc1N.O%91
+ expected: Nc1ccccc1O
+   Good!
+Pair:  hydroxyquinol 2-aminophenol [*:1]c1ccc(O)c(O)c1>>[*:1]c1ccccc1N [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e1a47f4a8>
+QQQ
+1: 2-aminophenol 1 [*]c1ccccc1N 0 N
+2: hydroxyquinol 1 [*]c1ccc(O)cc1O 0 N
+= Check 34 =
+ mol1: hydroxyquinol [*]c1ccc(O)cc1O 1 0
+ constant: [*]O 1
+ mol2: 2-aminophenol [*]c1ccccc1N 1 0
+ smirks: [*:1]c1ccc(O)cc1O>>[*:1]c1ccccc1N
+ new constant: [*:1]O
+ LHS  got: Oc1ccc(O)c(O)c1 from c%911ccc(O)cc1O.O%91
+ expected: Oc1ccc(O)c(O)c1
+ RHS  got: Nc1ccccc1O from c%911ccccc1N.O%91
+ expected: Nc1ccccc1O
+   Good!
+Pair:  hydroxyquinol 2-aminophenol [*:1]c1ccc(O)cc1O>>[*:1]c1ccccc1N [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e1a20d4a8>
+QQQ
+1: 2-chlorophenol 1 [*]c1ccccc1Cl 0 N
+2: amidol 1 [*]c1ccc(N)c(N)c1 0 N
+= Check 35 =
+ mol1: amidol [*]c1ccc(N)c(N)c1 1 0
+ constant: [*]O 1
+ mol2: 2-chlorophenol [*]c1ccccc1Cl 1 0
+ smirks: [*:1]c1ccc(N)c(N)c1>>[*:1]c1ccccc1Cl
+ new constant: [*:1]O
+ LHS  got: Nc1ccc(O)cc1N from c%911ccc(N)c(N)c1.O%91
+ expected: Nc1ccc(O)cc1N
+ RHS  got: Oc1ccccc1Cl from c%911ccccc1Cl.O%91
+ expected: Oc1ccccc1Cl
+   Good!
+Pair:  amidol 2-chlorophenol [*:1]c1ccc(N)c(N)c1>>[*:1]c1ccccc1Cl [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e1a47f4a8>
+QQQ
+1: 2-chlorophenol 1 [*]c1ccccc1Cl 0 N
+2: hydroxyquinol 1 [*]c1cc(O)ccc1O 0 N
+= Check 36 =
+ mol1: hydroxyquinol [*]c1cc(O)ccc1O 1 0
+ constant: [*]O 1
+ mol2: 2-chlorophenol [*]c1ccccc1Cl 1 0
+ smirks: [*:1]c1cc(O)ccc1O>>[*:1]c1ccccc1Cl
+ new constant: [*:1]O
+ LHS  got: Oc1ccc(O)c(O)c1 from c%911cc(O)ccc1O.O%91
+ expected: Oc1ccc(O)c(O)c1
+ RHS  got: Oc1ccccc1Cl from c%911ccccc1Cl.O%91
+ expected: Oc1ccccc1Cl
+   Good!
+Pair:  hydroxyquinol 2-chlorophenol [*:1]c1cc(O)ccc1O>>[*:1]c1ccccc1Cl [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e1a20d4a8>
+QQQ
+1: 2-chlorophenol 1 [*]c1ccccc1Cl 0 N
+2: hydroxyquinol 1 [*]c1ccc(O)c(O)c1 0 N
+= Check 37 =
+ mol1: hydroxyquinol [*]c1ccc(O)c(O)c1 1 0
+ constant: [*]O 1
+ mol2: 2-chlorophenol [*]c1ccccc1Cl 1 0
+ smirks: [*:1]c1ccc(O)c(O)c1>>[*:1]c1ccccc1Cl
+ new constant: [*:1]O
+ LHS  got: Oc1ccc(O)c(O)c1 from c%911ccc(O)c(O)c1.O%91
+ expected: Oc1ccc(O)c(O)c1
+ RHS  got: Oc1ccccc1Cl from c%911ccccc1Cl.O%91
+ expected: Oc1ccccc1Cl
+   Good!
+Pair:  hydroxyquinol 2-chlorophenol [*:1]c1ccc(O)c(O)c1>>[*:1]c1ccccc1Cl [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e1a47f4a8>
+QQQ
+1: 2-chlorophenol 1 [*]c1ccccc1Cl 0 N
+2: hydroxyquinol 1 [*]c1ccc(O)cc1O 0 N
+= Check 38 =
+ mol1: hydroxyquinol [*]c1ccc(O)cc1O 1 0
+ constant: [*]O 1
+ mol2: 2-chlorophenol [*]c1ccccc1Cl 1 0
+ smirks: [*:1]c1ccc(O)cc1O>>[*:1]c1ccccc1Cl
+ new constant: [*:1]O
+ LHS  got: Oc1ccc(O)c(O)c1 from c%911ccc(O)cc1O.O%91
+ expected: Oc1ccc(O)c(O)c1
+ RHS  got: Oc1ccccc1Cl from c%911ccccc1Cl.O%91
+ expected: Oc1ccccc1Cl
+   Good!
+Pair:  hydroxyquinol 2-chlorophenol [*:1]c1ccc(O)cc1O>>[*:1]c1ccccc1Cl [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e1a20d4a8>
+QQQ
+1: amidol 1 [*]c1ccc(N)c(N)c1 0 N
+2: hydroxyquinol 1 [*]c1cc(O)ccc1O 0 N
+= Check 39 =
+ mol1: hydroxyquinol [*]c1cc(O)ccc1O 1 0
+ constant: [*]O 1
+ mol2: amidol [*]c1ccc(N)c(N)c1 1 0
+ smirks: [*:1]c1cc(O)ccc1O>>[*:1]c1ccc(N)c(N)c1
+ new constant: [*:1]O
+ LHS  got: Oc1ccc(O)c(O)c1 from c%911cc(O)ccc1O.O%91
+ expected: Oc1ccc(O)c(O)c1
+ RHS  got: Nc1ccc(O)cc1N from c%911ccc(N)c(N)c1.O%91
+ expected: Nc1ccc(O)cc1N
+   Good!
+Pair:  hydroxyquinol amidol [*:1]c1cc(O)ccc1O>>[*:1]c1ccc(N)c(N)c1 [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e1a47f4a8>
+QQQ
+1: amidol 1 [*]c1ccc(N)c(N)c1 0 N
+2: hydroxyquinol 1 [*]c1ccc(O)c(O)c1 0 N
+= Check 40 =
+ mol1: amidol [*]c1ccc(N)c(N)c1 1 0
+ constant: [*]O 1
+ mol2: hydroxyquinol [*]c1ccc(O)c(O)c1 1 0
+ smirks: [*:1]c1ccc(N)c(N)c1>>[*:1]c1ccc(O)c(O)c1
+ new constant: [*:1]O
+ LHS  got: Nc1ccc(O)cc1N from c%911ccc(N)c(N)c1.O%91
+ expected: Nc1ccc(O)cc1N
+ RHS  got: Oc1ccc(O)c(O)c1 from c%911ccc(O)c(O)c1.O%91
+ expected: Oc1ccc(O)c(O)c1
+   Good!
+Pair:  amidol hydroxyquinol [*:1]c1ccc(N)c(N)c1>>[*:1]c1ccc(O)c(O)c1 [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e19da97c8>
+QQQ
+1: amidol 1 [*]c1ccc(N)c(N)c1 0 N
+2: hydroxyquinol 1 [*]c1ccc(O)cc1O 0 N
+= Check 41 =
+ mol1: amidol [*]c1ccc(N)c(N)c1 1 0
+ constant: [*]O 1
+ mol2: hydroxyquinol [*]c1ccc(O)cc1O 1 0
+ smirks: [*:1]c1ccc(N)c(N)c1>>[*:1]c1ccc(O)cc1O
+ new constant: [*:1]O
+ LHS  got: Nc1ccc(O)cc1N from c%911ccc(N)c(N)c1.O%91
+ expected: Nc1ccc(O)cc1N
+ RHS  got: Oc1ccc(O)c(O)c1 from c%911ccc(O)cc1O.O%91
+ expected: Oc1ccc(O)c(O)c1
+   Good!
+Pair:  amidol hydroxyquinol [*:1]c1ccc(N)c(N)c1>>[*:1]c1ccc(O)cc1O [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e1a47f4a8>
+QQQ
+1: hydroxyquinol 1 [*]c1cc(O)ccc1O 0 N
+2: hydroxyquinol 1 [*]c1ccc(O)c(O)c1 0 N
+QQQ
+1: hydroxyquinol 1 [*]c1cc(O)ccc1O 0 N
+2: hydroxyquinol 1 [*]c1ccc(O)cc1O 0 N
+QQQ
+1: hydroxyquinol 1 [*]c1ccc(O)c(O)c1 0 N
+2: hydroxyquinol 1 [*]c1ccc(O)cc1O 0 N
+QQQ
+1: catechol 11 [*]c1ccccc1[*] 01 N
+2: hydroxyquinol 12 [*]c1ccc(O)c([*])c1 01 N
+= Check 42 =
+ mol1: hydroxyquinol [*]c1ccc(O)c([*])c1 12 01
+ constant: [*]O.[*]O 11
+ mol2: catechol [*]c1ccccc1[*] 11 01
+ smirks: [*:1]c1ccc(O)c([*:2])c1>>[*:1]c1ccccc1[*:2]
+ new constant: [*:1]O.[*:2]O
+ LHS  got: Oc1ccc(O)c(O)c1 from c%911ccc(O)c%92c1.O%91.O%92
+ expected: Oc1ccc(O)c(O)c1
+ RHS  got: Oc1ccccc1O from c%911ccccc1%92.O%91.O%92
+ expected: Oc1ccccc1O
+   Good!
+Pair:  hydroxyquinol catechol [*:1]c1ccc(O)c([*:2])c1>>[*:1]c1ccccc1[*:2] [*:1]O.[*:2]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e19da98b8>
+QQQ
+1: catechol 11 [*]c1ccccc1[*] 01 N
+2: hydroxyquinol 12 [*]c1ccc(O)cc1[*] 01 N
+= Check 43 =
+ mol1: hydroxyquinol [*]c1ccc(O)cc1[*] 12 01
+ constant: [*]O.[*]O 11
+ mol2: catechol [*]c1ccccc1[*] 11 01
+ smirks: [*:1]c1ccc(O)cc1[*:2]>>[*:1]c1ccccc1[*:2]
+ new constant: [*:1]O.[*:2]O
+ LHS  got: Oc1ccc(O)c(O)c1 from c%911ccc(O)cc1%92.O%91.O%92
+ expected: Oc1ccc(O)c(O)c1
+ RHS  got: Oc1ccccc1O from c%911ccccc1%92.O%91.O%92
+ expected: Oc1ccccc1O
+   Good!
+Pair:  hydroxyquinol catechol [*:1]c1ccc(O)cc1[*:2]>>[*:1]c1ccccc1[*:2] [*:1]O.[*:2]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e19da9728>
+QQQ
+1: catechol 11 [*]c1ccccc1[*] 01 N
+2: hydroxyquinol 12 [*]c1ccc([*])c(O)c1 01 N
+= Check 44 =
+ mol1: hydroxyquinol [*]c1ccc([*])c(O)c1 12 01
+ constant: [*]O.[*]O 11
+ mol2: catechol [*]c1ccccc1[*] 11 01
+ smirks: [*:1]c1ccc([*:2])c(O)c1>>[*:1]c1ccccc1[*:2]
+ new constant: [*:1]O.[*:2]O
+ LHS  got: Oc1ccc(O)c(O)c1 from c%911ccc%92c(O)c1.O%91.O%92
+ expected: Oc1ccc(O)c(O)c1
+ RHS  got: Oc1ccccc1O from c%911ccccc1%92.O%91.O%92
+ expected: Oc1ccccc1O
+   Good!
+Pair:  hydroxyquinol catechol [*:1]c1ccc([*:2])c(O)c1>>[*:1]c1ccccc1[*:2] [*:1]O.[*:2]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e19da98b8>
+QQQ
+1: hydroxyquinol 12 [*]c1ccc(O)c([*])c1 01 N
+2: hydroxyquinol 12 [*]c1ccc(O)cc1[*] 01 N
+QQQ
+1: hydroxyquinol 12 [*]c1ccc(O)c([*])c1 01 N
+2: hydroxyquinol 12 [*]c1ccc([*])c(O)c1 01 N
+QQQ
+1: hydroxyquinol 12 [*]c1ccc(O)cc1[*] 01 N
+2: hydroxyquinol 12 [*]c1ccc([*])c(O)c1 01 N
+QQQ
+1: amidol 1 [*]O 0 N
+2: o-phenylenediamine 1 [*:1][H] 0 N
+= Check 45 =
+ mol1: o-phenylenediamine [*:1][H] 1 0
+ constant: [*]c1ccc(N)c(N)c1 1
+ mol2: amidol [*]O 1 0
+ smirks: [*:1][H]>>[*:1]O
+ new constant: [*:1]c1ccc(N)c(N)c1
+ LHS  got: Nc1ccccc1N from [H]%91.c%911ccc(N)c(N)c1
+ expected: Nc1ccccc1N
+ RHS  got: Nc1ccc(O)cc1N from O%91.c%911ccc(N)c(N)c1
+ expected: Nc1ccc(O)cc1N
+   Good!
+Pair:  o-phenylenediamine amidol [*:1][H]>>[*:1]O [*:1]c1ccc(N)c(N)c1 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e19da9728>
+QQQ
+1: hydroxyquinol 1 [*]O 0 N
+2: catechol 1 [*:1][H] 0 N
+= Check 46 =
+ mol1: catechol [*:1][H] 1 0
+ constant: [*]c1ccc(O)c(O)c1 1
+ mol2: hydroxyquinol [*]O 1 0
+ smirks: [*:1][H]>>[*:1]O
+ new constant: [*:1]c1ccc(O)c(O)c1
+ LHS  got: Oc1ccccc1O from [H]%91.c%911ccc(O)c(O)c1
+ expected: Oc1ccccc1O
+ RHS  got: Oc1ccc(O)c(O)c1 from O%91.c%911ccc(O)c(O)c1
+ expected: Oc1ccc(O)c(O)c1
+   Good!
+Pair:  catechol hydroxyquinol [*:1][H]>>[*:1]O [*:1]c1ccc(O)c(O)c1 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e19da9a98>
+QQQ
+1: phenol 1 [*]O 0 N
+2: phenylamine 1 [*]N 0 N
+= Check 47 =
+ mol1: phenylamine [*]N 1 0
+ constant: [*]c1ccccc1 1
+ mol2: phenol [*]O 1 0
+ smirks: [*:1]N>>[*:1]O
+ new constant: [*:1]c1ccccc1
+ LHS  got: Nc1ccccc1 from N%91.c%911ccccc1
+ expected: Nc1ccccc1
+ RHS  got: Oc1ccccc1 from O%91.c%911ccccc1
+ expected: Oc1ccccc1
+   Good!
+Pair:  phenylamine phenol [*:1]N>>[*:1]O [*:1]c1ccccc1 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e19da9908>
+QQQ
+1: 2-aminophenol 1 [*]O 0 N
+2: o-phenylenediamine 1 [*]N 0 N
+= Check 48 =
+ mol1: o-phenylenediamine [*]N 1 0
+ constant: [*]c1ccccc1N 1
+ mol2: 2-aminophenol [*]O 1 0
+ smirks: [*:1]N>>[*:1]O
+ new constant: [*:1]c1ccccc1N
+ LHS  got: Nc1ccccc1N from N%91.c%911ccccc1N
+ expected: Nc1ccccc1N
+ RHS  got: Nc1ccccc1O from O%91.c%911ccccc1N
+ expected: Nc1ccccc1O
+   Good!
+Pair:  o-phenylenediamine 2-aminophenol [*:1]N>>[*:1]O [*:1]c1ccccc1N 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e19da9a48>
+QQQ
+1: 2-aminophenol 1 [*]O 0 N
+2: phenylamine 1 [*:1][H] 0 N
+= Check 49 =
+ mol1: phenylamine [*:1][H] 1 0
+ constant: [*]c1ccccc1N 1
+ mol2: 2-aminophenol [*]O 1 0
+ smirks: [*:1][H]>>[*:1]O
+ new constant: [*:1]c1ccccc1N
+ LHS  got: Nc1ccccc1 from [H]%91.c%911ccccc1N
+ expected: Nc1ccccc1
+ RHS  got: Nc1ccccc1O from O%91.c%911ccccc1N
+ expected: Nc1ccccc1O
+   Good!
+Pair:  phenylamine 2-aminophenol [*:1][H]>>[*:1]O [*:1]c1ccccc1N 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e19da9b88>
+QQQ
+1: o-phenylenediamine 1 [*]N 0 N
+2: phenylamine 1 [*:1][H] 0 N
+= Check 50 =
+ mol1: phenylamine [*:1][H] 1 0
+ constant: [*]c1ccccc1N 1
+ mol2: o-phenylenediamine [*]N 1 0
+ smirks: [*:1][H]>>[*:1]N
+ new constant: [*:1]c1ccccc1N
+ LHS  got: Nc1ccccc1 from [H]%91.c%911ccccc1N
+ expected: Nc1ccccc1
+ RHS  got: Nc1ccccc1N from N%91.c%911ccccc1N
+ expected: Nc1ccccc1N
+   Good!
+Pair:  phenylamine o-phenylenediamine [*:1][H]>>[*:1]N [*:1]c1ccccc1N 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e19da9a48>
+QQQ
+1: catechol 1 [*]O 0 N
+2: 2-aminophenol 1 [*]N 0 N
+= Check 51 =
+ mol1: 2-aminophenol [*]N 1 0
+ constant: [*]c1ccccc1O 1
+ mol2: catechol [*]O 1 0
+ smirks: [*:1]N>>[*:1]O
+ new constant: [*:1]c1ccccc1O
+ LHS  got: Nc1ccccc1O from N%91.c%911ccccc1O
+ expected: Nc1ccccc1O
+ RHS  got: Oc1ccccc1O from O%91.c%911ccccc1O
+ expected: Oc1ccccc1O
+   Good!
+Pair:  2-aminophenol catechol [*:1]N>>[*:1]O [*:1]c1ccccc1O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e19da9b88>
+QQQ
+1: catechol 1 [*]O 0 N
+2: 2-chlorophenol 1 [*]Cl 0 N
+= Check 52 =
+ mol1: 2-chlorophenol [*]Cl 1 0
+ constant: [*]c1ccccc1O 1
+ mol2: catechol [*]O 1 0
+ smirks: [*:1]Cl>>[*:1]O
+ new constant: [*:1]c1ccccc1O
+ LHS  got: Oc1ccccc1Cl from Cl%91.c%911ccccc1O
+ expected: Oc1ccccc1Cl
+ RHS  got: Oc1ccccc1O from O%91.c%911ccccc1O
+ expected: Oc1ccccc1O
+   Good!
+Pair:  2-chlorophenol catechol [*:1]Cl>>[*:1]O [*:1]c1ccccc1O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e19da9bd8>
+QQQ
+1: catechol 1 [*]O 0 N
+2: phenol 1 [*:1][H] 0 N
+= Check 53 =
+ mol1: phenol [*:1][H] 1 0
+ constant: [*]c1ccccc1O 1
+ mol2: catechol [*]O 1 0
+ smirks: [*:1][H]>>[*:1]O
+ new constant: [*:1]c1ccccc1O
+ LHS  got: Oc1ccccc1 from [H]%91.c%911ccccc1O
+ expected: Oc1ccccc1
+ RHS  got: Oc1ccccc1O from O%91.c%911ccccc1O
+ expected: Oc1ccccc1O
+   Good!
+Pair:  phenol catechol [*:1][H]>>[*:1]O [*:1]c1ccccc1O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e19da9b88>
+QQQ
+1: 2-aminophenol 1 [*]N 0 N
+2: 2-chlorophenol 1 [*]Cl 0 N
+= Check 54 =
+ mol1: 2-chlorophenol [*]Cl 1 0
+ constant: [*]c1ccccc1O 1
+ mol2: 2-aminophenol [*]N 1 0
+ smirks: [*:1]Cl>>[*:1]N
+ new constant: [*:1]c1ccccc1O
+ LHS  got: Oc1ccccc1Cl from Cl%91.c%911ccccc1O
+ expected: Oc1ccccc1Cl
+ RHS  got: Nc1ccccc1O from N%91.c%911ccccc1O
+ expected: Nc1ccccc1O
+   Good!
+Pair:  2-chlorophenol 2-aminophenol [*:1]Cl>>[*:1]N [*:1]c1ccccc1O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e19da9bd8>
+QQQ
+1: 2-aminophenol 1 [*]N 0 N
+2: phenol 1 [*:1][H] 0 N
+= Check 55 =
+ mol1: phenol [*:1][H] 1 0
+ constant: [*]c1ccccc1O 1
+ mol2: 2-aminophenol [*]N 1 0
+ smirks: [*:1][H]>>[*:1]N
+ new constant: [*:1]c1ccccc1O
+ LHS  got: Oc1ccccc1 from [H]%91.c%911ccccc1O
+ expected: Oc1ccccc1
+ RHS  got: Nc1ccccc1O from N%91.c%911ccccc1O
+ expected: Nc1ccccc1O
+   Good!
+Pair:  phenol 2-aminophenol [*:1][H]>>[*:1]N [*:1]c1ccccc1O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e19da9b88>
+QQQ
+1: 2-chlorophenol 1 [*]Cl 0 N
+2: phenol 1 [*:1][H] 0 N
+= Check 56 =
+ mol1: phenol [*:1][H] 1 0
+ constant: [*]c1ccccc1O 1
+ mol2: 2-chlorophenol [*]Cl 1 0
+ smirks: [*:1][H]>>[*:1]Cl
+ new constant: [*:1]c1ccccc1O
+ LHS  got: Oc1ccccc1 from [H]%91.c%911ccccc1O
+ expected: Oc1ccccc1
+ RHS  got: Oc1ccccc1Cl from Cl%91.c%911ccccc1O
+ expected: Oc1ccccc1Cl
+   Good!
+Pair:  phenol 2-chlorophenol [*:1][H]>>[*:1]Cl [*:1]c1ccccc1O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7f5e19da9bd8>

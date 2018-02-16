@@ -40,15 +40,15 @@ import time
 from ._compat import basestring
 
 def get_reporter(reporter):
-    if reporter is None:
-        return Quiet()
-    if isinstance(reporter, basestring):
-        if reporter == "quiet":
-            return Quiet()
-        if reporter == "verbose":
-            return Verbose()
-        raise ValueError("Unsupported reporter %r" % (reporter,))
-    return reporter
+    # if reporter is None:
+    #     return Quiet()
+    # if isinstance(reporter, basestring):
+    #     if reporter == "quiet":
+    #         return Quiet()
+    #     if reporter == "verbose":
+    #         return Verbose()
+    #     raise ValueError("Unsupported reporter %r" % (reporter,))
+    return Verbose()
 
 class BaseReporter(object):
     def warning(self, msg):
@@ -56,7 +56,7 @@ class BaseReporter(object):
         pass
 
     def report(self, msg):
-        "Print a report message"
+        print(msg)
         pass
 
     def progress(self, it, text, n=None):
@@ -147,7 +147,7 @@ class Verbose(BaseReporter):
         sys.stderr.write(self._erase)
         sys.stderr.write(msg)
         sys.stderr.flush()
-        self._erase = "\r" + " "*len(msg) + "\r"
+        #self._erase = "\r" + " "*len(msg) + "\r"
 
 # This is a bit of a hack that was developed at the very end of the project.
 # It's used during the database load process, from an ".mmpa" file.

@@ -196,6 +196,7 @@ dependencies:
   - pip:
     - cheroot==6.0.0
     - cherrypy==13.1.0
+    - molvs==0.1.0
     - more-itertools==4.1.0
     - phitools==0.1
     - portend==2.2

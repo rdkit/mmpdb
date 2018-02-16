@@ -1,423 +1,233 @@
-Using fragment filters: {'--max-variable-heavies': '10'}
-Loaded fragment record 0('[*]c1ccccc1', '1', 1)
-->
-('phenol', '1', '[*]O', '0', 'N')
----------------------
-('[*]O', '1', 1)
-->
-('phenol', '1', '[*]c1ccccc1', '0', 'N')
----------------------
+////////////////////
+FragmentRecord('phenol', 'Oc1ccccc1', 7, 'Oc1ccccc1', 
+[
+Fragmentation(1, 'N', 1, '1', '[*]O', '0', 6, '1', '[*]c1ccccc1', 'c1ccccc1'), 
+Fragmentation(1, 'N', 6, '1', '[*]c1ccccc1', '0', 1, '1', '[*]O', 'O')])
+
+...........................
+Fragmentation(1, 'N', 1, '1', '[*]O', '0', 6, '1', '[*]c1ccccc1', 'c1ccccc1')
+('[*]c1ccccc1', '1', 1) -> phenol 1 [*]O 0 N
+
+(ct_smiles,symmetry_class,cuts)->(record.id, variable_symmetry_class,variable_smiles, attachment_order,enumeration_label)
+
+...........................
+Fragmentation(1, 'N', 6, '1', '[*]c1ccccc1', '0', 1, '1', '[*]O', 'O')
+('[*]O', '1', 1) -> phenol 1 [*]c1ccccc1 0 N
+
+
+////////////////////
+FragmentRecord('catechol', 'Oc1ccccc1O', 8, 'Oc1ccccc1O', [Fragmentation(1, 'N', 1, '1', '[*]O', '0', 7, '1', '[*]c1ccccc1O', 'Oc1ccccc1'), Fragmentation(1, 'N', 7, '1', '[*]c1ccccc1O', '0', 1, '1', '[*]O', 'O'), Fragmentation(2, 'aN', 6, '11', '[*]c1ccccc1[*]', '01', 2, '11', '[*]O.[*]O', None)])
+...........................
+Fragmentation(1, 'N', 1, '1', '[*]O', '0', 7, '1', '[*]c1ccccc1O', 'Oc1ccccc1')
 ('[*]c1ccccc1O', '1', 1)
-->
-('catechol', '1', '[*]O', '0', 'N')
----------------------
+-->
+catechol 1 [*]O 0 N
+...........................
+Fragmentation(1, 'N', 7, '1', '[*]c1ccccc1O', '0', 1, '1', '[*]O', 'O')
 ('[*]O', '1', 1)
-->
-('catechol', '1', '[*]c1ccccc1O', '0', 'N')
----------------------
+-->
+catechol 1 [*]c1ccccc1O 0 N
+...........................
+Fragmentation(2, 'N', 6, '11', '[*]c1ccccc1[*]', '01', 2, '11', '[*]O.[*]O', None)
 ('[*]O.[*]O', '11', 2)
-->
-('catechol', '11', '[*]c1ccccc1[*]', '01', 'N')
----------------------
+-->
+catechol 11 [*]c1ccccc1[*] 01 N
+////////////////////
+FragmentRecord('2-aminophenol', 'Oc1ccccc1N', 8, 'Nc1ccccc1O', [Fragmentation(1, 'N', 1, '1', '[*]N', '0', 7, '1', '[*]c1ccccc1O', 'Oc1ccccc1'), Fragmentation(1, 'N', 1, '1', '[*]O', '0', 7, '1', '[*]c1ccccc1N', 'Nc1ccccc1'), Fragmentation(1, 'N', 7, '1', '[*]c1ccccc1N', '0', 1, '1', '[*]O', 'O'), Fragmentation(1, 'N', 7, '1', '[*]c1ccccc1O', '0', 1, '1', '[*]N', 'N'), Fragmentation(2, 'N', 6, '11', '[*]c1ccccc1[*]', '01', 2, '12', '[*]N.[*]O', None)])
+...........................
+Fragmentation(1, 'N', 1, '1', '[*]N', '0', 7, '1', '[*]c1ccccc1O', 'Oc1ccccc1')
 ('[*]c1ccccc1O', '1', 1)
-->
-('2-aminophenol', '1', '[*]N', '0', 'N')
----------------------
+-->
+2-aminophenol 1 [*]N 0 N
+...........................
+Fragmentation(1, 'N', 1, '1', '[*]O', '0', 7, '1', '[*]c1ccccc1N', 'Nc1ccccc1')
 ('[*]c1ccccc1N', '1', 1)
-->
-('2-aminophenol', '1', '[*]O', '0', 'N')
----------------------
+-->
+2-aminophenol 1 [*]O 0 N
+...........................
+Fragmentation(1, 'N', 7, '1', '[*]c1ccccc1N', '0', 1, '1', '[*]O', 'O')
 ('[*]O', '1', 1)
-->
-('2-aminophenol', '1', '[*]c1ccccc1N', '0', 'N')
----------------------
+-->
+2-aminophenol 1 [*]c1ccccc1N 0 N
+...........................
+Fragmentation(1, 'N', 7, '1', '[*]c1ccccc1O', '0', 1, '1', '[*]N', 'N')
 ('[*]N', '1', 1)
-->
-('2-aminophenol', '1', '[*]c1ccccc1O', '0', 'N')
----------------------
+-->
+2-aminophenol 1 [*]c1ccccc1O 0 N
+...........................
+Fragmentation(2, 'N', 6, '11', '[*]c1ccccc1[*]', '01', 2, '12', '[*]N.[*]O', None)
 ('[*]N.[*]O', '12', 2)
-->
-('2-aminophenol', '11', '[*]c1ccccc1[*]', '01', 'N')
----------------------
+-->
+2-aminophenol 11 [*]c1ccccc1[*] 01 N
+////////////////////
+FragmentRecord('2-chlorophenol', 'Oc1ccccc1Cl', 8, 'Oc1ccccc1Cl', [Fragmentation(1, 'N', 1, '1', '[*]Cl', '0', 7, '1', '[*]c1ccccc1O', 'Oc1ccccc1'), Fragmentation(1, 'N', 1, '1', '[*]O', '0', 7, '1', '[*]c1ccccc1Cl', 'Clc1ccccc1'), Fragmentation(1, 'N', 7, '1', '[*]c1ccccc1Cl', '0', 1, '1', '[*]O', 'O'), Fragmentation(1, 'N', 7, '1', '[*]c1ccccc1O', '0', 1, '1', '[*]Cl', 'Cl'), Fragmentation(2, 'N', 6, '11', '[*]c1ccccc1[*]', '01', 2, '12', '[*]Cl.[*]O', None)])
+...........................
+Fragmentation(1, 'N', 1, '1', '[*]Cl', '0', 7, '1', '[*]c1ccccc1O', 'Oc1ccccc1')
 ('[*]c1ccccc1O', '1', 1)
-->
-('2-chlorophenol', '1', '[*]Cl', '0', 'N')
----------------------
+-->
+2-chlorophenol 1 [*]Cl 0 N
+...........................
+Fragmentation(1, 'N', 1, '1', '[*]O', '0', 7, '1', '[*]c1ccccc1Cl', 'Clc1ccccc1')
 ('[*]c1ccccc1Cl', '1', 1)
-->
-('2-chlorophenol', '1', '[*]O', '0', 'N')
----------------------
+-->
+2-chlorophenol 1 [*]O 0 N
+...........................
+Fragmentation(1, 'N', 7, '1', '[*]c1ccccc1Cl', '0', 1, '1', '[*]O', 'O')
 ('[*]O', '1', 1)
-->
-('2-chlorophenol', '1', '[*]c1ccccc1Cl', '0', 'N')
----------------------
+-->
+2-chlorophenol 1 [*]c1ccccc1Cl 0 N
+...........................
+Fragmentation(1, 'N', 7, '1', '[*]c1ccccc1O', '0', 1, '1', '[*]Cl', 'Cl')
 ('[*]Cl', '1', 1)
-->
-('2-chlorophenol', '1', '[*]c1ccccc1O', '0', 'N')
----------------------
+-->
+2-chlorophenol 1 [*]c1ccccc1O 0 N
+...........................
+Fragmentation(2, 'N', 6, '11', '[*]c1ccccc1[*]', '01', 2, '12', '[*]Cl.[*]O', None)
 ('[*]Cl.[*]O', '12', 2)
-->
-('2-chlorophenol', '11', '[*]c1ccccc1[*]', '01', 'N')
----------------------
+-->
+2-chlorophenol 11 [*]c1ccccc1[*] 01 N
+////////////////////
+FragmentRecord('o-phenylenediamine', 'Nc1ccccc1N', 8, 'Nc1ccccc1N', [Fragmentation(1, 'N', 1, '1', '[*]N', '0', 7, '1', '[*]c1ccccc1N', 'Nc1ccccc1'), Fragmentation(1, 'N', 7, '1', '[*]c1ccccc1N', '0', 1, '1', '[*]N', 'N'), Fragmentation(2, 'N', 6, '11', '[*]c1ccccc1[*]', '01', 2, '11', '[*]N.[*]N', None)])
+...........................
+Fragmentation(1, 'N', 1, '1', '[*]N', '0', 7, '1', '[*]c1ccccc1N', 'Nc1ccccc1')
 ('[*]c1ccccc1N', '1', 1)
-->
-('o-phenylenediamine', '1', '[*]N', '0', 'N')
----------------------
+-->
+o-phenylenediamine 1 [*]N 0 N
+...........................
+Fragmentation(1, 'N', 7, '1', '[*]c1ccccc1N', '0', 1, '1', '[*]N', 'N')
 ('[*]N', '1', 1)
-->
-('o-phenylenediamine', '1', '[*]c1ccccc1N', '0', 'N')
----------------------
+-->
+o-phenylenediamine 1 [*]c1ccccc1N 0 N
+...........................
+Fragmentation(2, 'N', 6, '11', '[*]c1ccccc1[*]', '01', 2, '11', '[*]N.[*]N', None)
 ('[*]N.[*]N', '11', 2)
-->
-('o-phenylenediamine', '11', '[*]c1ccccc1[*]', '01', 'N')
----------------------
+-->
+o-phenylenediamine 11 [*]c1ccccc1[*] 01 N
+////////////////////
+FragmentRecord('amidol', 'Nc1cc(O)ccc1N', 9, 'Nc1ccc(O)cc1N', [Fragmentation(1, 'N', 1, '1', '[*]N', '0', 8, '1', '[*]c1cc(O)ccc1N', 'Nc1ccc(O)cc1'), Fragmentation(1, 'N', 1, '1', '[*]N', '0', 8, '1', '[*]c1ccc(O)cc1N', 'Nc1cccc(O)c1'), Fragmentation(1, 'N', 1, '1', '[*]O', '0', 8, '1', '[*]c1ccc(N)c(N)c1', 'Nc1ccccc1N'), Fragmentation(1, 'N', 8, '1', '[*]c1cc(O)ccc1N', '0', 1, '1', '[*]N', 'N'), Fragmentation(1, 'N', 8, '1', '[*]c1ccc(N)c(N)c1', '0', 1, '1', '[*]O', 'O'), Fragmentation(1, 'N', 8, '1', '[*]c1ccc(O)cc1N', '0', 1, '1', '[*]N', 'N'), Fragmentation(2, 'N', 7, '12', '[*]c1ccc(N)c([*])c1', '10', 2, '12', '[*]N.[*]O', None), Fragmentation(2, 'N', 7, '12', '[*]c1ccc(O)cc1[*]', '01', 2, '11', '[*]N.[*]N', None), Fragmentation(2, 'N', 7, '12', '[*]c1ccc([*])c(N)c1', '10', 2, '12', '[*]N.[*]O', None), Fragmentation(3, 'N', 6, '123', '[*]c1ccc([*])c([*])c1', '201', 3, '112', '[*]N.[*]N.[*]O', None)])
+...........................
+Fragmentation(1, 'N', 1, '1', '[*]N', '0', 8, '1', '[*]c1cc(O)ccc1N', 'Nc1ccc(O)cc1')
 ('[*]c1cc(O)ccc1N', '1', 1)
-->
-('amidol', '1', '[*]N', '0', 'N')
----------------------
+-->
+amidol 1 [*]N 0 N
+...........................
+Fragmentation(1, 'N', 1, '1', '[*]N', '0', 8, '1', '[*]c1ccc(O)cc1N', 'Nc1cccc(O)c1')
 ('[*]c1ccc(O)cc1N', '1', 1)
-->
-('amidol', '1', '[*]N', '0', 'N')
----------------------
+-->
+amidol 1 [*]N 0 N
+...........................
+Fragmentation(1, 'N', 1, '1', '[*]O', '0', 8, '1', '[*]c1ccc(N)c(N)c1', 'Nc1ccccc1N')
 ('[*]c1ccc(N)c(N)c1', '1', 1)
-->
-('amidol', '1', '[*]O', '0', 'N')
----------------------
+-->
+amidol 1 [*]O 0 N
+...........................
+Fragmentation(1, 'N', 8, '1', '[*]c1cc(O)ccc1N', '0', 1, '1', '[*]N', 'N')
 ('[*]N', '1', 1)
-->
-('amidol', '1', '[*]c1cc(O)ccc1N', '0', 'N')
----------------------
+-->
+amidol 1 [*]c1cc(O)ccc1N 0 N
+...........................
+Fragmentation(1, 'N', 8, '1', '[*]c1ccc(N)c(N)c1', '0', 1, '1', '[*]O', 'O')
 ('[*]O', '1', 1)
-->
-('amidol', '1', '[*]c1ccc(N)c(N)c1', '0', 'N')
----------------------
+-->
+amidol 1 [*]c1ccc(N)c(N)c1 0 N
+...........................
+Fragmentation(1, 'N', 8, '1', '[*]c1ccc(O)cc1N', '0', 1, '1', '[*]N', 'N')
 ('[*]N', '1', 1)
-->
-('amidol', '1', '[*]c1ccc(O)cc1N', '0', 'N')
----------------------
+-->
+amidol 1 [*]c1ccc(O)cc1N 0 N
+...........................
+Fragmentation(2, 'N', 7, '12', '[*]c1ccc(N)c([*])c1', '10', 2, '12', '[*]N.[*]O', None)
 ('[*]N.[*]O', '12', 2)
-->
-('amidol', '12', '[*]c1ccc(N)c([*])c1', '10', 'N')
----------------------
+-->
+amidol 12 [*]c1ccc(N)c([*])c1 10 N
+...........................
+Fragmentation(2, 'N', 7, '12', '[*]c1ccc(O)cc1[*]', '01', 2, '11', '[*]N.[*]N', None)
 ('[*]N.[*]N', '11', 2)
-->
-('amidol', '12', '[*]c1ccc(O)cc1[*]', '01', 'N')
----------------------
+-->
+amidol 12 [*]c1ccc(O)cc1[*] 01 N
+...........................
+Fragmentation(2, 'N', 7, '12', '[*]c1ccc([*])c(N)c1', '10', 2, '12', '[*]N.[*]O', None)
 ('[*]N.[*]O', '12', 2)
-->
-('amidol', '12', '[*]c1ccc([*])c(N)c1', '10', 'N')
----------------------
+-->
+amidol 12 [*]c1ccc([*])c(N)c1 10 N
+...........................
+Fragmentation(3, 'N', 6, '123', '[*]c1ccc([*])c([*])c1', '201', 3, '112', '[*]N.[*]N.[*]O', None)
 ('[*]N.[*]N.[*]O', '112', 3)
-->
-('amidol', '123', '[*]c1ccc([*])c([*])c1', '201', 'N')
----------------------
+-->
+amidol 123 [*]c1ccc([*])c([*])c1 201 N
+////////////////////
+FragmentRecord('hydroxyquinol', 'Oc1cc(O)ccc1O', 9, 'Oc1ccc(O)c(O)c1', [Fragmentation(1, 'N', 1, '1', '[*]O', '0', 8, '1', '[*]c1cc(O)ccc1O', 'Oc1ccc(O)cc1'), Fragmentation(1, 'N', 1, '1', '[*]O', '0', 8, '1', '[*]c1ccc(O)c(O)c1', 'Oc1ccccc1O'), Fragmentation(1, 'N', 1, '1', '[*]O', '0', 8, '1', '[*]c1ccc(O)cc1O', 'Oc1cccc(O)c1'), Fragmentation(1, 'N', 8, '1', '[*]c1cc(O)ccc1O', '0', 1, '1', '[*]O', 'O'), Fragmentation(1, 'N', 8, '1', '[*]c1ccc(O)c(O)c1', '0', 1, '1', '[*]O', 'O'), Fragmentation(1, 'N', 8, '1', '[*]c1ccc(O)cc1O', '0', 1, '1', '[*]O', 'O'), Fragmentation(2, 'N', 7, '12', '[*]c1ccc(O)c([*])c1', '01', 2, '11', '[*]O.[*]O', None), Fragmentation(2, 'N', 7, '12', '[*]c1ccc(O)cc1[*]', '01', 2, '11', '[*]O.[*]O', None), Fragmentation(2, 'N', 7, '12', '[*]c1ccc([*])c(O)c1', '01', 2, '11', '[*]O.[*]O', None), Fragmentation(3, 'N', 6, '123', '[*]c1ccc([*])c([*])c1', '012', 3, '111', '[*]O.[*]O.[*]O', None)])
+...........................
+Fragmentation(1, 'N', 1, '1', '[*]O', '0', 8, '1', '[*]c1cc(O)ccc1O', 'Oc1ccc(O)cc1')
 ('[*]c1cc(O)ccc1O', '1', 1)
-->
-('hydroxyquinol', '1', '[*]O', '0', 'N')
----------------------
+-->
+hydroxyquinol 1 [*]O 0 N
+...........................
+Fragmentation(1, 'N', 1, '1', '[*]O', '0', 8, '1', '[*]c1ccc(O)c(O)c1', 'Oc1ccccc1O')
 ('[*]c1ccc(O)c(O)c1', '1', 1)
-->
-('hydroxyquinol', '1', '[*]O', '0', 'N')
----------------------
+-->
+hydroxyquinol 1 [*]O 0 N
+...........................
+Fragmentation(1, 'N', 1, '1', '[*]O', '0', 8, '1', '[*]c1ccc(O)cc1O', 'Oc1cccc(O)c1')
 ('[*]c1ccc(O)cc1O', '1', 1)
-->
-('hydroxyquinol', '1', '[*]O', '0', 'N')
----------------------
+-->
+hydroxyquinol 1 [*]O 0 N
+...........................
+Fragmentation(1, 'N', 8, '1', '[*]c1cc(O)ccc1O', '0', 1, '1', '[*]O', 'O')
 ('[*]O', '1', 1)
-->
-('hydroxyquinol', '1', '[*]c1cc(O)ccc1O', '0', 'N')
----------------------
+-->
+hydroxyquinol 1 [*]c1cc(O)ccc1O 0 N
+...........................
+Fragmentation(1, 'N', 8, '1', '[*]c1ccc(O)c(O)c1', '0', 1, '1', '[*]O', 'O')
 ('[*]O', '1', 1)
-->
-('hydroxyquinol', '1', '[*]c1ccc(O)c(O)c1', '0', 'N')
----------------------
+-->
+hydroxyquinol 1 [*]c1ccc(O)c(O)c1 0 N
+...........................
+Fragmentation(1, 'N', 8, '1', '[*]c1ccc(O)cc1O', '0', 1, '1', '[*]O', 'O')
 ('[*]O', '1', 1)
-->
-('hydroxyquinol', '1', '[*]c1ccc(O)cc1O', '0', 'N')
----------------------
+-->
+hydroxyquinol 1 [*]c1ccc(O)cc1O 0 N
+...........................
+Fragmentation(2, 'N', 7, '12', '[*]c1ccc(O)c([*])c1', '01', 2, '11', '[*]O.[*]O', None)
 ('[*]O.[*]O', '11', 2)
-->
-('hydroxyquinol', '12', '[*]c1ccc(O)c([*])c1', '01', 'N')
----------------------
+-->
+hydroxyquinol 12 [*]c1ccc(O)c([*])c1 01 N
+...........................
+Fragmentation(2, 'N', 7, '12', '[*]c1ccc(O)cc1[*]', '01', 2, '11', '[*]O.[*]O', None)
 ('[*]O.[*]O', '11', 2)
-->
-('hydroxyquinol', '12', '[*]c1ccc(O)cc1[*]', '01', 'N')
----------------------
+-->
+hydroxyquinol 12 [*]c1ccc(O)cc1[*] 01 N
+...........................
+Fragmentation(2, 'N', 7, '12', '[*]c1ccc([*])c(O)c1', '01', 2, '11', '[*]O.[*]O', None)
 ('[*]O.[*]O', '11', 2)
-->
-('hydroxyquinol', '12', '[*]c1ccc([*])c(O)c1', '01', 'N')
----------------------
+-->
+hydroxyquinol 12 [*]c1ccc([*])c(O)c1 01 N
+...........................
+Fragmentation(3, 'N', 6, '123', '[*]c1ccc([*])c([*])c1', '012', 3, '111', '[*]O.[*]O.[*]O', None)
 ('[*]O.[*]O.[*]O', '111', 3)
-->
-('hydroxyquinol', '123', '[*]c1ccc([*])c([*])c1', '012', 'N')
----------------------
+-->
+hydroxyquinol 123 [*]c1ccc([*])c([*])c1 012 N
+////////////////////
+FragmentRecord('phenylamine', 'Nc1ccccc1', 7, 'Nc1ccccc1', [Fragmentation(1, 'N', 1, '1', '[*]N', '0', 6, '1', '[*]c1ccccc1', 'c1ccccc1'), Fragmentation(1, 'N', 6, '1', '[*]c1ccccc1', '0', 1, '1', '[*]N', 'N')])
+...........................
+Fragmentation(1, 'N', 1, '1', '[*]N', '0', 6, '1', '[*]c1ccccc1', 'c1ccccc1')
 ('[*]c1ccccc1', '1', 1)
-->
-('phenylamine', '1', '[*]N', '0', 'N')
----------------------
+-->
+phenylamine 1 [*]N 0 N
+...........................
+Fragmentation(1, 'N', 6, '1', '[*]c1ccccc1', '0', 1, '1', '[*]N', 'N')
 ('[*]N', '1', 1)
-->
-('phenylamine', '1', '[*]c1ccccc1', '0', 'N')
----------------------
+-->
+phenylamine 1 [*]c1ccccc1 0 N
+////////////////////
+FragmentRecord('cyclopentanol', 'C1CCCC1N', 6, 'NC1CCCC1', [Fragmentation(1, 'N', 1, '1', '[*]N', '0', 5, '1', '[*]C1CCCC1', 'C1CCCC1'), Fragmentation(1, 'N', 5, '1', '[*]C1CCCC1', '0', 1, '1', '[*]N', 'N')])
+...........................
+Fragmentation(1, 'N', 1, '1', '[*]N', '0', 5, '1', '[*]C1CCCC1', 'C1CCCC1')
 ('[*]C1CCCC1', '1', 1)
-->
-('cyclopentanol', '1', '[*]N', '0', 'N')
----------------------
+-->
+cyclopentanol 1 [*]N 0 N
+...........................
+Fragmentation(1, 'N', 5, '1', '[*]C1CCCC1', '0', 1, '1', '[*]N', 'N')
 ('[*]N', '1', 1)
-->
-('cyclopentanol', '1', '[*]C1CCCC1', '0', 'N')
----------------------
-<mmpdblib.index_algorithm.FragmentIndex object at 0x7f6b797fd048>
-Constant fragment matches 0/10 (0.0%)QQQ
-1: 2-aminophenol 1 [*]c1ccccc1O 0 N
-2: o-phenylenediamine 1 [*]c1ccccc1N 0 N
-o-phenylenediamine 2-aminophenol [*:1]c1ccccc1N>>[*:1]c1ccccc1O [*:1]N 5
-QQQ
-1: 2-aminophenol 1 [*]c1ccccc1O 0 N
-2: amidol 1 [*]c1cc(O)ccc1N 0 N
-amidol 2-aminophenol [*:1]c1cc(O)ccc1N>>[*:1]c1ccccc1O [*:1]N 5
-QQQ
-1: 2-aminophenol 1 [*]c1ccccc1O 0 N
-2: amidol 1 [*]c1ccc(O)cc1N 0 N
-amidol 2-aminophenol [*:1]c1ccc(O)cc1N>>[*:1]c1ccccc1O [*:1]N 5
-QQQ
-1: 2-aminophenol 1 [*]c1ccccc1O 0 N
-2: phenylamine 1 [*]c1ccccc1 0 N
-phenylamine 2-aminophenol [*:1]c1ccccc1>>[*:1]c1ccccc1O [*:1]N 5
-QQQ
-1: 2-aminophenol 1 [*]c1ccccc1O 0 N
-2: cyclopentanol 1 [*]C1CCCC1 0 N
-cyclopentanol 2-aminophenol [*:1]C1CCCC1>>[*:1]c1ccccc1O [*:1]N 5
-QQQ
-1: o-phenylenediamine 1 [*]c1ccccc1N 0 N
-2: amidol 1 [*]c1cc(O)ccc1N 0 N
-amidol o-phenylenediamine [*:1]c1cc(O)ccc1N>>[*:1]c1ccccc1N [*:1]N 5
-QQQ
-1: o-phenylenediamine 1 [*]c1ccccc1N 0 N
-2: amidol 1 [*]c1ccc(O)cc1N 0 N
-amidol o-phenylenediamine [*:1]c1ccc(O)cc1N>>[*:1]c1ccccc1N [*:1]N 5
-QQQ
-1: o-phenylenediamine 1 [*]c1ccccc1N 0 N
-2: phenylamine 1 [*]c1ccccc1 0 N
-phenylamine o-phenylenediamine [*:1]c1ccccc1>>[*:1]c1ccccc1N [*:1]N 5
-QQQ
-1: o-phenylenediamine 1 [*]c1ccccc1N 0 N
-2: cyclopentanol 1 [*]C1CCCC1 0 N
-cyclopentanol o-phenylenediamine [*:1]C1CCCC1>>[*:1]c1ccccc1N [*:1]N 5
-QQQ
-1: amidol 1 [*]c1cc(O)ccc1N 0 N
-2: amidol 1 [*]c1ccc(O)cc1N 0 N
-QQQ
-1: amidol 1 [*]c1cc(O)ccc1N 0 N
-2: phenylamine 1 [*]c1ccccc1 0 N
-amidol phenylamine [*:1]c1cc(O)ccc1N>>[*:1]c1ccccc1 [*:1]N 5
-QQQ
-1: amidol 1 [*]c1cc(O)ccc1N 0 N
-2: cyclopentanol 1 [*]C1CCCC1 0 N
-cyclopentanol amidol [*:1]C1CCCC1>>[*:1]c1cc(O)ccc1N [*:1]N 5
-QQQ
-1: amidol 1 [*]c1ccc(O)cc1N 0 N
-2: phenylamine 1 [*]c1ccccc1 0 N
-amidol phenylamine [*:1]c1ccc(O)cc1N>>[*:1]c1ccccc1 [*:1]N 5
-QQQ
-1: amidol 1 [*]c1ccc(O)cc1N 0 N
-2: cyclopentanol 1 [*]C1CCCC1 0 N
-cyclopentanol amidol [*:1]C1CCCC1>>[*:1]c1ccc(O)cc1N [*:1]N 5
-QQQ
-1: phenylamine 1 [*]c1ccccc1 0 N
-2: cyclopentanol 1 [*]C1CCCC1 0 N
-cyclopentanol phenylamine [*:1]C1CCCC1>>[*:1]c1ccccc1 [*:1]N 5
-QQQ
-1: o-phenylenediamine 11 [*]c1ccccc1[*] 01 N
-2: amidol 12 [*]c1ccc(O)cc1[*] 01 N
-amidol o-phenylenediamine [*:1]c1ccc(O)cc1[*:2]>>[*:1]c1ccccc1[*:2] [*:1]N.[*:2]N 5
-QQQ
-1: 2-aminophenol 11 [*]c1ccccc1[*] 01 N
-2: amidol 12 [*]c1ccc(N)c([*])c1 10 N
-amidol 2-aminophenol [*:1]c1ccc(N)c([*:2])c1>>[*:1]c1ccccc1[*:2] [*:2]N.[*:1]O 5
-QQQ
-1: 2-aminophenol 11 [*]c1ccccc1[*] 01 N
-2: amidol 12 [*]c1ccc([*])c(N)c1 10 N
-amidol 2-aminophenol [*:1]c1ccc([*:2])c(N)c1>>[*:1]c1ccccc1[*:2] [*:2]N.[*:1]O 5
-QQQ
-1: amidol 12 [*]c1ccc(N)c([*])c1 10 N
-2: amidol 12 [*]c1ccc([*])c(N)c1 10 N
-QQQ
-1: phenol 1 [*]c1ccccc1 0 N
-2: catechol 1 [*]c1ccccc1O 0 N
-phenol catechol [*:1]c1ccccc1>>[*:1]c1ccccc1O [*:1]O 5
-QQQ
-1: phenol 1 [*]c1ccccc1 0 N
-2: 2-aminophenol 1 [*]c1ccccc1N 0 N
-phenol 2-aminophenol [*:1]c1ccccc1>>[*:1]c1ccccc1N [*:1]O 5
-QQQ
-1: phenol 1 [*]c1ccccc1 0 N
-2: 2-chlorophenol 1 [*]c1ccccc1Cl 0 N
-phenol 2-chlorophenol [*:1]c1ccccc1>>[*:1]c1ccccc1Cl [*:1]O 5
-QQQ
-1: phenol 1 [*]c1ccccc1 0 N
-2: amidol 1 [*]c1ccc(N)c(N)c1 0 N
-amidol phenol [*:1]c1ccc(N)c(N)c1>>[*:1]c1ccccc1 [*:1]O 5
-QQQ
-1: phenol 1 [*]c1ccccc1 0 N
-2: hydroxyquinol 1 [*]c1cc(O)ccc1O 0 N
-hydroxyquinol phenol [*:1]c1cc(O)ccc1O>>[*:1]c1ccccc1 [*:1]O 5
-QQQ
-1: phenol 1 [*]c1ccccc1 0 N
-2: hydroxyquinol 1 [*]c1ccc(O)c(O)c1 0 N
-hydroxyquinol phenol [*:1]c1ccc(O)c(O)c1>>[*:1]c1ccccc1 [*:1]O 5
-QQQ
-1: phenol 1 [*]c1ccccc1 0 N
-2: hydroxyquinol 1 [*]c1ccc(O)cc1O 0 N
-hydroxyquinol phenol [*:1]c1ccc(O)cc1O>>[*:1]c1ccccc1 [*:1]O 5
-QQQ
-1: catechol 1 [*]c1ccccc1O 0 N
-2: 2-aminophenol 1 [*]c1ccccc1N 0 N
-2-aminophenol catechol [*:1]c1ccccc1N>>[*:1]c1ccccc1O [*:1]O 5
-QQQ
-1: catechol 1 [*]c1ccccc1O 0 N
-2: 2-chlorophenol 1 [*]c1ccccc1Cl 0 N
-2-chlorophenol catechol [*:1]c1ccccc1Cl>>[*:1]c1ccccc1O [*:1]O 5
-QQQ
-1: catechol 1 [*]c1ccccc1O 0 N
-2: amidol 1 [*]c1ccc(N)c(N)c1 0 N
-amidol catechol [*:1]c1ccc(N)c(N)c1>>[*:1]c1ccccc1O [*:1]O 5
-QQQ
-1: catechol 1 [*]c1ccccc1O 0 N
-2: hydroxyquinol 1 [*]c1cc(O)ccc1O 0 N
-hydroxyquinol catechol [*:1]c1cc(O)ccc1O>>[*:1]c1ccccc1O [*:1]O 5
-QQQ
-1: catechol 1 [*]c1ccccc1O 0 N
-2: hydroxyquinol 1 [*]c1ccc(O)c(O)c1 0 N
-hydroxyquinol catechol [*:1]c1ccc(O)c(O)c1>>[*:1]c1ccccc1O [*:1]O 5
-QQQ
-1: catechol 1 [*]c1ccccc1O 0 N
-2: hydroxyquinol 1 [*]c1ccc(O)cc1O 0 N
-hydroxyquinol catechol [*:1]c1ccc(O)cc1O>>[*:1]c1ccccc1O [*:1]O 5
-QQQ
-1: 2-aminophenol 1 [*]c1ccccc1N 0 N
-2: 2-chlorophenol 1 [*]c1ccccc1Cl 0 N
-2-chlorophenol 2-aminophenol [*:1]c1ccccc1Cl>>[*:1]c1ccccc1N [*:1]O 5
-QQQ
-1: 2-aminophenol 1 [*]c1ccccc1N 0 N
-2: amidol 1 [*]c1ccc(N)c(N)c1 0 N
-amidol 2-aminophenol [*:1]c1ccc(N)c(N)c1>>[*:1]c1ccccc1N [*:1]O 5
-QQQ
-1: 2-aminophenol 1 [*]c1ccccc1N 0 N
-2: hydroxyquinol 1 [*]c1cc(O)ccc1O 0 N
-hydroxyquinol 2-aminophenol [*:1]c1cc(O)ccc1O>>[*:1]c1ccccc1N [*:1]O 5
-QQQ
-1: 2-aminophenol 1 [*]c1ccccc1N 0 N
-2: hydroxyquinol 1 [*]c1ccc(O)c(O)c1 0 N
-hydroxyquinol 2-aminophenol [*:1]c1ccc(O)c(O)c1>>[*:1]c1ccccc1N [*:1]O 5
-QQQ
-1: 2-aminophenol 1 [*]c1ccccc1N 0 N
-2: hydroxyquinol 1 [*]c1ccc(O)cc1O 0 N
-hydroxyquinol 2-aminophenol [*:1]c1ccc(O)cc1O>>[*:1]c1ccccc1N [*:1]O 5
-QQQ
-1: 2-chlorophenol 1 [*]c1ccccc1Cl 0 N
-2: amidol 1 [*]c1ccc(N)c(N)c1 0 N
-amidol 2-chlorophenol [*:1]c1ccc(N)c(N)c1>>[*:1]c1ccccc1Cl [*:1]O 5
-QQQ
-1: 2-chlorophenol 1 [*]c1ccccc1Cl 0 N
-2: hydroxyquinol 1 [*]c1cc(O)ccc1O 0 N
-hydroxyquinol 2-chlorophenol [*:1]c1cc(O)ccc1O>>[*:1]c1ccccc1Cl [*:1]O 5
-QQQ
-1: 2-chlorophenol 1 [*]c1ccccc1Cl 0 N
-2: hydroxyquinol 1 [*]c1ccc(O)c(O)c1 0 N
-hydroxyquinol 2-chlorophenol [*:1]c1ccc(O)c(O)c1>>[*:1]c1ccccc1Cl [*:1]O 5
-QQQ
-1: 2-chlorophenol 1 [*]c1ccccc1Cl 0 N
-2: hydroxyquinol 1 [*]c1ccc(O)cc1O 0 N
-hydroxyquinol 2-chlorophenol [*:1]c1ccc(O)cc1O>>[*:1]c1ccccc1Cl [*:1]O 5
-QQQ
-1: amidol 1 [*]c1ccc(N)c(N)c1 0 N
-2: hydroxyquinol 1 [*]c1cc(O)ccc1O 0 N
-hydroxyquinol amidol [*:1]c1cc(O)ccc1O>>[*:1]c1ccc(N)c(N)c1 [*:1]O 5
-QQQ
-1: amidol 1 [*]c1ccc(N)c(N)c1 0 N
-2: hydroxyquinol 1 [*]c1ccc(O)c(O)c1 0 N
-amidol hydroxyquinol [*:1]c1ccc(N)c(N)c1>>[*:1]c1ccc(O)c(O)c1 [*:1]O 5
-QQQ
-1: amidol 1 [*]c1ccc(N)c(N)c1 0 N
-2: hydroxyquinol 1 [*]c1ccc(O)cc1O 0 N
-amidol hydroxyquinol [*:1]c1ccc(N)c(N)c1>>[*:1]c1ccc(O)cc1O [*:1]O 5
-QQQ
-1: hydroxyquinol 1 [*]c1cc(O)ccc1O 0 N
-2: hydroxyquinol 1 [*]c1ccc(O)c(O)c1 0 N
-QQQ
-1: hydroxyquinol 1 [*]c1cc(O)ccc1O 0 N
-2: hydroxyquinol 1 [*]c1ccc(O)cc1O 0 N
-QQQ
-1: hydroxyquinol 1 [*]c1ccc(O)c(O)c1 0 N
-2: hydroxyquinol 1 [*]c1ccc(O)cc1O 0 N
-QQQ
-1: catechol 11 [*]c1ccccc1[*] 01 N
-2: hydroxyquinol 12 [*]c1ccc(O)c([*])c1 01 N
-hydroxyquinol catechol [*:1]c1ccc(O)c([*:2])c1>>[*:1]c1ccccc1[*:2] [*:1]O.[*:2]O 5
-QQQ
-1: catechol 11 [*]c1ccccc1[*] 01 N
-2: hydroxyquinol 12 [*]c1ccc(O)cc1[*] 01 N
-hydroxyquinol catechol [*:1]c1ccc(O)cc1[*:2]>>[*:1]c1ccccc1[*:2] [*:1]O.[*:2]O 5
-QQQ
-1: catechol 11 [*]c1ccccc1[*] 01 N
-2: hydroxyquinol 12 [*]c1ccc([*])c(O)c1 01 N
-hydroxyquinol catechol [*:1]c1ccc([*:2])c(O)c1>>[*:1]c1ccccc1[*:2] [*:1]O.[*:2]O 5
-QQQ
-1: hydroxyquinol 12 [*]c1ccc(O)c([*])c1 01 N
-2: hydroxyquinol 12 [*]c1ccc(O)cc1[*] 01 N
-QQQ
-1: hydroxyquinol 12 [*]c1ccc(O)c([*])c1 01 N
-2: hydroxyquinol 12 [*]c1ccc([*])c(O)c1 01 N
-QQQ
-1: hydroxyquinol 12 [*]c1ccc(O)cc1[*] 01 N
-2: hydroxyquinol 12 [*]c1ccc([*])c(O)c1 01 N
-QQQ
-1: amidol 1 [*]O 0 N
-2: o-phenylenediamine 1 [*:1][H] 0 N
-o-phenylenediamine amidol [*:1][H]>>[*:1]O [*:1]c1ccc(N)c(N)c1 5
-QQQ
-1: hydroxyquinol 1 [*]O 0 N
-2: catechol 1 [*:1][H] 0 N
-catechol hydroxyquinol [*:1][H]>>[*:1]O [*:1]c1ccc(O)c(O)c1 5
-QQQ
-1: phenol 1 [*]O 0 N
-2: phenylamine 1 [*]N 0 N
-phenylamine phenol [*:1]N>>[*:1]O [*:1]c1ccccc1 5
-QQQ
-1: 2-aminophenol 1 [*]O 0 N
-2: o-phenylenediamine 1 [*]N 0 N
-o-phenylenediamine 2-aminophenol [*:1]N>>[*:1]O [*:1]c1ccccc1N 5
-QQQ
-1: 2-aminophenol 1 [*]O 0 N
-2: phenylamine 1 [*:1][H] 0 N
-phenylamine 2-aminophenol [*:1][H]>>[*:1]O [*:1]c1ccccc1N 5
-QQQ
-1: o-phenylenediamine 1 [*]N 0 N
-2: phenylamine 1 [*:1][H] 0 N
-phenylamine o-phenylenediamine [*:1][H]>>[*:1]N [*:1]c1ccccc1N 5
-QQQ
-1: catechol 1 [*]O 0 N
-2: 2-aminophenol 1 [*]N 0 N
-2-aminophenol catechol [*:1]N>>[*:1]O [*:1]c1ccccc1O 5
-QQQ
-1: catechol 1 [*]O 0 N
-2: 2-chlorophenol 1 [*]Cl 0 N
-2-chlorophenol catechol [*:1]Cl>>[*:1]O [*:1]c1ccccc1O 5
-QQQ
-1: catechol 1 [*]O 0 N
-2: phenol 1 [*:1][H] 0 N
-phenol catechol [*:1][H]>>[*:1]O [*:1]c1ccccc1O 5
-QQQ
-1: 2-aminophenol 1 [*]N 0 N
-2: 2-chlorophenol 1 [*]Cl 0 N
-2-chlorophenol 2-aminophenol [*:1]Cl>>[*:1]N [*:1]c1ccccc1O 5
-QQQ
-1: 2-aminophenol 1 [*]N 0 N
-2: phenol 1 [*:1][H] 0 N
-phenol 2-aminophenol [*:1][H]>>[*:1]N [*:1]c1ccccc1O 5
-QQQ
-1: 2-chlorophenol 1 [*]Cl 0 N
-2: phenol 1 [*:1][H] 0 N
-phenol 2-chlorophenol [*:1][H]>>[*:1]Cl [*:1]c1ccccc1O 5
-Building index ...Analyzing database ...Computing sizes ...
+-->
+cyclopentanol 1 [*]C1CCCC1 0 N

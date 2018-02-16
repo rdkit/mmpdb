@@ -1,4 +1,4 @@
-[["VERSION", "mmpdb-fragment/2"]
+["VERSION", "mmpdb-fragment/2"]
 ["SOFTWARE", "mmpdb-2.0"]
 ["OPTION", "cut_smarts", "[#6+0;!$(*=,#[!#6])]!@!=!#[!#0;!#1;!$([CH2]);!$([CH3][CH2])]"]
 ["OPTION", "max_heavies", "100"]
