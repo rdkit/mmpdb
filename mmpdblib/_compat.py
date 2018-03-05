@@ -66,8 +66,8 @@ else:
         return io.TextIOWrapper(fileobj, newline=None)
 
     # gzip requires a binary file
-    binary_stdin = sys.stdin.buffer
-    binary_stdout = sys.stdout.buffer
+    binary_stdin = None #sys.stdin.buffer
+    binary_stdout = None # sys.stdout.buffer
     
     # Lazy map is the default
     imap = map
