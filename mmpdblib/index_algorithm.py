@@ -513,7 +513,7 @@ def load_fragment_index(fragment_reader, fragment_filter=None, selected_ids=None
     constant_smiles_to_hydrogen_constant_smiles = {}
 
     # OLM
-    fstore = fragment_store.FragmentStore()
+    fstore = fragment_store.FragmentStore("salida.txt")
     cstore = fragment_store.ConstantStore()
     mstore = fragment_store.MainStore()
 
@@ -552,6 +552,10 @@ def load_fragment_index(fragment_reader, fragment_filter=None, selected_ids=None
             if fragmentation.num_cuts == 1:
                 #constant_smiles_to_hydrogen_constant_smiles[fragmentation.constant_smiles] = fragmentation.constant_with_H_smiles
                 cstore.insert(fragmentation.constant_smiles,fragmentation.constant_with_H_smiles)
+    fragment_store.pg_load()
+    fragment_store.addsc()
+    fragment_store.pg_load_sc()
+
 
     ## Add the single cut hydrogen transformations
 
