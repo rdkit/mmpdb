@@ -513,22 +513,29 @@ def load_fragment_index(fragment_reader, fragment_filter=None, selected_ids=None
     constant_smiles_to_hydrogen_constant_smiles = {}
 
     # OLM
-    fstore = fragment_store.FragmentStore("salida.txt")
+    fstore = fragment_store.FragmentStore(fragment_store.filename_index)
     cstore = fragment_store.ConstantStore()
     mstore = fragment_store.MainStore()
-
+    istore = fragment_store.IdRecordStore()
+    i=0
     for recno, record in enumerate(fragment_reader, 1):
+
         if record.errmsg:
+            i = i + 1
+            print(i)
+            print(record.errmsg)
             continue
-        if record.id in id_to_record:
-            raise ValueError("Duplicate identifier %r at %s" % (record.id, fragment_reader.location.where()))
-        id_to_record[record.id] = InputRecord(
-            record.id, record.input_smiles, record.num_normalized_heavies, record.normalized_smiles)
+        #OLM
+        #if record.id in id_to_record:
+        #    raise ValueError("Duplicate identifier %r at %s" % (record.id, fragment_reader.location.where()))
+        #id_to_record[record.id] = InputRecord(record.id, record.input_smiles, record.num_normalized_heavies, record.normalized_smiles)
+        istore.insert(record.id, record.input_smiles, record.num_normalized_heavies, record.normalized_smiles)
+
         if selected_ids is not None and record.id not in selected_ids:
             continue
 
         #normalized_smiles_to_ids[record.normalized_smiles].append(record.id)
-        mstore.insert(record.normalized_smiles, id)
+        mstore.insert(record.normalized_smiles, record.id)
         for fragmentation in record.fragments:
             if not fragment_filter.allow_fragment(
                     fragmentation.variable_num_heavies, record.num_normalized_heavies):
@@ -552,10 +559,13 @@ def load_fragment_index(fragment_reader, fragment_filter=None, selected_ids=None
             if fragmentation.num_cuts == 1:
                 #constant_smiles_to_hydrogen_constant_smiles[fragmentation.constant_smiles] = fragmentation.constant_with_H_smiles
                 cstore.insert(fragmentation.constant_smiles,fragmentation.constant_with_H_smiles)
+    print("Total: "+str(i))
+    fragment_store.pg_create_tables()
     fragment_store.pg_load()
+    fragment_store.pg_transform()
     fragment_store.addsc()
     fragment_store.pg_load_sc()
-
+    fragment_store.pg_reagg()
 
     ## Add the single cut hydrogen transformations
 
@@ -586,12 +596,10 @@ def load_fragment_index(fragment_reader, fragment_filter=None, selected_ids=None
     #                       num_cuts,
     #                       other_id, "1", "[*:1][H]", "0", "N-CTE")
     #         matches.append((other_id, "1", "[*:1][H]", "0", "N"))
-    print('\n')
-    print("Record:")
-    print(id_to_record)
     mstore.close()
     fstore.close()
     cstore.close()
+    istore.close()
     return FragmentIndex(dict(index), id_to_record)
 
 
