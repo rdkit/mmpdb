@@ -501,6 +501,8 @@ class InputRecord(object):
 def load_fragment_index(fragment_reader, fragment_filter=None, selected_ids=None):
     if fragment_filter is None:
         fragment_filter = _AllowAllFilter()
+    inmem=True
+
 
     # constant -> list of records containing that constant
     index = defaultdict(list)
@@ -519,32 +521,34 @@ def load_fragment_index(fragment_reader, fragment_filter=None, selected_ids=None
     istore = fragment_store.IdRecordStore()
     i=0
     for recno, record in enumerate(fragment_reader, 1):
-
         if record.errmsg:
             i = i + 1
             print(i)
             print(record.errmsg)
             continue
         #OLM
-        #if record.id in id_to_record:
-        #    raise ValueError("Duplicate identifier %r at %s" % (record.id, fragment_reader.location.where()))
-        #id_to_record[record.id] = InputRecord(record.id, record.input_smiles, record.num_normalized_heavies, record.normalized_smiles)
+        if record.id in id_to_record:
+            raise ValueError("Duplicate identifier %r at %s" % (record.id, fragment_reader.location.where()))
+        if inmem:
+            id_to_record[record.id] = InputRecord(record.id, record.input_smiles, record.num_normalized_heavies, record.normalized_smiles)
         istore.insert(record.id, record.input_smiles, record.num_normalized_heavies, record.normalized_smiles)
 
         if selected_ids is not None and record.id not in selected_ids:
             continue
 
-        #normalized_smiles_to_ids[record.normalized_smiles].append(record.id)
+        if inmem:
+            normalized_smiles_to_ids[record.normalized_smiles].append(record.id)
         mstore.insert(record.normalized_smiles, record.id)
         for fragmentation in record.fragments:
             if not fragment_filter.allow_fragment(
                     fragmentation.variable_num_heavies, record.num_normalized_heavies):
                 continue
 
-            #index[
-            #    (fragmentation.constant_smiles, fragmentation.constant_symmetry_class, fragmentation.num_cuts)].append(
-            #    (record.id, fragmentation.variable_symmetry_class, fragmentation.variable_smiles,
-            #     fragmentation.attachment_order, fragmentation.enumeration_label))
+            if inmem:
+                index[
+                (fragmentation.constant_smiles, fragmentation.constant_symmetry_class, fragmentation.num_cuts)].append(
+                (record.id, fragmentation.variable_symmetry_class, fragmentation.variable_smiles,
+                 fragmentation.attachment_order, fragmentation.enumeration_label))
             fstore.insert(fragmentation.constant_smiles,
                           fragmentation.constant_symmetry_class,
                           fragmentation.num_cuts,
@@ -553,20 +557,10 @@ def load_fragment_index(fragment_reader, fragment_filter=None, selected_ids=None
                           fragmentation.variable_smiles,
                           fragmentation.attachment_order,
                           fragmentation.enumeration_label)
-            # print((fragmentation.constant_smiles, fragmentation.constant_symmetry_class, fragmentation.num_cuts),"-->",(record.id, fragmentation.variable_symmetry_class,
-            #     fragmentation.variable_smiles, fragmentation.attachment_order,
-            #     fragmentation.enumeration_label))
             if fragmentation.num_cuts == 1:
-                #constant_smiles_to_hydrogen_constant_smiles[fragmentation.constant_smiles] = fragmentation.constant_with_H_smiles
+                if inmem:
+                    constant_smiles_to_hydrogen_constant_smiles[fragmentation.constant_smiles] = fragmentation.constant_with_H_smiles
                 cstore.insert(fragmentation.constant_smiles,fragmentation.constant_with_H_smiles)
-    print("Total: "+str(i))
-    fragment_store.pg_create_tables()
-    fragment_store.pg_load()
-    fragment_store.pg_transform()
-    fragment_store.addsc()
-    fragment_store.pg_load_sc()
-    fragment_store.pg_reagg()
-
     ## Add the single cut hydrogen transformations
 
     # The algorithm is:
@@ -574,32 +568,35 @@ def load_fragment_index(fragment_reader, fragment_filter=None, selected_ids=None
     #   - if the with-hydrogen version matches an actual record
     #   - add the records using the [*:1][H] variable fragment
     #
-    # for (constant_smiles, constant_symmetry_class, num_cuts), matches in index.items():
-    #     print("Single cut:")
-    #     print(constant_smiles,constant_symmetry_class,num_cuts)
-    #     if num_cuts != 1:
-    #         continue
-    #     constant_with_H_smiles = constant_smiles_to_hydrogen_constant_smiles.get(constant_smiles, None)
-    #     if constant_with_H_smiles is None:
-    #         continue
-    #     other_ids = normalized_smiles_to_ids.get(constant_with_H_smiles, [])
-    #     for other_id in other_ids:
-    #         # NOTE: this is hard-coded to "[*:1][H]", and must match the
-    #         # same string used in fragment.py's _hydrogen_cut_smiles
-    #         print("--------------")
-    #         print(constant_smiles, constant_symmetry_class, num_cuts)
-    #         print(" -> ")
-    #         print(other_id, "1", "[*:1][H]", "0", "N")
-    #         print("--------------")
-    #         fstore.insert(constant_smiles,
-    #                       constant_symmetry_class,
-    #                       num_cuts,
-    #                       other_id, "1", "[*:1][H]", "0", "N-CTE")
-    #         matches.append((other_id, "1", "[*:1][H]", "0", "N"))
+    if inmem:
+        i=0
+        for (constant_smiles, constant_symmetry_class, num_cuts), matches in index.items():
+            if num_cuts != 1:
+                continue
+            i = i + 1
+            constant_with_H_smiles = constant_smiles_to_hydrogen_constant_smiles.get(constant_smiles, None)
+            if constant_with_H_smiles is None:
+                continue
+            other_ids = normalized_smiles_to_ids.get(constant_with_H_smiles, [])
+            for other_id in other_ids:
+                print("Mem:" + str(i))
+                print(constant_smiles + "#" + constant_symmetry_class + "#" + str(num_cuts))
+                # NOTE: this is hard-coded to "[*:1][H]", and must match the
+                # same string used in fragment.py's _hydrogen_cut_smiles
+                print("\t"+other_id + "#1#[*:1][H]#0#N")
+                matches.append((other_id, "1", "[*:1][H]", "0", "N"))
+    print("Total rejected: "+str(i))
     mstore.close()
     fstore.close()
     cstore.close()
     istore.close()
+    #fragment_store.pg_create_tables()
+    #fragment_store.pg_load()
+    #fragment_store.pg_transform()
+    fragment_store.addsc()
+    # fragment_store.pg_load_sc()
+    # fragment_store.pg_reagg()
+    fragment_store.dump(dict(index),id_to_record)
     return FragmentIndex(dict(index), id_to_record)
 
 
