@@ -347,6 +347,7 @@ p.add_argument("--memory", action="store_true",
 p.add_argument("fragment_filename", nargs="?", default=None,
                help="SMILES filename (default: read from stdin)")
 
+
 p.set_defaults(command=index_command,
                subparser=p)
 

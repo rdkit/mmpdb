@@ -148,6 +148,7 @@ def index_command(parser, args):
     end_properties_memory = get_memory_use()
     
 
+
     if ((args.out is None or args.out == "mmpdb") and args.output is None):
         # Use the filename based on the fragments filename
         fragment_filename = args.fragment_filename
@@ -182,31 +183,68 @@ def index_command(parser, args):
                            
     start_mmp_memory = get_memory_use()
     environment_cache = index_algorithm.EnvironmentCache()
-    pairs = index_algorithm.find_matched_molecular_pairs(
-        fragment_index, index_options,
-        reporter=reporter)
+    print(args)
+    if args.original_mmp:
+        print("Original MMP\n")
+        pairs = index_algorithm.find_matched_molecular_pairs(fragment_index, index_options, reporter)
+        print("End orig MMP")
+        with index_algorithm.open_mmpa_writer(args.output, format=args.out,
+                                       title=title,
+                                       fragment_options=fragment_reader.options,
+                                       fragment_index=fragment_index,
+                                       index_options=index_options,
+                                       properties=properties,
+                                       environment_cache=environment_cache,
+                                       ) as pair_writer:
+            pair_writer.start()
+            pair_writer.write_matched_molecule_pairs(pairs)
+            end_mmp_memory = get_memory_use()
+            pair_writer.end(reporter)
+            end_memory = get_memory_use()
+        if report_memory:
+            # print(start_fragment_index_memory, start_mmp_memory, end_mmp_memory, end_memory)
+            sys.stderr.write("#pairs: %d Memory (RSS) total: %s properties: %s fragments: %s indexing: %s\n" % (
+                pair_writer.num_pairs,
+                human_memory(max(end_mmp_memory, end_memory)),
+                human_memory(end_properties_memory - start_properties_memory),
+                human_memory(start_mmp_memory - start_fragment_index_memory),
+                human_memory(end_mmp_memory - start_mmp_memory)))
+    if args.olm_mmp:
+        print("OLM MMP")
+        pairs2 = index_algorithm.find_matched_molecular_pairs_olm(index_options,reporter)
+        print("OLM MMP end")
+        lfilename=args.output.split(".")
+        print(lfilename)
+        filename=lfilename[0]
+        with index_algorithm.open_mmpa_writer(filename+"_olm."+args.out, format=args.out,
+                                       title=title,
+                                       fragment_options=fragment_reader.options,
+                                       fragment_index=fragment_index,
+                                       index_options=index_options,
+                                       properties=properties,
+                                       environment_cache=environment_cache,
+                                       ) as pair_writer:
+            pair_writer.start()
+            pair_writer.write_matched_molecule_pairs(pairs2)
+            end_mmp_memory = get_memory_use()
+            pair_writer.end(reporter)
+            end_memory = get_memory_use()
+        if report_memory:
+            # print(start_fragment_index_memory, start_mmp_memory, end_mmp_memory, end_memory)
+            sys.stderr.write("#pairs: %d Memory (RSS) total: %s properties: %s fragments: %s indexing: %s\n" % (
+                pair_writer.num_pairs,
+                human_memory(max(end_mmp_memory, end_memory)),
+                human_memory(end_properties_memory - start_properties_memory),
+                human_memory(start_mmp_memory - start_fragment_index_memory),
+                human_memory(end_mmp_memory - start_mmp_memory)))
 
-    with index_algorithm.open_mmpa_writer(args.output, format=args.out,
-                                   title=title,
-                                   fragment_options=fragment_reader.options,
-                                   fragment_index=fragment_index,
-                                   index_options=index_options,
-                                   properties=properties,
-                                   environment_cache=environment_cache,
-                                   ) as pair_writer:
-        pair_writer.start()
-        pair_writer.write_matched_molecule_pairs(pairs)
-        end_mmp_memory = get_memory_use()
-        pair_writer.end(reporter)
-        end_memory = get_memory_use()
-        
-    if report_memory:
-        #print(start_fragment_index_memory, start_mmp_memory, end_mmp_memory, end_memory)
-        sys.stderr.write("#pairs: %d Memory (RSS) total: %s properties: %s fragments: %s indexing: %s\n" % (
-                         pair_writer.num_pairs, 
-                         human_memory(max(end_mmp_memory, end_memory)),
-                         human_memory(end_properties_memory-start_properties_memory),
-                         human_memory(start_mmp_memory - start_fragment_index_memory),
-                         human_memory(end_mmp_memory - start_mmp_memory)))
-        
+
+
+
+
+
+
+
+
+
 

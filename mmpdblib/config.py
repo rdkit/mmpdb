@@ -290,6 +290,8 @@ def add_index_options(parser):
     p.add_argument("--max-frac-trans", type=parse_max_frac_trans, default=None,
                    metavar="FLT",
                    help="Maximum fraction of atoms taking part in a transformation")
+    p.add_argument("--original_mmp", action="store_true")
+    p.add_argument("--olm_mmp", action="store_true")
 
 
 class DEFAULT_RULE_SELECTION_OPTIONS:

@@ -39,7 +39,7 @@ from . import fileio
 
 def get_reporter(is_quiet):
     if is_quiet:
-        return reporters.get_reporter("quiet")
+        return reporters.get_reporter("verbose")
     else:
         return reporters.get_reporter("verbose")
 
