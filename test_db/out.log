@@ -1,0 +1,4410 @@
+Loaded fragment record 0DROP TABLE
+CREATE TABLE
+DROP TABLE
+CREATE TABLE
+DROP TABLE
+CREATE TABLE
+DROP TABLE
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+DROP TABLE
+SELECT 14
+CREATE INDEX
+CREATE INDEX
+DROP TYPE
+CREATE TYPE
+DROP TABLE
+SELECT 20
+CREATE INDEX
+DROP TYPE
+CREATE TYPE
+DROP TABLE
+SELECT 20
+CREATE INDEX
+Constant fragment matches 0/10 (0.0%)QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+Mem:3
+[*]c1ccccc1O#1#1
+	phenol#1#[*:1][H]#0#N
+Mem:4
+[*]c1ccccc1N#1#1
+	phenylamine#1#[*:1][H]#0#N
+Mem:10
+[*]c1ccc(N)c(N)c1#1#1
+	o-phenylenediamine#1#[*:1][H]#0#N
+Mem:12
+[*]c1ccc(O)c(O)c1#1#1
+	catechol#1#[*:1][H]#0#N
+Total rejected: 14
+Creating tables
+
+Loading CSVs
+
+Loading index
+
+
+        COPY index(constant_smiles,constant_symmetry_class,num_cuts,id,variable_symmetry_class,variable_smiles,attachment_order,enumeration_label)
+        FROM STDIN WITH
+            CSV
+            HEADER
+            DELIMITER AS '|'
+        
+Loading constant
+
+Loading main
+
+Loading idrecord
+
+Transforming
+
+Add SC
+
+Load Single cut ct
+
+Reagg
+
+Original MMP
+
+End orig MMP
+OLM MMP
+OLM MMP end
+QQQ
+1: 2-aminophenol 1 [*]c1ccccc1O 0 N
+2: o-phenylenediamine 1 [*]c1ccccc1N 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccccc1N
+1
+0
+Ct
+[*]N
+1
+----2
+[*]c1ccccc1O
+1
+0
+Cache 
+{}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccccc1N>>[*:1]c1ccccc1O
+[*:1]N
+QQQ
+1: 2-aminophenol 1 [*]c1ccccc1O 0 N
+2: amidol 1 [*]c1cc(O)ccc1N 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1cc(O)ccc1N
+1
+0
+Ct
+[*]N
+1
+----2
+[*]c1ccccc1O
+1
+0
+Cache 
+{}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1cc(O)ccc1N>>[*:1]c1ccccc1O
+[*:1]N
+QQQ
+1: 2-aminophenol 1 [*]c1ccccc1O 0 N
+2: amidol 1 [*]c1ccc(O)cc1N 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccc(O)cc1N
+1
+0
+Ct
+[*]N
+1
+----2
+[*]c1ccccc1O
+1
+0
+Cache 
+{}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccc(O)cc1N>>[*:1]c1ccccc1O
+[*:1]N
+QQQ
+1: 2-aminophenol 1 [*]c1ccccc1O 0 N
+2: phenylamine 1 [*]c1ccccc1 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccccc1
+1
+0
+Ct
+[*]N
+1
+----2
+[*]c1ccccc1O
+1
+0
+Cache 
+{}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccccc1>>[*:1]c1ccccc1O
+[*:1]N
+QQQ
+1: 2-aminophenol 1 [*]c1ccccc1O 0 N
+2: cyclopentanol 1 [*]C1CCCC1 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]C1CCCC1
+1
+0
+Ct
+[*]N
+1
+----2
+[*]c1ccccc1O
+1
+0
+Cache 
+{}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]C1CCCC1>>[*:1]c1ccccc1O
+[*:1]N
+QQQ
+1: o-phenylenediamine 1 [*]c1ccccc1N 0 N
+2: amidol 1 [*]c1cc(O)ccc1N 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1cc(O)ccc1N
+1
+0
+Ct
+[*]N
+1
+----2
+[*]c1ccccc1N
+1
+0
+Cache 
+{}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1cc(O)ccc1N>>[*:1]c1ccccc1N
+[*:1]N
+QQQ
+1: o-phenylenediamine 1 [*]c1ccccc1N 0 N
+2: amidol 1 [*]c1ccc(O)cc1N 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccc(O)cc1N
+1
+0
+Ct
+[*]N
+1
+----2
+[*]c1ccccc1N
+1
+0
+Cache 
+{}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccc(O)cc1N>>[*:1]c1ccccc1N
+[*:1]N
+QQQ
+1: o-phenylenediamine 1 [*]c1ccccc1N 0 N
+2: phenylamine 1 [*]c1ccccc1 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccccc1
+1
+0
+Ct
+[*]N
+1
+----2
+[*]c1ccccc1N
+1
+0
+Cache 
+{}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccccc1>>[*:1]c1ccccc1N
+[*:1]N
+QQQ
+1: o-phenylenediamine 1 [*]c1ccccc1N 0 N
+2: cyclopentanol 1 [*]C1CCCC1 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]C1CCCC1
+1
+0
+Ct
+[*]N
+1
+----2
+[*]c1ccccc1N
+1
+0
+Cache 
+{}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]C1CCCC1>>[*:1]c1ccccc1N
+[*:1]N
+QQQ
+1: amidol 1 [*]c1cc(O)ccc1N 0 N
+2: amidol 1 [*]c1ccc(O)cc1N 0 N
+QQQ
+1: amidol 1 [*]c1cc(O)ccc1N 0 N
+2: phenylamine 1 [*]c1ccccc1 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1cc(O)ccc1N
+1
+0
+Ct
+[*]N
+1
+----2
+[*]c1ccccc1
+1
+0
+Cache 
+{}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1cc(O)ccc1N>>[*:1]c1ccccc1
+[*:1]N
+QQQ
+1: amidol 1 [*]c1cc(O)ccc1N 0 N
+2: cyclopentanol 1 [*]C1CCCC1 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]C1CCCC1
+1
+0
+Ct
+[*]N
+1
+----2
+[*]c1cc(O)ccc1N
+1
+0
+Cache 
+{}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]C1CCCC1>>[*:1]c1cc(O)ccc1N
+[*:1]N
+QQQ
+1: amidol 1 [*]c1ccc(O)cc1N 0 N
+2: phenylamine 1 [*]c1ccccc1 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccc(O)cc1N
+1
+0
+Ct
+[*]N
+1
+----2
+[*]c1ccccc1
+1
+0
+Cache 
+{}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccc(O)cc1N>>[*:1]c1ccccc1
+[*:1]N
+QQQ
+1: amidol 1 [*]c1ccc(O)cc1N 0 N
+2: cyclopentanol 1 [*]C1CCCC1 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]C1CCCC1
+1
+0
+Ct
+[*]N
+1
+----2
+[*]c1ccc(O)cc1N
+1
+0
+Cache 
+{}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]C1CCCC1>>[*:1]c1ccc(O)cc1N
+[*:1]N
+QQQ
+1: phenylamine 1 [*]c1ccccc1 0 N
+2: cyclopentanol 1 [*]C1CCCC1 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]C1CCCC1
+1
+0
+Ct
+[*]N
+1
+----2
+[*]c1ccccc1
+1
+0
+Cache 
+{}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]C1CCCC1>>[*:1]c1ccccc1
+[*:1]N
+QQQ
+1: o-phenylenediamine 11 [*]c1ccccc1[*] 01 N
+2: amidol 12 [*]c1ccc(O)cc1[*] 01 N
+Smirking...
+----1
+Num_cuts: 2
+[*]c1ccc(O)cc1[*]
+12
+01
+Ct
+[*]N.[*]N
+11
+----2
+[*]c1ccccc1[*]
+11
+01
+Cache 
+{}
+<class 'int'>
+cansmirks1
+No Table
+smiles1: [*]c1ccc(O)cc1[*] smiles2: [*]c1ccccc1[*]
+possibilities0 [((0, 1),)]
+symmetry_class1: 12 symmetry_class2: 11
+[((0, 1),)]
+12
+possibilities1 [((0, 1), (0, 1))]
+possibilities2 [((0, 1), (0, 1), (0, 1))]
+[((0, 1), (0, 1), (0, 1))]
+11
+possibilities3 [((0, 1), (0, 1), (0, 1), (0, 1)), ((0, 1), (0, 1), (0, 1), (1, 0))]
+possibilities4 [((0, 1), (0, 1), (0, 1), (0, 1), (0, 1)), ((0, 1), (0, 1), (0, 1), (1, 0), (1, 0))]
+[((0, 1), (0, 1), (0, 1), (0, 1), (0, 1)), ((0, 1), (0, 1), (0, 1), (1, 0), (1, 0))]
+11
+possibilities5 [((0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1)), ((0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (1, 0)), ((0, 1), (0, 1), (0, 1), (1, 0), (1, 0), (1, 0)), ((0, 1), (0, 1), (0, 1), (1, 0), (1, 0), (0, 1))]
+new_order: 01 constant_order: 01
+cansmirks2
+Relabel [*]N.[*]N with 01
+smiles1 [*]c1ccc(O)cc1[*]  ->  [*:1]c1ccc(O)cc1[*:2]
+smiles2 [*]c1ccccc1[*]  ->  [*:1]c1ccccc1[*:2] new_order: 01
+constant [*:1]N.[*:2]N
+Post smirks
+[*:1]c1ccc(O)cc1[*:2]>>[*:1]c1ccccc1[*:2]
+[*:1]N.[*:2]N
+QQQ
+1: 2-aminophenol 11 [*]c1ccccc1[*] 01 N
+2: amidol 12 [*]c1ccc(N)c([*])c1 10 N
+Smirking...
+----1
+Num_cuts: 2
+[*]c1ccc(N)c([*])c1
+12
+10
+Ct
+[*]N.[*]O
+12
+----2
+[*]c1ccccc1[*]
+11
+01
+Cache 
+{'[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N'}
+<class 'int'>
+cansmirks1
+No Table
+smiles1: [*]c1ccc(N)c([*])c1 smiles2: [*]c1ccccc1[*]
+possibilities0 [((0, 1),)]
+symmetry_class1: 12 symmetry_class2: 11
+[((0, 1),)]
+12
+possibilities1 [((0, 1), (0, 1))]
+possibilities2 [((0, 1), (0, 1), (1, 0))]
+[((0, 1), (0, 1), (1, 0))]
+12
+possibilities3 [((0, 1), (0, 1), (1, 0), (1, 0))]
+possibilities4 [((0, 1), (0, 1), (1, 0), (1, 0), (1, 0))]
+[((0, 1), (0, 1), (1, 0), (1, 0), (1, 0))]
+11
+possibilities5 [((0, 1), (0, 1), (1, 0), (1, 0), (1, 0), (1, 0)), ((0, 1), (0, 1), (1, 0), (1, 0), (1, 0), (0, 1))]
+new_order: 01 constant_order: 10
+cansmirks2
+Relabel [*]N.[*]O with 10
+smiles1 [*]c1ccc(N)c([*])c1  ->  [*:1]c1ccc(N)c([*:2])c1
+smiles2 [*]c1ccccc1[*]  ->  [*:1]c1ccccc1[*:2] new_order: 01
+constant [*:2]N.[*:1]O
+Post smirks
+[*:1]c1ccc(N)c([*:2])c1>>[*:1]c1ccccc1[*:2]
+[*:2]N.[*:1]O
+QQQ
+1: 2-aminophenol 11 [*]c1ccccc1[*] 01 N
+2: amidol 12 [*]c1ccc([*])c(N)c1 10 N
+Smirking...
+----1
+Num_cuts: 2
+[*]c1ccc([*])c(N)c1
+12
+10
+Ct
+[*]N.[*]O
+12
+----2
+[*]c1ccccc1[*]
+11
+01
+Cache 
+{'[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O'}
+<class 'int'>
+cansmirks1
+No Table
+smiles1: [*]c1ccc([*])c(N)c1 smiles2: [*]c1ccccc1[*]
+possibilities0 [((0, 1),)]
+symmetry_class1: 12 symmetry_class2: 11
+[((0, 1),)]
+12
+possibilities1 [((0, 1), (0, 1))]
+possibilities2 [((0, 1), (0, 1), (1, 0))]
+[((0, 1), (0, 1), (1, 0))]
+12
+possibilities3 [((0, 1), (0, 1), (1, 0), (1, 0))]
+possibilities4 [((0, 1), (0, 1), (1, 0), (1, 0), (1, 0))]
+[((0, 1), (0, 1), (1, 0), (1, 0), (1, 0))]
+11
+possibilities5 [((0, 1), (0, 1), (1, 0), (1, 0), (1, 0), (1, 0)), ((0, 1), (0, 1), (1, 0), (1, 0), (1, 0), (0, 1))]
+new_order: 01 constant_order: 10
+cansmirks2
+Relabel [*]N.[*]O with 10
+smiles1 [*]c1ccc([*])c(N)c1  ->  [*:1]c1ccc([*:2])c(N)c1
+smiles2 [*]c1ccccc1[*]  ->  [*:1]c1ccccc1[*:2] new_order: 01
+constant [*:2]N.[*:1]O
+Post smirks
+[*:1]c1ccc([*:2])c(N)c1>>[*:1]c1ccccc1[*:2]
+[*:2]N.[*:1]O
+QQQ
+1: amidol 12 [*]c1ccc(N)c([*])c1 10 N
+2: amidol 12 [*]c1ccc([*])c(N)c1 10 N
+QQQ
+1: phenol 1 [*]c1ccccc1 0 N
+2: catechol 1 [*]c1ccccc1O 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccccc1
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccccc1O
+1
+0
+Cache 
+{'[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1'}
+<class 'int'>
+Trivial
+Post smirksQQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+
+[*:1]c1ccccc1>>[*:1]c1ccccc1O
+[*:1]O
+QQQ
+1: phenol 1 [*]c1ccccc1 0 N
+2: 2-aminophenol 1 [*]c1ccccc1N 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccccc1
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccccc1N
+1
+0
+Cache 
+{'[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccccc1>>[*:1]c1ccccc1N
+[*:1]O
+QQQ
+1: phenol 1 [*]c1ccccc1 0 N
+2: 2-chlorophenol 1 [*]c1ccccc1Cl 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccccc1
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccccc1Cl
+1
+0
+Cache 
+{'[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccccc1>>[*:1]c1ccccc1Cl
+[*:1]O
+QQQ
+1: phenol 1 [*]c1ccccc1 0 N
+2: amidol 1 [*]c1ccc(N)c(N)c1 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccc(N)c(N)c1
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccccc1
+1
+0
+Cache 
+{'[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccc(N)c(N)c1>>[*:1]c1ccccc1
+[*:1]O
+QQQ
+1: phenol 1 [*]c1ccccc1 0 N
+2: hydroxyquinol 1 [*]c1cc(O)ccc1O 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1cc(O)ccc1O
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccccc1
+1
+0
+Cache 
+{'[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1cc(O)ccc1O>>[*:1]c1ccccc1
+[*:1]O
+QQQ
+1: phenol 1 [*]c1ccccc1 0 N
+2: hydroxyquinol 1 [*]c1ccc(O)c(O)c1 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccc(O)c(O)c1
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccccc1
+1
+0
+Cache 
+{'[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccc(O)c(O)c1>>[*:1]c1ccccc1
+[*:1]O
+QQQ
+1: phenol 1 [*]c1ccccc1 0 N
+2: hydroxyquinol 1 [*]c1ccc(O)cc1O 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccc(O)cc1O
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccccc1
+1
+0
+Cache 
+{'[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccc(O)cc1O>>[*:1]c1ccccc1
+[*:1]O
+QQQ
+1: catechol 1 [*]c1ccccc1O 0 N
+2: 2-aminophenol 1 [*]c1ccccc1N 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccccc1N
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccccc1O
+1
+0
+Cache 
+{'[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccccc1N>>[*:1]c1ccccc1O
+[*:1]O
+QQQ
+1: catechol 1 [*]c1ccccc1O 0 N
+2: 2-chlorophenol 1 [*]c1ccccc1Cl 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccccc1Cl
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccccc1O
+1
+0
+Cache 
+{'[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccccc1Cl>>[*:1]c1ccccc1O
+[*:1]O
+QQQ
+1: catechol 1 [*]c1ccccc1O 0 N
+2: amidol 1 [*]c1ccc(N)c(N)c1 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccc(N)c(N)c1
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccccc1O
+1
+0
+Cache 
+{'[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccc(N)c(N)c1>>[*:1]c1ccccc1O
+[*:1]O
+QQQ
+1: catechol 1 [*]c1ccccc1O 0 N
+2: hydroxyquinol 1 [*]c1cc(O)ccc1O 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1cc(O)ccc1O
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccccc1O
+1
+0
+Cache 
+{'[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1cc(O)ccc1O>>[*:1]c1ccccc1O
+[*:1]O
+QQQ
+1: catechol 1 [*]c1ccccc1O 0 N
+2: hydroxyquinol 1 [*]c1ccc(O)c(O)c1 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccc(O)c(O)c1
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccccc1O
+1
+0
+Cache 
+{'[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccc(O)c(O)c1>>[*:1]c1ccccc1O
+[*:1]O
+QQQ
+1: catechol 1 [*]c1ccccc1O 0 N
+2: hydroxyquinol 1 [*]c1ccc(O)cc1O 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccc(O)cc1O
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccccc1O
+1
+0
+Cache 
+{'[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccc(O)cc1O>>[*:1]c1ccccc1O
+[*:1]O
+QQQ
+1: 2-aminophenol 1 [*]c1ccccc1N 0 N
+2: 2-chlorophenol 1 [*]c1ccccc1Cl 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccccc1Cl
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccccc1N
+1
+0
+Cache 
+{'[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccccc1Cl>>[*:1]c1ccccc1N
+[*:1]O
+QQQ
+1: 2-aminophenol 1 [*]c1ccccc1N 0 N
+2: amidol 1 [*]c1ccc(N)c(N)c1 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccc(N)c(N)c1
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccccc1N
+1
+0
+Cache 
+{'[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccc(N)c(N)c1>>[*:1]c1ccccc1N
+[*:1]O
+QQQ
+1: 2-aminophenol 1 [*]c1ccccc1N 0 N
+2: hydroxyquinol 1 [*]c1cc(O)ccc1O 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1cc(O)ccc1O
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccccc1N
+1
+0
+Cache 
+{'[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1cc(O)ccc1O>>[*:1]c1ccccc1N
+[*:1]O
+QQQ
+1: 2-aminophenol 1 [*]c1ccccc1N 0 N
+2: hydroxyquinol 1 [*]c1ccc(O)c(O)c1 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccc(O)c(O)c1
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccccc1N
+1
+0
+Cache 
+{'[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccc(O)c(O)c1>>[*:1]c1ccccc1N
+[*:1]O
+QQQ
+1: 2-aminophenol 1 QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+[*]c1ccccc1N 0 N
+2: hydroxyquinol 1 [*]c1ccc(O)cc1O 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccc(O)cc1O
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccccc1N
+1
+0
+Cache 
+{'[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccc(O)cc1O>>[*:1]c1ccccc1N
+[*:1]O
+QQQ
+1: 2-chlorophenol 1 [*]c1ccccc1Cl 0 N
+2: amidol 1 [*]c1ccc(N)c(N)c1 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccc(N)c(N)c1
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccccc1Cl
+1
+0
+Cache 
+{'[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccc(N)c(N)c1>>[*:1]c1ccccc1Cl
+[*:1]O
+QQQ
+1: 2-chlorophenol 1 [*]c1ccccc1Cl 0 N
+2: hydroxyquinol 1 [*]c1cc(O)ccc1O 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1cc(O)ccc1O
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccccc1Cl
+1
+0
+Cache 
+{'[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1cc(O)ccc1O>>[*:1]c1ccccc1Cl
+[*:1]O
+QQQ
+1: 2-chlorophenol 1 [*]c1ccccc1Cl 0 N
+2: hydroxyquinol 1 [*]c1ccc(O)c(O)c1 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccc(O)c(O)c1
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccccc1Cl
+1
+0
+Cache 
+{'[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccc(O)c(O)c1>>[*:1]c1ccccc1Cl
+[*:1]O
+QQQ
+1: 2-chlorophenol 1 [*]c1ccccc1Cl 0 N
+2: hydroxyquinol 1 [*]c1ccc(O)cc1O 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccc(O)cc1O
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccccc1Cl
+1
+0
+Cache 
+{'[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccc(O)cc1O>>[*:1]c1ccccc1Cl
+[*:1]O
+QQQ
+1: amidol 1 [*]c1ccc(N)c(N)c1 0 N
+2: hydroxyquinol 1 [*]c1cc(O)ccc1O 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1cc(O)ccc1O
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccc(N)c(N)c1
+1
+0
+Cache 
+{'[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1cc(O)ccc1O>>[*:1]c1ccc(N)c(N)c1
+[*:1]O
+QQQ
+1: amidol 1 [*]c1ccc(N)c(N)c1 0 N
+2: hydroxyquinol 1 [*]c1ccc(O)c(O)c1 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccc(N)c(N)c1
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccc(O)c(O)c1
+1
+0
+Cache 
+{'[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccc(N)c(N)c1>>[*:1]c1ccc(O)c(O)c1
+[*:1]O
+QQQ
+1: amidol 1 [*]c1ccc(N)c(N)c1 0 N
+2: hydroxyquinol 1 [*]c1ccc(O)cc1O 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccc(N)c(N)c1
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccc(O)cc1O
+1
+0
+Cache 
+{'[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccc(N)c(N)c1>>[*:1]c1ccc(O)cc1O
+[*:1]O
+QQQ
+1: hydroxyquinol 1 [*]c1cc(O)ccc1O 0 N
+2: hydroxyquinol 1 [*]c1ccc(O)c(O)c1 0 N
+QQQ
+1: hydroxyquinol 1 [*]c1cc(O)ccc1O 0 N
+2: hydroxyquinol 1 [*]c1ccc(O)cc1O 0 N
+QQQ
+1: hydroxyquinol 1 [*]c1ccc(O)c(O)c1 0 N
+2: hydroxyquinol 1 [*]c1ccc(O)cc1O 0 N
+QQQ
+1: catechol 11 [*]c1ccccc1[*] 01 N
+2: hydroxyquinol 12 [*]c1ccc(O)c([*])c1 01 N
+Smirking...
+----1
+Num_cuts: 2
+[*]c1ccc(O)c([*])c1
+12
+01
+Ct
+[*]O.[*]O
+11
+----2
+[*]c1ccccc1[*]
+11
+01
+Cache 
+{'[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1'}
+<class 'int'>
+cansmirks1
+No Table
+smiles1: [*]c1ccc(O)c([*])c1 smiles2: [*]c1ccccc1[*]
+possibilities0 [((0, 1),)]
+symmetry_class1: 12 symmetry_class2: 11
+[((0, 1),)]
+12
+possibilities1 [((0, 1), (0, 1))]
+possibilities2 [((0, 1), (0, 1), (0, 1))]
+[((0, 1), (0, 1), (0, 1))]
+11
+possibilities3 [((0, 1), (0, 1), (0, 1), (0, 1)), ((0, 1), (0, 1), (0, 1), (1, 0))]
+possibilities4 [((0, 1), (0, 1), (0, 1), (0, 1), (0, 1)), ((0, 1), (0, 1), (0, 1), (1, 0), (1, 0))]
+[((0, 1), (0, 1), (0, 1), (0, 1), (0, 1)), ((0, 1), (0, 1), (0, 1), (1, 0), (1, 0))]
+11
+possibilities5 [((0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1)), ((0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (1, 0)), ((0, 1), (0, 1), (0, 1), (1, 0), (1, 0), (1, 0)), ((0, 1), (0, 1), (0, 1), (1, 0), (1, 0), (0, 1))]
+new_order: 01 constant_order: 01
+cansmirks2
+Relabel [*]O.[*]O with 01
+smiles1 [*]c1ccc(O)c([*])c1  ->  [*:1]c1ccc(O)c([*:2])c1
+smiles2 [*]c1ccccc1[*]  ->  [*:1]c1ccccc1[*:2] new_order: 01
+constant [*:1]O.[*:2]O
+Post smirks
+[*:1]c1ccc(O)c([*:2])c1>>[*:1]c1ccccc1[*:2]
+[*:1]O.[*:2]O
+QQQ
+1: catechol 11 [*]c1ccccc1[*] 01 N
+2: hydroxyquinol 12 [*]c1ccc(O)cc1[*] 01 N
+Smirking...
+----1
+Num_cuts: 2
+[*]c1ccc(O)cc1[*]
+12
+01
+Ct
+[*]O.[*]O
+11
+----2
+[*]c1ccccc1[*]
+11
+01
+Cache 
+{'[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1', '[*]c1ccc(O)c([*])c1': '[*:1]c1ccc(O)c([*:2])c1', ('[*]O.[*]O', '01'): '[*:1]O.[*:2]O'}
+<class 'int'>
+cansmirks1
+No Table
+smiles1: [*]c1ccc(O)cc1[*] smiles2: [*]c1ccccc1[*]
+possibilities0 [((0, 1),)]
+symmetry_class1: 12 symmetry_class2: 11
+[((0, 1),)]
+12
+possibilities1 [((0, 1), (0, 1))]
+possibilities2 [((0, 1), (0, 1), (0, 1))]
+[((0, 1), (0, 1), (0, 1))]
+11
+possibilities3 [((0, 1), (0, 1), (0, 1), (0, 1)), ((0, 1), (0, 1), (0, 1), (1, 0))]
+possibilities4 [((0, 1), (0, 1), (0, 1), (0, 1), (0, 1)), ((0, 1), (0, 1), (0, 1), (1, 0), (1, 0))]
+[((0, 1), (0, 1), (0, 1), (0, 1), (0, 1)), ((0, 1), (0, 1), (0, 1), (1, 0), (1, 0))]
+11
+possibilities5 [((0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1)), ((0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (1, 0)), ((0, 1), (0, 1), (0, 1), (1, 0), (1, 0), (1, 0)), ((0, 1), (0, 1), (0, 1), (1, 0), (1, 0), (0, 1))]
+new_order: 01 constant_order: 01
+cansmirks2
+Relabel [*]O.[*]O with 01
+smiles1 [*]c1ccc(O)cc1[*]  ->  [*:1]c1ccc(O)cc1[*:2]
+smiles2 [*]c1ccccc1[*]  ->  [*:1]c1ccccc1[*:2] new_order: 01
+constant [*:1]O.[*:2]O
+Post smirks
+[*:1]c1ccc(O)cc1[*:2]>>[*:1]c1ccccc1[*:2]
+[*:1]O.[*:2]O
+QQQ
+1: catechol 11 [*]c1ccccc1[*] 01 N
+2: hydroxyquinol 12 [*]c1ccc([*])c(O)c1 01 N
+Smirking...
+----1
+Num_cuts: 2
+[*]c1ccc([*])c(O)c1
+12
+01
+Ct
+[*]O.[*]O
+11
+----2
+[*]c1ccccc1[*]
+11
+01
+Cache 
+{'[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1', '[*]c1ccc(O)c([*])c1': '[*:1]c1ccc(O)c([*:2])c1', ('[*]O.[*]O', '01'): '[*:1]O.[*:2]O'}
+<class 'int'>
+cansmirks1
+No Table
+smiles1: [*]c1ccc([*])c(O)c1 smiles2: [*]c1ccccc1[*]
+possibilities0 [((0, 1),)]
+symmetry_class1: 12 symmetry_class2: 11
+[((0, 1),)]QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+QQQQQQ_MMP
+
+12
+possibilities1 [((0, 1), (0, 1))]
+possibilities2 [((0, 1), (0, 1), (0, 1))]
+[((0, 1), (0, 1), (0, 1))]
+11
+possibilities3 [((0, 1), (0, 1), (0, 1), (0, 1)), ((0, 1), (0, 1), (0, 1), (1, 0))]
+possibilities4 [((0, 1), (0, 1), (0, 1), (0, 1), (0, 1)), ((0, 1), (0, 1), (0, 1), (1, 0), (1, 0))]
+[((0, 1), (0, 1), (0, 1), (0, 1), (0, 1)), ((0, 1), (0, 1), (0, 1), (1, 0), (1, 0))]
+11
+possibilities5 [((0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1)), ((0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (1, 0)), ((0, 1), (0, 1), (0, 1), (1, 0), (1, 0), (1, 0)), ((0, 1), (0, 1), (0, 1), (1, 0), (1, 0), (0, 1))]
+new_order: 01 constant_order: 01
+cansmirks2
+Relabel [*]O.[*]O with 01
+smiles1 [*]c1ccc([*])c(O)c1  ->  [*:1]c1ccc([*:2])c(O)c1
+smiles2 [*]c1ccccc1[*]  ->  [*:1]c1ccccc1[*:2] new_order: 01
+constant [*:1]O.[*:2]O
+Post smirks
+[*:1]c1ccc([*:2])c(O)c1>>[*:1]c1ccccc1[*:2]
+[*:1]O.[*:2]O
+QQQ
+1: hydroxyquinol 12 [*]c1ccc(O)c([*])c1 01 N
+2: hydroxyquinol 12 [*]c1ccc(O)cc1[*] 01 N
+QQQ
+1: hydroxyquinol 12 [*]c1ccc(O)c([*])c1 01 N
+2: hydroxyquinol 12 [*]c1ccc([*])c(O)c1 01 N
+QQQ
+1: hydroxyquinol 12 [*]c1ccc(O)cc1[*] 01 N
+2: hydroxyquinol 12 [*]c1ccc([*])c(O)c1 01 N
+QQQ
+1: amidol 1 [*]O 0 N
+2: o-phenylenediamine 1 [*:1][H] 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*:1][H]
+1
+0
+Ct
+[*]c1ccc(N)c(N)c1
+1
+----2
+[*]O
+1
+0
+Cache 
+{'[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1', '[*]c1ccc(O)c([*])c1': '[*:1]c1ccc(O)c([*:2])c1', ('[*]O.[*]O', '01'): '[*:1]O.[*:2]O', '[*]c1ccc([*])c(O)c1': '[*:1]c1ccc([*:2])c(O)c1'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1][H]>>[*:1]O
+[*:1]c1ccc(N)c(N)c1
+QQQ
+1: hydroxyquinol 1 [*]O 0 N
+2: catechol 1 [*:1][H] 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*:1][H]
+1
+0
+Ct
+[*]c1ccc(O)c(O)c1
+1
+----2
+[*]O
+1
+0
+Cache 
+{'[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1', '[*]c1ccc(O)c([*])c1': '[*:1]c1ccc(O)c([*:2])c1', ('[*]O.[*]O', '01'): '[*:1]O.[*:2]O', '[*]c1ccc([*])c(O)c1': '[*:1]c1ccc([*:2])c(O)c1'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1][H]>>[*:1]O
+[*:1]c1ccc(O)c(O)c1
+QQQ
+1: phenol 1 [*]O 0 N
+2: phenylamine 1 [*]N 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]N
+1
+0
+Ct
+[*]c1ccccc1
+1
+----2
+[*]O
+1
+0
+Cache 
+{'[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1', '[*]c1ccc(O)c([*])c1': '[*:1]c1ccc(O)c([*:2])c1', ('[*]O.[*]O', '01'): '[*:1]O.[*:2]O', '[*]c1ccc([*])c(O)c1': '[*:1]c1ccc([*:2])c(O)c1'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]N>>[*:1]O
+[*:1]c1ccccc1
+QQQ
+1: 2-aminophenol 1 [*]O 0 N
+2: o-phenylenediamine 1 [*]N 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]N
+1
+0
+Ct
+[*]c1ccccc1N
+1
+----2
+[*]O
+1
+0
+Cache 
+{'[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1', '[*]c1ccc(O)c([*])c1': '[*:1]c1ccc(O)c([*:2])c1', ('[*]O.[*]O', '01'): '[*:1]O.[*:2]O', '[*]c1ccc([*])c(O)c1': '[*:1]c1ccc([*:2])c(O)c1'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]N>>[*:1]O
+[*:1]c1ccccc1N
+QQQ
+1: 2-aminophenol 1 [*]O 0 N
+2: phenylamine 1 [*:1][H] 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*:1][H]
+1
+0
+Ct
+[*]c1ccccc1N
+1
+----2
+[*]O
+1
+0
+Cache 
+{'[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1', '[*]c1ccc(O)c([*])c1': '[*:1]c1ccc(O)c([*:2])c1', ('[*]O.[*]O', '01'): '[*:1]O.[*:2]O', '[*]c1ccc([*])c(O)c1': '[*:1]c1ccc([*:2])c(O)c1'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1][H]>>[*:1]O
+[*:1]c1ccccc1N
+QQQ
+1: o-phenylenediamine 1 [*]N 0 N
+2: phenylamine 1 [*:1][H] 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*:1][H]
+1
+0
+Ct
+[*]c1ccccc1N
+1
+----2
+[*]N
+1
+0
+Cache 
+{'[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1', '[*]c1ccc(O)c([*])c1': '[*:1]c1ccc(O)c([*:2])c1', ('[*]O.[*]O', '01'): '[*:1]O.[*:2]O', '[*]c1ccc([*])c(O)c1': '[*:1]c1ccc([*:2])c(O)c1'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1][H]>>[*:1]N
+[*:1]c1ccccc1N
+QQQ
+1: catechol 1 [*]O 0 N
+2: 2-aminophenol 1 [*]N 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]N
+1
+0
+Ct
+[*]c1ccccc1O
+1
+----2
+[*]O
+1
+0
+Cache 
+{'[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1', '[*]c1ccc(O)c([*])c1': '[*:1]c1ccc(O)c([*:2])c1', ('[*]O.[*]O', '01'): '[*:1]O.[*:2]O', '[*]c1ccc([*])c(O)c1': '[*:1]c1ccc([*:2])c(O)c1'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]N>>[*:1]O
+[*:1]c1ccccc1O
+QQQ
+1: catechol 1 [*]O 0 N
+2: 2-chlorophenol 1 [*]Cl 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]Cl
+1
+0
+Ct
+[*]c1ccccc1O
+1
+----2
+[*]O
+1
+0
+Cache 
+{'[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1', '[*]c1ccc(O)c([*])c1': '[*:1]c1ccc(O)c([*:2])c1', ('[*]O.[*]O', '01'): '[*:1]O.[*:2]O', '[*]c1ccc([*])c(O)c1': '[*:1]c1ccc([*:2])c(O)c1'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]Cl>>[*:1]O
+[*:1]c1ccccc1O
+QQQ
+1: catechol 1 [*]O 0 N
+2: phenol 1 [*:1][H] 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*:1][H]
+1
+0
+Ct
+[*]c1ccccc1O
+1
+----2
+[*]O
+1
+0
+Cache 
+{'[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1', '[*]c1ccc(O)c([*])c1': '[*:1]c1ccc(O)c([*:2])c1', ('[*]O.[*]O', '01'): '[*:1]O.[*:2]O', '[*]c1ccc([*])c(O)c1': '[*:1]c1ccc([*:2])c(O)c1'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1][H]>>[*:1]O
+[*:1]c1ccccc1O
+QQQ
+1: 2-aminophenol 1 [*]N 0 N
+2: 2-chlorophenol 1 [*]Cl 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]Cl
+1
+0
+Ct
+[*]c1ccccc1O
+1
+----2
+[*]N
+1
+0
+Cache 
+{'[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1', '[*]c1ccc(O)c([*])c1': '[*:1]c1ccc(O)c([*:2])c1', ('[*]O.[*]O', '01'): '[*:1]O.[*:2]O', '[*]c1ccc([*])c(O)c1': '[*:1]c1ccc([*:2])c(O)c1'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]Cl>>[*:1]N
+[*:1]c1ccccc1O
+QQQ
+1: 2-aminophenol 1 [*]N 0 N
+2: phenol 1 [*:1][H] 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*:1][H]
+1
+0
+Ct
+[*]c1ccccc1O
+1
+----2
+[*]N
+1
+0
+Cache 
+{'[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1', '[*]c1ccc(O)c([*])c1': '[*:1]c1ccc(O)c([*:2])c1', ('[*]O.[*]O', '01'): '[*:1]O.[*:2]O', '[*]c1ccc([*])c(O)c1': '[*:1]c1ccc([*:2])c(O)c1'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1][H]>>[*:1]N
+[*:1]c1ccccc1O
+QQQ
+1: 2-chlorophenol 1 [*]Cl 0 N
+2: phenol 1 [*:1][H] 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*:1][H]
+1
+0
+Ct
+[*]c1ccccc1O
+1
+----2
+[*]Cl
+1
+0
+Cache 
+{'[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1', '[*]c1ccc(O)c([*])c1': '[*:1]c1ccc(O)c([*:2])c1', ('[*]O.[*]O', '01'): '[*:1]O.[*:2]O', '[*]c1ccc([*])c(O)c1': '[*:1]c1ccc([*:2])c(O)c1'}AA
+
+<class 'int'>
+Trivial
+Post smirks
+[*:1][H]>>[*:1]Cl
+[*:1]c1ccccc1O
+-----------
+
+
+init mmp
+
+Init report
+
+Iteration: 0
+
+Open IX iteration
+IT: [Record(num_cuts='1', constant_smiles='[*]c1cc(O)ccc1O', constant_symmetry_class='1', variable_part=[{'id': 'hydroxyquinol', 'variable_smiles': '[*]O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}]), Record(num_cuts='1', constant_smiles='[*]c1ccc(O)cc1O', constant_symmetry_class='1', variable_part=[{'id': 'hydroxyquinol', 'variable_smiles': '[*]O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}]), Record(num_cuts='3', constant_smiles='[*]N.[*]N.[*]O', constant_symmetry_class='112', variable_part=[{'id': 'amidol', 'variable_smiles': '[*]c1ccc([*])c([*])c1', 'attachment_order': '201', 'enumeration_label': 'N', 'variable_symmetry_class': '123'}]), Record(num_cuts='1', constant_smiles='[*]c1ccccc1O', constant_symmetry_class='1', variable_part=[{'id': 'catechol', 'variable_smiles': '[*]O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}, {'id': 'phenol', 'variable_smiles': '[*:1][H]', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}, {'id': '2-aminophenol', 'variable_smiles': '[*]N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}, {'id': '2-chlorophenol', 'variable_smiles': '[*]Cl', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}]), Record(num_cuts='1', constant_smiles='[*]c1ccc(N)c(N)c1', constant_symmetry_class='1', variable_part=[{'id': 'o-phenylenediamine', 'variable_smiles': '[*:1][H]', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}, {'id': 'amidol', 'variable_smiles': '[*]O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}]), Record(num_cuts='1', constant_smiles='[*]O', constant_symmetry_class='1', variable_part=[{'id': 'hydroxyquinol', 'variable_smiles': '[*]c1cc(O)ccc1O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}, {'id': '2-aminophenol', 'variable_smiles': '[*]c1ccccc1N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}, {'id': 'hydroxyquinol', 'variable_smiles': '[*]c1ccc(O)cc1O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}, {'id': 'catechol', 'variable_smiles': '[*]c1ccccc1O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}, {'id': 'phenol', 'variable_smiles': '[*]c1ccccc1', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}, {'id': '2-chlorophenol', 'variable_smiles': '[*]c1ccccc1Cl', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}, {'id': 'amidol', 'variable_smiles': '[*]c1ccc(N)c(N)c1', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}, {'id': 'hydroxyquinol', 'variable_smiles': '[*]c1ccc(O)c(O)c1', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}]), Record(num_cuts='1', constant_smiles='[*]c1ccc(O)c(O)c1', constant_symmetry_class='1', variable_part=[{'id': 'catechol', 'variable_smiles': '[*:1][H]', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}, {'id': 'hydroxyquinol', 'variable_smiles': '[*]O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}]), Record(num_cuts='1', constant_smiles='[*]c1ccc(O)cc1N', constant_symmetry_class='1', variable_part=[{'id': 'amidol', 'variable_smiles': '[*]N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}]), Record(num_cuts='3', constant_smiles='[*]O.[*]O.[*]O', constant_symmetry_class='111', variable_part=[{'id': 'hydroxyquinol', 'variable_smiles': '[*]c1ccc([*])c([*])c1', 'attachment_order': '012', 'enumeration_label': 'N', 'variable_symmetry_class': '123'}]), Record(num_cuts='2', constant_smiles='[*]N.[*]O', constant_symmetry_class='12', variable_part=[{'id': '2-aminophenol', 'variable_smiles': '[*]c1ccccc1[*]', 'attachment_order': '01', 'enumeration_label': 'N', 'variable_symmetry_class': '11'}, {'id': 'amidol', 'variable_smiles': '[*]c1ccc([*])c(N)c1', 'attachment_order': '10', 'enumeration_label': 'N', 'variable_symmetry_class': '12'}, {'id': 'amidol', 'variable_smiles': '[*]c1ccc(N)c([*])c1', 'attachment_order': '10', 'enumeration_label': 'N', 'variable_symmetry_class': '12'}]), Record(num_cuts='1', constant_smiles='[*]C1CCCC1', constant_symmetry_class='1', variable_part=[{'id': 'cyclopentanol', 'variable_smiles': '[*]N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}]), Record(num_cuts='1', constant_smiles='[*]c1cc(O)ccc1N', constant_symmetry_class='1', variable_part=[{'id': 'amidol', 'variable_smiles': '[*]N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}]), Record(num_cuts='1', constant_smiles='[*]c1ccccc1', constant_symmetry_class='1', variable_part=[{'id': 'phenylamine', 'variable_smiles': '[*]N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}, {'id': 'phenol', 'variable_smiles': '[*]O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}]), Record(num_cuts='1', constant_smiles='[*]Cl', constant_symmetry_class='1', variable_part=[{'id': '2-chlorophenol', 'variable_smiles': '[*]c1ccccc1O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}]), Record(num_cuts='2', constant_smiles='[*]Cl.[*]O', constant_symmetry_class='12', variable_part=[{'id': '2-chlorophenol', 'variable_smiles': '[*]c1ccccc1[*]', 'attachment_order': '01', 'enumeration_label': 'N', 'variable_symmetry_class': '11'}]), Record(num_cuts='2', constant_smiles='[*]N.[*]N', constant_symmetry_class='11', variable_part=[{'id': 'amidol', 'variable_smiles': '[*]c1ccc(O)cc1[*]', 'attachment_order': '01', 'enumeration_label': 'N', 'variable_symmetry_class': '12'}, {'id': 'o-phenylenediamine', 'variable_smiles': '[*]c1ccccc1[*]', 'attachment_order': '01', 'enumeration_label': 'N', 'variable_symmetry_class': '11'}]), Record(num_cuts='1', constant_smiles='[*]c1ccccc1N', constant_symmetry_class='1', variable_part=[{'id': 'o-phenylenediamine', 'variable_smiles': '[*]N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}, {'id': 'phenylamine', 'variable_smiles': '[*:1][H]', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}, {'id': '2-aminophenol', 'variable_smiles': '[*]O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}]), Record(num_cuts='1', constant_smiles='[*]N', constant_symmetry_class='1', variable_part=[{'id': 'phenylamine', 'variable_smiles': '[*]c1ccccc1', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}, {'id': 'amidol', 'variable_smiles': '[*]c1ccc(O)cc1N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}, {'id': '2-aminophenol', 'variable_smiles': '[*]c1ccccc1O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}, {'id': 'cyclopentanol', 'variable_smiles': '[*]C1CCCC1', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}, {'id': 'o-phenylenediamine', 'variable_smiles': '[*]c1ccccc1N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}, {'id': 'amidol', 'variable_smiles': '[*]c1cc(O)ccc1N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}]), Record(num_cuts='1', constant_smiles='[*]c1ccccc1Cl', constant_symmetry_class='1', variable_part=[{'id': '2-chlorophenol', 'variable_smiles': '[*]O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}]), Record(num_cuts='2', constant_smiles='[*]O.[*]O', constant_symmetry_class='11', variable_part=[{'id': 'hydroxyquinol', 'variable_smiles': '[*]c1ccc(O)c([*])c1', 'attachment_order': '01', 'enumeration_label': 'N', 'variable_symmetry_class': '12'}, {'id': 'hydroxyquinol', 'variable_smiles': '[*]c1ccc([*])c(O)c1', 'attachment_order': '01', 'enumeration_label': 'N', 'variable_symmetry_class': '12'}, {'id': 'hydroxyquinol', 'variable_smiles': '[*]c1ccc(O)cc1[*]', 'attachment_order': '01', 'enumeration_label': 'N', 'variable_symmetry_class': '12'}, {'id': 'catechol', 'variable_smiles': '[*]c1ccccc1[*]', 'attachment_order': '01', 'enumeration_label': 'N', 'variable_symmetry_class': '11'}])]
+Ix: 1|[*]c1cc(O)ccc1O|1
+	Num matches: 1
+Matches:[{'id': 'hydroxyquinol', 'variable_smiles': '[*]O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}]
+Ix: 1|[*]c1ccc(O)cc1O|1
+	Num matches: 1
+Matches:[{'id': 'hydroxyquinol', 'variable_smiles': '[*]O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}]
+Ix: 3|[*]N.[*]N.[*]O|112
+	Num matches: 1
+Matches:[{'id': 'amidol', 'variable_smiles': '[*]c1ccc([*])c([*])c1', 'attachment_order': '201', 'enumeration_label': 'N', 'variable_symmetry_class': '123'}]
+Ix: 1|[*]c1ccccc1O|1
+	Num matches: 4
+Matches:[{'id': 'catechol', 'variable_smiles': '[*]O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}, {'id': 'phenol', 'variable_smiles': '[*:1][H]', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}, {'id': '2-aminophenol', 'variable_smiles': '[*]N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}, {'id': '2-chlorophenol', 'variable_smiles': '[*]Cl', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}]
+M1: 
+catechol
+1
+[*]O
+0
+N
+M1---------
+M2: 
+phenol
+1
+[*:1][H]
+0
+N
+M2---------
+M1: {'id': 'catechol', 'variable_smiles': '[*]O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': 'phenol', 'variable_smiles': '[*:1][H]', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: catechol 1 [*]O 0 N
+	2: phenol 1 [*:1][H] 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*:1][H]
+1
+0
+Ct
+[*]c1ccccc1O
+1
+----2
+[*]O
+1
+0
+Cache 
+{}
+<class 'int'>
+Trivial
+Post smirks
+[*:1][H]>>[*:1]O
+[*:1]c1ccccc1O
+Pair:  phenol catechol [*:1][H]>>[*:1]O [*:1]c1ccccc1O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec9638c4f8>
+M1: 
+catechol
+1
+[*]O
+0
+N
+M1---------
+M2: 
+2-aminophenol
+1
+[*]N
+0
+N
+M2---------
+M1: {'id': 'catechol', 'variable_smiles': '[*]O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': '2-aminophenol', 'variable_smiles': '[*]N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: catechol 1 [*]O 0 N
+	2: 2-aminophenol 1 [*]N 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]N
+1
+0
+Ct
+[*]c1ccccc1O
+1
+----2
+[*]O
+1
+0
+Cache 
+{}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]N>>[*:1]O
+[*:1]c1ccccc1O
+Pair:  2-aminophenol catechol [*:1]N>>[*:1]O [*:1]c1ccccc1O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec9638c598>
+M1: 
+catechol
+1
+[*]O
+0
+N
+M1---------
+M2: 
+2-chlorophenol
+1
+[*]Cl
+0
+N
+M2---------
+M1: {'id': 'catechol', 'variable_smiles': '[*]O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': '2-chlorophenol', 'variable_smiles': '[*]Cl', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: catechol 1 [*]O 0 N
+	2: 2-chlorophenol 1 [*]Cl 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]Cl
+1
+0
+Ct
+[*]c1ccccc1O
+1
+----2
+[*]O
+1
+0
+Cache 
+{}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]Cl>>[*:1]O
+[*:1]c1ccccc1O
+Pair:  2-chlorophenol catechol [*:1]Cl>>[*:1]O [*:1]c1ccccc1O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec9638c5e8>
+M1: 
+phenol
+1
+[*:1][H]
+0
+N
+M1---------
+M2: 
+2-aminophenol
+1
+[*]N
+0
+N
+M2---------
+M1: {'id': 'phenol', 'variable_smiles': '[*:1][H]', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': '2-aminophenol', 'variable_smiles': '[*]N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: phenol 1 [*:1][H] 0 N
+	2: 2-aminophenol 1 [*]N 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*:1][H]
+1
+0
+Ct
+[*]c1ccccc1O
+1
+----2
+[*]N
+1
+0
+Cache 
+{}
+<class 'int'>
+Trivial
+Post smirks
+[*:1][H]>>[*:1]N
+[*:1]c1ccccc1O
+Pair:  phenol 2-aminophenol [*:1][H]>>[*:1]N [*:1]c1ccccc1O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec9638c638>
+M1: 
+phenol
+1
+[*:1][H]
+0
+N
+M1---------
+M2: 
+2-chlorophenol
+1
+[*]Cl
+0
+N
+M2---------
+M1: {'id': 'phenol', 'variable_smiles': '[*:1][H]', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': '2-chlorophenol', 'variable_smiles': '[*]Cl', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: phenol 1 [*:1][H] 0 N
+	2: 2-chlorophenol 1 [*]Cl 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*:1][H]
+1
+0
+Ct
+[*]c1ccccc1O
+1
+----2
+[*]Cl
+1
+0
+Cache 
+{}
+<class 'int'>
+Trivial
+Post smirks
+[*:1][H]>>[*:1]Cl
+[*:1]c1ccccc1O
+Pair:  phenol 2-chlorophenol [*:1][H]>>[*:1]Cl [*:1]c1ccccc1O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec9638c688>
+M1: 
+2-aminophenol
+1
+[*]N
+0
+N
+M1---------
+M2: 
+2-chlorophenol
+1
+[*]Cl
+0
+N
+M2---------
+M1: {'id': '2-aminophenol', 'variable_smiles': '[*]N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': '2-chlorophenol', 'variable_smiles': '[*]Cl', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: 2-aminophenol 1 [*]N 0 N
+	2: 2-chlorophenol 1 [*]Cl 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]Cl
+1
+0
+Ct
+[*]c1ccccc1O
+1
+----2
+[*]N
+1
+0
+Cache 
+{}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]Cl>>[*:1]N
+[*:1]c1ccccc1O
+Pair:  2-chlorophenol 2-aminophenol [*:1]Cl>>[*:1]N [*:1]c1ccccc1O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec9638c6d8>
+Ix: 1|[*]c1ccc(N)c(N)c1|1
+	Num matches: 2
+Matches:[{'id': 'o-phenylenediamine', 'variable_smiles': '[*:1][H]', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}, {'id': 'amidol', 'variable_smiles': '[*]O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}]
+M1: 
+o-phenylenediamine
+1
+[*:1][H]
+0
+N
+M1---------
+M2: 
+amidol
+1
+[*]O
+0
+N
+M2---------
+M1: {'id': 'o-phenylenediamine', 'variable_smiles': '[*:1][H]', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': 'amidol', 'variable_smiles': '[*]O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: o-phenylenediamine 1 [*:1][H] 0 N
+	2: amidol 1 [*]O 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*:1][H]
+1
+0
+Ct
+[*]c1ccc(N)c(N)c1
+1
+----2
+[*]O
+1
+0
+Cache 
+{}
+<class 'int'>
+Trivial
+Post smirks
+[*:1][H]>>[*:1]O
+[*:1]c1ccc(N)c(N)c1
+Pair:  o-phenylenediamine amidol [*:1][H]>>[*:1]O [*:1]c1ccc(N)c(N)c1 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec9638c728>
+Ix: 1|[*]O|1
+	Num matches: 8
+Matches:[{'id': 'hydroxyquinol', 'variable_smiles': '[*]c1cc(O)ccc1O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}, {'id': '2-aminophenol', 'variable_smiles': '[*]c1ccccc1N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}, {'id': 'hydroxyquinol', 'variable_smiles': '[*]c1ccc(O)cc1O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}, {'id': 'catechol', 'variable_smiles': '[*]c1ccccc1O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}, {'id': 'phenol', 'variable_smiles': '[*]c1ccccc1', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}, {'id': '2-chlorophenol', 'variable_smiles': '[*]c1ccccc1Cl', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}, {'id': 'amidol', 'variable_smiles': '[*]c1ccc(N)c(N)c1', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}, {'id': 'hydroxyquinol', 'variable_smiles': '[*]c1ccc(O)c(O)c1', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}]
+M1: 
+hydroxyquinol
+1
+[*]c1cc(O)ccc1O
+0
+N
+M1---------
+M2: 
+2-aminophenol
+1
+[*]c1ccccc1N
+0
+N
+M2---------
+M1: {'id': 'hydroxyquinol', 'variable_smiles': '[*]c1cc(O)ccc1O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': '2-aminophenol', 'variable_smiles': '[*]c1ccccc1N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: hydroxyquinol 1 [*]c1cc(O)ccc1O 0 N
+	2: 2-aminophenol 1 [*]c1ccccc1N 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1cc(O)ccc1O
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccccc1N
+1
+0
+Cache 
+{}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1cc(O)ccc1O>>[*:1]c1ccccc1N
+[*:1]O
+Pair:  hydroxyquinol 2-aminophenol [*:1]c1cc(O)ccc1O>>[*:1]c1ccccc1N [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec9638c778>
+M1: 
+hydroxyquinol
+1
+[*]c1cc(O)ccc1O
+0
+N
+M1---------
+M2: 
+hydroxyquinol
+1
+[*]c1ccc(O)cc1O
+0
+N
+M2---------
+M1: {'id': 'hydroxyquinol', 'variable_smiles': '[*]c1cc(O)ccc1O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': 'hydroxyquinol', 'variable_smiles': '[*]c1ccc(O)cc1O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: hydroxyquinol 1 [*]c1cc(O)ccc1O 0 N
+	2: hydroxyquinol 1 [*]c1ccc(O)cc1O 0 N
+exit same
+M1: 
+hydroxyquinol
+1
+[*]c1cc(O)ccc1O
+0
+N
+M1---------
+M2: 
+catechol
+1
+[*]c1ccccc1O
+0
+N
+M2---------
+M1: {'id': 'hydroxyquinol', 'variable_smiles': '[*]c1cc(O)ccc1O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': 'catechol', 'variable_smiles': '[*]c1ccccc1O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: hydroxyquinol 1 [*]c1cc(O)ccc1O 0 N
+	2: catechol 1 [*]c1ccccc1O 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1cc(O)ccc1O
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccccc1O
+1
+0
+Cache 
+{}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1cc(O)ccc1O>>[*:1]c1ccccc1O
+[*:1]O
+Pair:  hydroxyquinol catechol [*:1]c1cc(O)ccc1O>>[*:1]c1ccccc1O [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec9638c7c8>
+M1: 
+hydroxyquinol
+1
+[*]c1cc(O)ccc1O
+0
+N
+M1---------
+M2: 
+phenol
+1
+[*]c1ccccc1
+0
+N
+M2---------
+M1: {'id': 'hydroxyquinol', 'variable_smiles': '[*]c1cc(O)ccc1O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': 'phenol', 'variable_smiles': '[*]c1ccccc1', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: hydroxyquinol 1 [*]c1cc(O)ccc1O 0 N
+	2: phenol 1 [*]c1ccccc1 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1cc(O)ccc1O
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccccc1
+1
+0
+Cache 
+{}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1cc(O)ccc1O>>[*:1]c1ccccc1
+[*:1]O
+Pair:  hydroxyquinol phenol [*:1]c1cc(O)ccc1O>>[*:1]c1ccccc1 [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec9638c818>
+M1: 
+hydroxyquinol
+1
+[*]c1cc(O)ccc1O
+0
+N
+M1---------
+M2: 
+2-chlorophenol
+1
+[*]c1ccccc1Cl
+0
+N
+M2---------
+M1: {'id': 'hydroxyquinol', 'variable_smiles': '[*]c1cc(O)ccc1O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': '2-chlorophenol', 'variable_smiles': '[*]c1ccccc1Cl', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: hydroxyquinol 1 [*]c1cc(O)ccc1O 0 N
+	2: 2-chlorophenol 1 [*]c1ccccc1Cl 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1cc(O)ccc1O
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccccc1Cl
+1
+0
+Cache 
+{}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1cc(O)ccc1O>>[*:1]c1ccccc1Cl
+[*:1]O
+Pair:  hydroxyquinol 2-chlorophenol [*:1]c1cc(O)ccc1O>>[*:1]c1ccccc1Cl [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec9638c868>
+M1: 
+hydroxyquinol
+1
+[*]c1cc(O)ccc1O
+0
+N
+M1---------
+M2: 
+amidol
+1
+[*]c1ccc(N)c(N)c1
+0
+N
+M2---------
+M1: {'id': 'hydroxyquinol', 'variable_smiles': '[*]c1cc(O)ccc1O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': 'amidol', 'variable_smiles': '[*]c1ccc(N)c(N)c1', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: hydroxyquinol 1 [*]c1cc(O)ccc1O 0 N
+	2: amidol 1 [*]c1ccc(N)c(N)c1 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1cc(O)ccc1O
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccc(N)c(N)c1
+1
+0
+Cache 
+{}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1cc(O)ccc1O>>[*:1]c1ccc(N)c(N)c1
+[*:1]O
+Pair:  hydroxyquinol amidol [*:1]c1cc(O)ccc1O>>[*:1]c1ccc(N)c(N)c1 [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec9638c8b8>
+M1: 
+hydroxyquinol
+1
+[*]c1cc(O)ccc1O
+0
+N
+M1---------
+M2: 
+hydroxyquinol
+1
+[*]c1ccc(O)c(O)c1
+0
+N
+M2---------
+M1: {'id': 'hydroxyquinol', 'variable_smiles': '[*]c1cc(O)ccc1O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': 'hydroxyquinol', 'variable_smiles': '[*]c1ccc(O)c(O)c1', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: hydroxyquinol 1 [*]c1cc(O)ccc1O 0 N
+	2: hydroxyquinol 1 [*]c1ccc(O)c(O)c1 0 N
+exit same
+M1: 
+2-aminophenol
+1
+[*]c1ccccc1N
+0
+N
+M1---------
+M2: 
+hydroxyquinol
+1
+[*]c1ccc(O)cc1O
+0
+N
+M2---------
+M1: {'id': '2-aminophenol', 'variable_smiles': '[*]c1ccccc1N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': 'hydroxyquinol', 'variable_smiles': '[*]c1ccc(O)cc1O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: 2-aminophenol 1 [*]c1ccccc1N 0 N
+	2: hydroxyquinol 1 [*]c1ccc(O)cc1O 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccc(O)cc1O
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccccc1N
+1
+0
+Cache 
+{}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccc(O)cc1O>>[*:1]c1ccccc1N
+[*:1]O
+Pair:  hydroxyquinol 2-aminophenol [*:1]c1ccc(O)cc1O>>[*:1]c1ccccc1N [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec9638c908>
+M1: 
+2-aminophenol
+1
+[*]c1ccccc1N
+0
+N
+M1---------
+M2: 
+catechol
+1
+[*]c1ccccc1O
+0
+N
+M2---------
+M1: {'id': '2-aminophenol', 'variable_smiles': '[*]c1ccccc1N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': 'catechol', 'variable_smiles': '[*]c1ccccc1O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: 2-aminophenol 1 [*]c1ccccc1N 0 N
+	2: catechol 1 [*]c1ccccc1O 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccccc1N
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccccc1O
+1
+0
+Cache 
+{}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccccc1N>>[*:1]c1ccccc1O
+[*:1]O
+Pair:  2-aminophenol catechol [*:1]c1ccccc1N>>[*:1]c1ccccc1O [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec9638c958>
+M1: 
+2-aminophenol
+1
+[*]c1ccccc1N
+0
+N
+M1---------
+M2: 
+phenol
+1
+[*]c1ccccc1
+0
+N
+M2---------
+M1: {'id': '2-aminophenol', 'variable_smiles': '[*]c1ccccc1N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': 'phenol', 'variable_smiles': '[*]c1ccccc1', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: 2-aminophenol 1 [*]c1ccccc1N 0 N
+	2: phenol 1 [*]c1ccccc1 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccccc1
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccccc1N
+1
+0
+Cache 
+{}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccccc1>>[*:1]c1ccccc1N
+[*:1]O
+Pair:  phenol 2-aminophenol [*:1]c1ccccc1>>[*:1]c1ccccc1N [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec9638c9f8>
+M1: 
+2-aminophenol
+1
+[*]c1ccccc1N
+0
+N
+M1---------
+M2: 
+2-chlorophenol
+1
+[*]c1ccccc1Cl
+0
+N
+M2---------
+M1: {'id': '2-aminophenol', 'variable_smiles': '[*]c1ccccc1N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': '2-chlorophenol', 'variable_smiles': '[*]c1ccccc1Cl', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: 2-aminophenol 1 [*]c1ccccc1N 0 N
+	2: 2-chlorophenol 1 [*]c1ccccc1Cl 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccccc1Cl
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccccc1N
+1
+0
+Cache 
+{}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccccc1Cl>>[*:1]c1ccccc1N
+[*:1]O
+Pair:  2-chlorophenol 2-aminophenol [*:1]c1ccccc1Cl>>[*:1]c1ccccc1N [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec9638ca98>
+M1: 
+2-aminophenol
+1
+[*]c1ccccc1N
+0
+N
+M1---------
+M2: 
+amidol
+1
+[*]c1ccc(N)c(N)c1
+0
+N
+M2---------
+M1: {'id': '2-aminophenol', 'variable_smiles': '[*]c1ccccc1N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': 'amidol', 'variable_smiles': '[*]c1ccc(N)c(N)c1', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: 2-aminophenol 1 [*]c1ccccc1N 0 N
+	2: amidol 1 [*]c1ccc(N)c(N)c1 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccc(N)c(N)c1
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccccc1N
+1
+0
+Cache 
+{}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccc(N)c(N)c1>>[*:1]c1ccccc1N
+[*:1]O
+Pair:  amidol 2-aminophenol [*:1]c1ccc(N)c(N)c1>>[*:1]c1ccccc1N [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec9638cb38>
+M1: 
+2-aminophenol
+1
+[*]c1ccccc1N
+0
+N
+M1---------
+M2: 
+hydroxyquinol
+1
+[*]c1ccc(O)c(O)c1
+0
+N
+M2---------
+M1: {'id': '2-aminophenol', 'variable_smiles': '[*]c1ccccc1N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': 'hydroxyquinol', 'variable_smiles': '[*]c1ccc(O)c(O)c1', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: 2-aminophenol 1 [*]c1ccccc1N 0 N
+	2: hydroxyquinol 1 [*]c1ccc(O)c(O)c1 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccc(O)c(O)c1
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccccc1N
+1
+0
+Cache 
+{}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccc(O)c(O)c1>>[*:1]c1ccccc1N
+[*:1]O
+Pair:  hydroxyquinol 2-aminophenol [*:1]c1ccc(O)c(O)c1>>[*:1]c1ccccc1N [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec9638cb88>
+M1: 
+hydroxyquinol
+1
+[*]c1ccc(O)cc1O
+0
+N
+M1---------
+M2: 
+catechol
+1
+[*]c1ccccc1O
+0
+N
+M2---------
+M1: {'id': 'hydroxyquinol', 'variable_smiles': '[*]c1ccc(O)cc1O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': 'catechol', 'variable_smiles': '[*]c1ccccc1O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: hydroxyquinol 1 [*]c1ccc(O)cc1O 0 N
+	2: catechol 1 [*]c1ccccc1O 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccc(O)cc1O
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccccc1O
+1
+0
+Cache 
+{}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccc(O)cc1O>>[*:1]c1ccccc1O
+[*:1]O
+Pair:  hydroxyquinol catechol [*:1]c1ccc(O)cc1O>>[*:1]c1ccccc1O [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec9638cbd8>
+M1: 
+hydroxyquinol
+1
+[*]c1ccc(O)cc1O
+0
+N
+M1---------
+M2: 
+phenol
+1
+[*]c1ccccc1
+0
+N
+M2---------
+M1: {'id': 'hydroxyquinol', 'variable_smiles': '[*]c1ccc(O)cc1O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': 'phenol', 'variable_smiles': '[*]c1ccccc1', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: hydroxyquinol 1 [*]c1ccc(O)cc1O 0 N
+	2: phenol 1 [*]c1ccccc1 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccc(O)cc1O
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccccc1
+1
+0
+Cache 
+{}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccc(O)cc1O>>[*:1]c1ccccc1
+[*:1]O
+Pair:  hydroxyquinol phenol [*:1]c1ccc(O)cc1O>>[*:1]c1ccccc1 [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec9638cc28>
+M1: 
+hydroxyquinol
+1
+[*]c1ccc(O)cc1O
+0
+N
+M1---------
+M2: 
+2-chlorophenol
+1
+[*]c1ccccc1Cl
+0
+N
+M2---------
+M1: {'id': 'hydroxyquinol', 'variable_smiles': '[*]c1ccc(O)cc1O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': '2-chlorophenol', 'variable_smiles': '[*]c1ccccc1Cl', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: hydroxyquinol 1 [*]c1ccc(O)cc1O 0 N
+	2: 2-chlorophenol 1 [*]c1ccccc1Cl 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccc(O)cc1O
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccccc1Cl
+1
+0
+Cache 
+{}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccc(O)cc1O>>[*:1]c1ccccc1Cl
+[*:1]O
+Pair:  hydroxyquinol 2-chlorophenol [*:1]c1ccc(O)cc1O>>[*:1]c1ccccc1Cl [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec9638cc78>
+M1: 
+hydroxyquinol
+1
+[*]c1ccc(O)cc1O
+0
+N
+M1---------
+M2: 
+amidol
+1
+[*]c1ccc(N)c(N)c1
+0
+N
+M2---------
+M1: {'id': 'hydroxyquinol', 'variable_smiles': '[*]c1ccc(O)cc1O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': 'amidol', 'variable_smiles': '[*]c1ccc(N)c(N)c1', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: hydroxyquinol 1 [*]c1ccc(O)cc1O 0 N
+	2: amidol 1 [*]c1ccc(N)c(N)c1 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccc(N)c(N)c1
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccc(O)cc1O
+1
+0
+Cache 
+{}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccc(N)c(N)c1>>[*:1]c1ccc(O)cc1O
+[*:1]O
+Pair:  amidol hydroxyquinol [*:1]c1ccc(N)c(N)c1>>[*:1]c1ccc(O)cc1O [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec9638ccc8>
+M1: 
+hydroxyquinol
+1
+[*]c1ccc(O)cc1O
+0
+N
+M1---------
+M2: 
+hydroxyquinol
+1
+[*]c1ccc(O)c(O)c1
+0
+N
+M2---------
+M1: {'id': 'hydroxyquinol', 'variable_smiles': '[*]c1ccc(O)cc1O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': 'hydroxyquinol', 'variable_smiles': '[*]c1ccc(O)c(O)c1', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: hydroxyquinol 1 [*]c1ccc(O)cc1O 0 N
+	2: hydroxyquinol 1 [*]c1ccc(O)c(O)c1 0 N
+exit same
+M1: 
+catechol
+1
+[*]c1ccccc1O
+0
+N
+M1---------
+M2: 
+phenol
+1
+[*]c1ccccc1
+0
+N
+M2---------
+M1: {'id': 'catechol', 'variable_smiles': '[*]c1ccccc1O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': 'phenol', 'variable_smiles': '[*]c1ccccc1', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: catechol 1 [*]c1ccccc1O 0 N
+	2: phenol 1 [*]c1ccccc1 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccccc1
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccccc1O
+1
+0
+Cache 
+{}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccccc1>>[*:1]c1ccccc1O
+[*:1]O
+Pair:  phenol catechol [*:1]c1ccccc1>>[*:1]c1ccccc1O [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec9638cd18>
+M1: 
+catechol
+1
+[*]c1ccccc1O
+0
+N
+M1---------
+M2: 
+2-chlorophenol
+1
+[*]c1ccccc1Cl
+0
+N
+M2---------
+M1: {'id': 'catechol', 'variable_smiles': '[*]c1ccccc1O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': '2-chlorophenol', 'variable_smiles': '[*]c1ccccc1Cl', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: catechol 1 [*]c1ccccc1O 0 N
+	2: 2-chlorophenol 1 [*]c1ccccc1Cl 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccccc1Cl
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccccc1O
+1
+0
+Cache 
+{}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccccc1Cl>>[*:1]c1ccccc1O
+[*:1]O
+Pair:  2-chlorophenol catechol [*:1]c1ccccc1Cl>>[*:1]c1ccccc1O [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec9638cdb8>
+M1: 
+catechol
+1
+[*]c1ccccc1O
+0
+N
+M1---------
+M2: 
+amidol
+1
+[*]c1ccc(N)c(N)c1
+0
+N
+M2---------
+M1: {'id': 'catechol', 'variable_smiles': '[*]c1ccccc1O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': 'amidol', 'variable_smiles': '[*]c1ccc(N)c(N)c1', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: catechol 1 [*]c1ccccc1O 0 N
+	2: amidol 1 [*]c1ccc(N)c(N)c1 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccc(N)c(N)c1
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccccc1O
+1
+0
+Cache 
+{}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccc(N)c(N)c1>>[*:1]c1ccccc1O
+[*:1]O
+Pair:  amidol catechol [*:1]c1ccc(N)c(N)c1>>[*:1]c1ccccc1O [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec9638ce58>
+M1: 
+catechol
+1
+[*]c1ccccc1O
+0
+N
+M1---------
+M2: 
+hydroxyquinol
+1
+[*]c1ccc(O)c(O)c1
+0
+N
+M2---------
+M1: {'id': 'catechol', 'variable_smiles': '[*]c1ccccc1O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': 'hydroxyquinol', 'variable_smiles': '[*]c1ccc(O)c(O)c1', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: catechol 1 [*]c1ccccc1O 0 N
+	2: hydroxyquinol 1 [*]c1ccc(O)c(O)c1 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccc(O)c(O)c1
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccccc1O
+1
+0
+Cache 
+{}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccc(O)c(O)c1>>[*:1]c1ccccc1O
+[*:1]O
+Pair:  hydroxyquinol catechol [*:1]c1ccc(O)c(O)c1>>[*:1]c1ccccc1O [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec9638cea8>
+M1: 
+phenol
+1
+[*]c1ccccc1
+0
+N
+M1---------
+M2: 
+2-chlorophenol
+1
+[*]c1ccccc1Cl
+0
+N
+M2---------
+M1: {'id': 'phenol', 'variable_smiles': '[*]c1ccccc1', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': '2-chlorophenol', 'variable_smiles': '[*]c1ccccc1Cl', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: phenol 1 [*]c1ccccc1 0 N
+	2: 2-chlorophenol 1 [*]c1ccccc1Cl 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccccc1
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccccc1Cl
+1
+0
+Cache 
+{}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccccc1>>[*:1]c1ccccc1Cl
+[*:1]O
+Pair:  phenol 2-chlorophenol [*:1]c1ccccc1>>[*:1]c1ccccc1Cl [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec9638cef8>
+M1: 
+phenol
+1
+[*]c1ccccc1
+0
+N
+M1---------
+M2: 
+amidol
+1
+[*]c1ccc(N)c(N)c1
+0
+N
+M2---------
+M1: {'id': 'phenol', 'variable_smiles': '[*]c1ccccc1', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': 'amidol', 'variable_smiles': '[*]c1ccc(N)c(N)c1', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: phenol 1 [*]c1ccccc1 0 N
+	2: amidol 1 [*]c1ccc(N)c(N)c1 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccc(N)c(N)c1
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccccc1
+1
+0
+Cache 
+{}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccc(N)c(N)c1>>[*:1]c1ccccc1
+[*:1]O
+Pair:  amidol phenol [*:1]c1ccc(N)c(N)c1>>[*:1]c1ccccc1 [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec9638cf98>
+M1: 
+phenol
+1
+[*]c1ccccc1
+0
+N
+M1---------
+M2: 
+hydroxyquinol
+1
+[*]c1ccc(O)c(O)c1
+0
+N
+M2---------
+M1: {'id': 'phenol', 'variable_smiles': '[*]c1ccccc1', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': 'hydroxyquinol', 'variable_smiles': '[*]c1ccc(O)c(O)c1', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: phenol 1 [*]c1ccccc1 0 N
+	2: hydroxyquinol 1 [*]c1ccc(O)c(O)c1 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccc(O)c(O)c1
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccccc1
+1
+0
+Cache 
+{}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccc(O)c(O)c1>>[*:1]c1ccccc1
+[*:1]O
+Pair:  hydroxyquinol phenol [*:1]c1ccc(O)c(O)c1>>[*:1]c1ccccc1 [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec96391048>
+M1: 
+2-chlorophenol
+1
+[*]c1ccccc1Cl
+0
+N
+M1---------
+M2: 
+amidol
+1
+[*]c1ccc(N)c(N)c1
+0
+N
+M2---------
+M1: {'id': '2-chlorophenol', 'variable_smiles': '[*]c1ccccc1Cl', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': 'amidol', 'variable_smiles': '[*]c1ccc(N)c(N)c1', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: 2-chlorophenol 1 [*]c1ccccc1Cl 0 N
+	2: amidol 1 [*]c1ccc(N)c(N)c1 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccc(N)c(N)c1
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccccc1Cl
+1
+0
+Cache 
+{}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccc(N)c(N)c1>>[*:1]c1ccccc1Cl
+[*:1]O
+Pair:  amidol 2-chlorophenol [*:1]c1ccc(N)c(N)c1>>[*:1]c1ccccc1Cl [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec96391098>
+M1: 
+2-chlorophenol
+1
+[*]c1ccccc1Cl
+0
+N
+M1---------
+M2: 
+hydroxyquinol
+1
+[*]c1ccc(O)c(O)c1
+0
+N
+M2---------
+M1: {'id': '2-chlorophenol', 'variable_smiles': '[*]c1ccccc1Cl', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': 'hydroxyquinol', 'variable_smiles': '[*]c1ccc(O)c(O)c1', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: 2-chlorophenol 1 [*]c1ccccc1Cl 0 N
+	2: hydroxyquinol 1 [*]c1ccc(O)c(O)c1 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccc(O)c(O)c1
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccccc1Cl
+1
+0
+Cache 
+{}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccc(O)c(O)c1>>[*:1]c1ccccc1Cl
+[*:1]O
+Pair:  hydroxyquinol 2-chlorophenol [*:1]c1ccc(O)c(O)c1>>[*:1]c1ccccc1Cl [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec963910e8>
+M1: 
+amidol
+1
+[*]c1ccc(N)c(N)c1
+0
+N
+M1---------
+M2: 
+hydroxyquinol
+1
+[*]c1ccc(O)c(O)c1
+0
+N
+M2---------
+M1: {'id': 'amidol', 'variable_smiles': '[*]c1ccc(N)c(N)c1', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': 'hydroxyquinol', 'variable_smiles': '[*]c1ccc(O)c(O)c1', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: amidol 1 [*]c1ccc(N)c(N)c1 0 N
+	2: hydroxyquinol 1 [*]c1ccc(O)c(O)c1 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccc(N)c(N)c1
+1
+0
+Ct
+[*]O
+1
+----2
+[*]c1ccc(O)c(O)c1
+1
+0
+Cache 
+{}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccc(N)c(N)c1>>[*:1]c1ccc(O)c(O)c1
+[*:1]O
+Pair:  amidol hydroxyquinol [*:1]c1ccc(N)c(N)c1>>[*:1]c1ccc(O)c(O)c1 [*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec96391188>
+Ix: 1|[*]c1ccc(O)c(O)c1|1
+	Num matches: 2
+Matches:[{'id': 'catechol', 'variable_smiles': '[*:1][H]', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}, {'id': 'hydroxyquinol', 'variable_smiles': '[*]O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}]
+M1: 
+catechol
+1
+[*:1][H]
+0
+N
+M1---------
+M2: 
+hydroxyquinol
+1
+[*]O
+0
+N
+M2---------
+M1: {'id': 'catechol', 'variable_smiles': '[*:1][H]', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': 'hydroxyquinol', 'variable_smiles': '[*]O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: catechol 1 [*:1][H] 0 N
+	2: hydroxyquinol 1 [*]O 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*:1][H]
+1
+0
+Ct
+[*]c1ccc(O)c(O)c1
+1
+----2
+[*]O
+1
+0
+Cache 
+{}
+<class 'int'>
+Trivial
+Post smirks
+[*:1][H]>>[*:1]O
+[*:1]c1ccc(O)c(O)c1
+Pair:  catechol hydroxyquinol [*:1][H]>>[*:1]O [*:1]c1ccc(O)c(O)c1 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec96391228>
+Ix: 1|[*]c1ccc(O)cc1N|1
+	Num matches: 1
+Matches:[{'id': 'amidol', 'variable_smiles': '[*]N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}]
+Ix: 3|[*]O.[*]O.[*]O|111
+	Num matches: 1
+Matches:[{'id': 'hydroxyquinol', 'variable_smiles': '[*]c1ccc([*])c([*])c1', 'attachment_order': '012', 'enumeration_label': 'N', 'variable_symmetry_class': '123'}]
+Ix: 2|[*]N.[*]O|12
+	Num matches: 3
+Matches:[{'id': '2-aminophenol', 'variable_smiles': '[*]c1ccccc1[*]', 'attachment_order': '01', 'enumeration_label': 'N', 'variable_symmetry_class': '11'}, {'id': 'amidol', 'variable_smiles': '[*]c1ccc([*])c(N)c1', 'attachment_order': '10', 'enumeration_label': 'N', 'variable_symmetry_class': '12'}, {'id': 'amidol', 'variable_smiles': '[*]c1ccc(N)c([*])c1', 'attachment_order': '10', 'enumeration_label': 'N', 'variable_symmetry_class': '12'}]
+M1: 
+2-aminophenol
+11
+[*]c1ccccc1[*]
+01
+N
+M1---------
+M2: 
+amidol
+12
+[*]c1ccc([*])c(N)c1
+10
+N
+M2---------
+M1: {'id': '2-aminophenol', 'variable_smiles': '[*]c1ccccc1[*]', 'attachment_order': '01', 'enumeration_label': 'N', 'variable_symmetry_class': '11'}
+M2: {'id': 'amidol', 'variable_smiles': '[*]c1ccc([*])c(N)c1', 'attachment_order': '10', 'enumeration_label': 'N', 'variable_symmetry_class': '12'}
+QQQ
+	1: 2-aminophenol 11 [*]c1ccccc1[*] 01 N
+	2: amidol 12 [*]c1ccc([*])c(N)c1 10 N
+Smirking...
+----1
+Num_cuts: 2
+[*]c1ccc([*])c(N)c1
+12
+10
+Ct
+[*]N.[*]O
+12
+----2
+[*]c1ccccc1[*]
+11
+01
+Cache 
+{}
+<class 'int'>
+cansmirks1
+No Table
+smiles1: [*]c1ccc([*])c(N)c1 smiles2: [*]c1ccccc1[*]
+possibilities0 [((0, 1),)]
+symmetry_class1: 12 symmetry_class2: 11
+[((0, 1),)]
+12
+possibilities1 [((0, 1), (0, 1))]
+possibilities2 [((0, 1), (0, 1), (1, 0))]
+[((0, 1), (0, 1), (1, 0))]
+12
+possibilities3 [((0, 1), (0, 1), (1, 0), (1, 0))]
+possibilities4 [((0, 1), (0, 1), (1, 0), (1, 0), (1, 0))]
+[((0, 1), (0, 1), (1, 0), (1, 0), (1, 0))]
+11
+possibilities5 [((0, 1), (0, 1), (1, 0), (1, 0), (1, 0), (1, 0)), ((0, 1), (0, 1), (1, 0), (1, 0), (1, 0), (0, 1))]
+new_order: 01 constant_order: 10
+cansmirks2
+Relabel [*]N.[*]O with 10
+smiles1 [*]c1ccc([*])c(N)c1  ->  [*:1]c1ccc([*:2])c(N)c1
+smiles2 [*]c1ccccc1[*]  ->  [*:1]c1ccccc1[*:2] new_order: 01
+constant [*:2]N.[*:1]O
+Post smirks
+[*:1]c1ccc([*:2])c(N)c1>>[*:1]c1ccccc1[*:2]
+[*:2]N.[*:1]O
+Pair:  amidol 2-aminophenol [*:1]c1ccc([*:2])c(N)c1>>[*:1]c1ccccc1[*:2] [*:2]N.[*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec96391368>
+M1: 
+2-aminophenol
+11
+[*]c1ccccc1[*]
+01
+N
+M1---------
+M2: 
+amidol
+12
+[*]c1ccc(N)c([*])c1
+10
+N
+M2---------
+M1: {'id': '2-aminophenol', 'variable_smiles': '[*]c1ccccc1[*]', 'attachment_order': '01', 'enumeration_label': 'N', 'variable_symmetry_class': '11'}
+M2: {'id': 'amidol', 'variable_smiles': '[*]c1ccc(N)c([*])c1', 'attachment_order': '10', 'enumeration_label': 'N', 'variable_symmetry_class': '12'}
+QQQ
+	1: 2-aminophenol 11 [*]c1ccccc1[*] 01 N
+	2: amidol 12 [*]c1ccc(N)c([*])c1 10 N
+Smirking...
+----1
+Num_cuts: 2
+[*]c1ccc(N)c([*])c1
+12
+10
+Ct
+[*]N.[*]O
+12
+----2
+[*]c1ccccc1[*]
+11
+01
+Cache 
+{'[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O'}
+<class 'int'>
+cansmirks1
+No Table
+smiles1: [*]c1ccc(N)c([*])c1 smiles2: [*]c1ccccc1[*]
+possibilities0 [((0, 1),)]
+symmetry_class1: 12 symmetry_class2: 11
+[((0, 1),)]
+12
+possibilities1 [((0, 1), (0, 1))]
+possibilities2 [((0, 1), (0, 1), (1, 0))]
+[((0, 1), (0, 1), (1, 0))]
+12
+possibilities3 [((0, 1), (0, 1), (1, 0), (1, 0))]
+possibilities4 [((0, 1), (0, 1), (1, 0), (1, 0), (1, 0))]
+[((0, 1), (0, 1), (1, 0), (1, 0), (1, 0))]
+11
+possibilities5 [((0, 1), (0, 1), (1, 0), (1, 0), (1, 0), (1, 0)), ((0, 1), (0, 1), (1, 0), (1, 0), (1, 0), (0, 1))]
+new_order: 01 constant_order: 10
+cansmirks2
+Relabel [*]N.[*]O with 10
+smiles1 [*]c1ccc(N)c([*])c1  ->  [*:1]c1ccc(N)c([*:2])c1
+smiles2 [*]c1ccccc1[*]  ->  [*:1]c1ccccc1[*:2] new_order: 01
+constant [*:2]N.[*:1]O
+Post smirks
+[*:1]c1ccc(N)c([*:2])c1>>[*:1]c1ccccc1[*:2]
+[*:2]N.[*:1]O
+Pair:  amidol 2-aminophenol [*:1]c1ccc(N)c([*:2])c1>>[*:1]c1ccccc1[*:2] [*:2]N.[*:1]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec963912c8>
+M1: 
+amidol
+12
+[*]c1ccc([*])c(N)c1
+10
+N
+M1---------
+M2: 
+amidol
+12
+[*]c1ccc(N)c([*])c1
+10
+N
+M2---------
+M1: {'id': 'amidol', 'variable_smiles': '[*]c1ccc([*])c(N)c1', 'attachment_order': '10', 'enumeration_label': 'N', 'variable_symmetry_class': '12'}
+M2: {'id': 'amidol', 'variable_smiles': '[*]c1ccc(N)c([*])c1', 'attachment_order': '10', 'enumeration_label': 'N', 'variable_symmetry_class': '12'}
+QQQ
+	1: amidol 12 [*]c1ccc([*])c(N)c1 10 N
+	2: amidol 12 [*]c1ccc(N)c([*])c1 10 N
+exit same
+Ix: 1|[*]C1CCCC1|1
+	Num matches: 1
+Matches:[{'id': 'cyclopentanol', 'variable_smiles': '[*]N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}]
+Ix: 1|[*]c1cc(O)ccc1N|1
+	Num matches: 1
+Matches:[{'id': 'amidol', 'variable_smiles': '[*]N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}]
+Ix: 1|[*]c1ccccc1|1
+	Num matches: 2
+Matches:[{'id': 'phenylamine', 'variable_smiles': '[*]N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}, {'id': 'phenol', 'variable_smiles': '[*]O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}]
+M1: 
+phenylamine
+1
+[*]N
+0
+N
+M1---------
+M2: 
+phenol
+1
+[*]O
+0
+N
+M2---------
+M1: {'id': 'phenylamine', 'variable_smiles': '[*]N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': 'phenol', 'variable_smiles': '[*]O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: phenylamine 1 [*]N 0 N
+	2: phenol 1 [*]O 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]N
+1
+0
+Ct
+[*]c1ccccc1
+1
+----2
+[*]O
+1
+0
+Cache 
+{'[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]N>>[*:1]O
+[*:1]c1ccccc1
+Pair:  phenylamine phenol [*:1]N>>[*:1]O [*:1]c1ccccc1 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec96391458>
+Ix: 1|[*]Cl|1
+	Num matches: 1
+Matches:[{'id': '2-chlorophenol', 'variable_smiles': '[*]c1ccccc1O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}]
+Ix: 2|[*]Cl.[*]O|12
+	Num matches: 1
+Matches:[{'id': '2-chlorophenol', 'variable_smiles': '[*]c1ccccc1[*]', 'attachment_order': '01', 'enumeration_label': 'N', 'variable_symmetry_class': '11'}]
+Ix: 2|[*]N.[*]N|11
+	Num matches: 2
+Matches:[{'id': 'amidol', 'variable_smiles': '[*]c1ccc(O)cc1[*]', 'attachment_order': '01', 'enumeration_label': 'N', 'variable_symmetry_class': '12'}, {'id': 'o-phenylenediamine', 'variable_smiles': '[*]c1ccccc1[*]', 'attachment_order': '01', 'enumeration_label': 'N', 'variable_symmetry_class': '11'}]
+M1: 
+amidol
+12
+[*]c1ccc(O)cc1[*]
+01
+N
+M1---------
+M2: 
+o-phenylenediamine
+11
+[*]c1ccccc1[*]
+01
+N
+M2---------
+M1: {'id': 'amidol', 'variable_smiles': '[*]c1ccc(O)cc1[*]', 'attachment_order': '01', 'enumeration_label': 'N', 'variable_symmetry_class': '12'}
+M2: {'id': 'o-phenylenediamine', 'variable_smiles': '[*]c1ccccc1[*]', 'attachment_order': '01', 'enumeration_label': 'N', 'variable_symmetry_class': '11'}
+QQQ
+	1: amidol 12 [*]c1ccc(O)cc1[*] 01 N
+	2: o-phenylenediamine 11 [*]c1ccccc1[*] 01 N
+Smirking...
+----1
+Num_cuts: 2
+[*]c1ccc(O)cc1[*]
+12
+01
+Ct
+[*]N.[*]N
+11
+----2
+[*]c1ccccc1[*]
+11
+01
+Cache 
+{'[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1'}
+<class 'int'>
+cansmirks1
+No Table
+smiles1: [*]c1ccc(O)cc1[*] smiles2: [*]c1ccccc1[*]
+possibilities0 [((0, 1),)]
+symmetry_class1: 12 symmetry_class2: 11
+[((0, 1),)]
+12
+possibilities1 [((0, 1), (0, 1))]
+possibilities2 [((0, 1), (0, 1), (0, 1))]
+[((0, 1), (0, 1), (0, 1))]
+11
+possibilities3 [((0, 1), (0, 1), (0, 1), (0, 1)), ((0, 1), (0, 1), (0, 1), (1, 0))]
+possibilities4 [((0, 1), (0, 1), (0, 1), (0, 1), (0, 1)), ((0, 1), (0, 1), (0, 1), (1, 0), (1, 0))]
+[((0, 1), (0, 1), (0, 1), (0, 1), (0, 1)), ((0, 1), (0, 1), (0, 1), (1, 0), (1, 0))]
+11
+possibilities5 [((0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1)), ((0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (1, 0)), ((0, 1), (0, 1), (0, 1), (1, 0), (1, 0), (1, 0)), ((0, 1), (0, 1), (0, 1), (1, 0), (1, 0), (0, 1))]
+new_order: 01 constant_order: 01
+cansmirks2
+Relabel [*]N.[*]N with 01
+smiles1 [*]c1ccc(O)cc1[*]  ->  [*:1]c1ccc(O)cc1[*:2]
+smiles2 [*]c1ccccc1[*]  ->  [*:1]c1ccccc1[*:2] new_order: 01
+constant [*:1]N.[*:2]N
+Post smirks
+[*:1]c1ccc(O)cc1[*:2]>>[*:1]c1ccccc1[*:2]
+[*:1]N.[*:2]N
+Pair:  amidol o-phenylenediamine [*:1]c1ccc(O)cc1[*:2]>>[*:1]c1ccccc1[*:2] [*:1]N.[*:2]N 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec96391228>
+Ix: 1|[*]c1ccccc1N|1
+	Num matches: 3
+Matches:[{'id': 'o-phenylenediamine', 'variable_smiles': '[*]N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}, {'id': 'phenylamine', 'variable_smiles': '[*:1][H]', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}, {'id': '2-aminophenol', 'variable_smiles': '[*]O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}]
+M1: 
+o-phenylenediamine
+1
+[*]N
+0
+N
+M1---------
+M2: 
+phenylamine
+1
+[*:1][H]
+0
+N
+M2---------
+M1: {'id': 'o-phenylenediamine', 'variable_smiles': '[*]N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': 'phenylamine', 'variable_smiles': '[*:1][H]', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: o-phenylenediamine 1 [*]N 0 N
+	2: phenylamine 1 [*:1][H] 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*:1][H]
+1
+0
+Ct
+[*]c1ccccc1N
+1
+----2
+[*]N
+1
+0
+Cache 
+{'[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', '[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1][H]>>[*:1]N
+[*:1]c1ccccc1N
+Pair:  phenylamine o-phenylenediamine [*:1][H]>>[*:1]N [*:1]c1ccccc1N 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec963914f8>
+M1: 
+o-phenylenediamine
+1
+[*]N
+0
+N
+M1---------
+M2: 
+2-aminophenol
+1
+[*]O
+0
+N
+M2---------
+M1: {'id': 'o-phenylenediamine', 'variable_smiles': '[*]N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': '2-aminophenol', 'variable_smiles': '[*]O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: o-phenylenediamine 1 [*]N 0 N
+	2: 2-aminophenol 1 [*]O 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]N
+1
+0
+Ct
+[*]c1ccccc1N
+1
+----2
+[*]O
+1
+0
+Cache 
+{'[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', '[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]N>>[*:1]O
+[*:1]c1ccccc1N
+Pair:  o-phenylenediamine 2-aminophenol [*:1]N>>[*:1]O [*:1]c1ccccc1N 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec96391548>
+M1: 
+phenylamine
+1
+[*:1][H]
+0
+N
+M1---------
+M2: 
+2-aminophenol
+1
+[*]O
+0
+N
+M2---------
+M1: {'id': 'phenylamine', 'variable_smiles': '[*:1][H]', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': '2-aminophenol', 'variable_smiles': '[*]O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: phenylamine 1 [*:1][H] 0 N
+	2: 2-aminophenol 1 [*]O 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*:1][H]
+1
+0
+Ct
+[*]c1ccccc1N
+1
+----2
+[*]O
+1
+0
+Cache 
+{'[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', '[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1][H]>>[*:1]O
+[*:1]c1ccccc1N
+Pair:  phenylamine 2-aminophenol [*:1][H]>>[*:1]O [*:1]c1ccccc1N 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec96391138>
+Ix: 1|[*]N|1
+	Num matches: 6
+Matches:[{'id': 'phenylamine', 'variable_smiles': '[*]c1ccccc1', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}, {'id': 'amidol', 'variable_smiles': '[*]c1ccc(O)cc1N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}, {'id': '2-aminophenol', 'variable_smiles': '[*]c1ccccc1O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}, {'id': 'cyclopentanol', 'variable_smiles': '[*]C1CCCC1', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}, {'id': 'o-phenylenediamine', 'variable_smiles': '[*]c1ccccc1N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}, {'id': 'amidol', 'variable_smiles': '[*]c1cc(O)ccc1N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}]
+M1: 
+phenylamine
+1
+[*]c1ccccc1
+0
+N
+M1---------
+M2: 
+amidol
+1
+[*]c1ccc(O)cc1N
+0
+N
+M2---------
+M1: {'id': 'phenylamine', 'variable_smiles': '[*]c1ccccc1', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': 'amidol', 'variable_smiles': '[*]c1ccc(O)cc1N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: phenylamine 1 [*]c1ccccc1 0 N
+	2: amidol 1 [*]c1ccc(O)cc1N 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccc(O)cc1N
+1
+0
+Ct
+[*]N
+1
+----2
+[*]c1ccccc1
+1
+0
+Cache 
+{'[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', '[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccc(O)cc1N>>[*:1]c1ccccc1
+[*:1]N
+Pair:  amidol phenylamine [*:1]c1ccc(O)cc1N>>[*:1]c1ccccc1 [*:1]N 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec963910e8>
+M1: 
+phenylamine
+1
+[*]c1ccccc1
+0
+N
+M1---------
+M2: 
+2-aminophenol
+1
+[*]c1ccccc1O
+0
+N
+M2---------
+M1: {'id': 'phenylamine', 'variable_smiles': '[*]c1ccccc1', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': '2-aminophenol', 'variable_smiles': '[*]c1ccccc1O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: phenylamine 1 [*]c1ccccc1 0 N
+	2: 2-aminophenol 1 [*]c1ccccc1O 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccccc1
+1
+0
+Ct
+[*]N
+1
+----2
+[*]c1ccccc1O
+1
+0
+Cache 
+{'[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', '[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccccc1>>[*:1]c1ccccc1O
+[*:1]N
+Pair:  phenylamine 2-aminophenol [*:1]c1ccccc1>>[*:1]c1ccccc1O [*:1]N 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec96391278>
+M1: 
+phenylamine
+1
+[*]c1ccccc1
+0
+N
+M1---------
+M2: 
+cyclopentanol
+1
+[*]C1CCCC1
+0
+N
+M2---------
+M1: {'id': 'phenylamine', 'variable_smiles': '[*]c1ccccc1', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': 'cyclopentanol', 'variable_smiles': '[*]C1CCCC1', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: phenylamine 1 [*]c1ccccc1 0 N
+	2: cyclopentanol 1 [*]C1CCCC1 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]C1CCCC1
+1
+0
+Ct
+[*]N
+1
+----2
+[*]c1ccccc1
+1
+0
+Cache 
+{'[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', '[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]C1CCCC1>>[*:1]c1ccccc1
+[*:1]N
+Pair:  cyclopentanol phenylamine [*:1]C1CCCC1>>[*:1]c1ccccc1 [*:1]N 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec96391458>
+M1: 
+phenylamine
+1
+[*]c1ccccc1
+0
+N
+M1---------
+M2: 
+o-phenylenediamine
+1
+[*]c1ccccc1N
+0
+N
+M2---------
+M1: {'id': 'phenylamine', 'variable_smiles': '[*]c1ccccc1', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': 'o-phenylenediamine', 'variable_smiles': '[*]c1ccccc1N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: phenylamine 1 [*]c1ccccc1 0 N
+	2: o-phenylenediamine 1 [*]c1ccccc1N 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccccc1
+1
+0
+Ct
+[*]N
+1
+----2
+[*]c1ccccc1N
+1
+0
+Cache 
+{'[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', '[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccccc1>>[*:1]c1ccccc1N
+[*:1]N
+Pair:  phenylamine o-phenylenediamine [*:1]c1ccccc1>>[*:1]c1ccccc1N [*:1]N 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec96391598>
+M1: 
+phenylamine
+1
+[*]c1ccccc1
+0
+N
+M1---------
+M2: 
+amidol
+1
+[*]c1cc(O)ccc1N
+0
+N
+M2---------
+M1: {'id': 'phenylamine', 'variable_smiles': '[*]c1ccccc1', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': 'amidol', 'variable_smiles': '[*]c1cc(O)ccc1N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: phenylamine 1 [*]c1ccccc1 0 N
+	2: amidol 1 [*]c1cc(O)ccc1N 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1cc(O)ccc1N
+1
+0
+Ct
+[*]N
+1
+----2
+[*]c1ccccc1
+1
+0
+Cache 
+{'[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', '[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1cc(O)ccc1N>>[*:1]c1ccccc1
+[*:1]N
+Pair:  amidol phenylamine [*:1]c1cc(O)ccc1N>>[*:1]c1ccccc1 [*:1]N 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec96391638>
+M1: 
+amidol
+1
+[*]c1ccc(O)cc1N
+0
+N
+M1---------
+M2: 
+2-aminophenol
+1
+[*]c1ccccc1O
+0
+N
+M2---------
+M1: {'id': 'amidol', 'variable_smiles': '[*]c1ccc(O)cc1N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': '2-aminophenol', 'variable_smiles': '[*]c1ccccc1O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: amidol 1 [*]c1ccc(O)cc1N 0 N
+	2: 2-aminophenol 1 [*]c1ccccc1O 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccc(O)cc1N
+1
+0
+Ct
+[*]N
+1
+----2
+[*]c1ccccc1O
+1
+0
+Cache 
+{'[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', '[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccc(O)cc1N>>[*:1]c1ccccc1O
+[*:1]N
+Pair:  amidol 2-aminophenol [*:1]c1ccc(O)cc1N>>[*:1]c1ccccc1O [*:1]N 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec96391688>
+M1: 
+amidol
+1
+[*]c1ccc(O)cc1N
+0
+N
+M1---------
+M2: 
+cyclopentanol
+1
+[*]C1CCCC1
+0
+N
+M2---------
+M1: {'id': 'amidol', 'variable_smiles': '[*]c1ccc(O)cc1N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': 'cyclopentanol', 'variable_smiles': '[*]C1CCCC1', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: amidol 1 [*]c1ccc(O)cc1N 0 N
+	2: cyclopentanol 1 [*]C1CCCC1 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]C1CCCC1
+1
+0
+Ct
+[*]N
+1
+----2
+[*]c1ccc(O)cc1N
+1
+0
+Cache 
+{'[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', '[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]C1CCCC1>>[*:1]c1ccc(O)cc1N
+[*:1]N
+Pair:  cyclopentanol amidol [*:1]C1CCCC1>>[*:1]c1ccc(O)cc1N [*:1]N 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec963916d8>
+M1: 
+amidol
+1
+[*]c1ccc(O)cc1N
+0
+N
+M1---------
+M2: 
+o-phenylenediamine
+1
+[*]c1ccccc1N
+0
+N
+M2---------
+M1: {'id': 'amidol', 'variable_smiles': '[*]c1ccc(O)cc1N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': 'o-phenylenediamine', 'variable_smiles': '[*]c1ccccc1N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: amidol 1 [*]c1ccc(O)cc1N 0 N
+	2: o-phenylenediamine 1 [*]c1ccccc1N 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccc(O)cc1N
+1
+0
+Ct
+[*]N
+1
+----2
+[*]c1ccccc1N
+1
+0
+Cache 
+{'[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', '[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccc(O)cc1N>>[*:1]c1ccccc1N
+[*:1]N
+Pair:  amidol o-phenylenediamine [*:1]c1ccc(O)cc1N>>[*:1]c1ccccc1N [*:1]N 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec96391778>
+M1: 
+amidol
+1
+[*]c1ccc(O)cc1N
+0
+N
+M1---------
+M2: 
+amidol
+1
+[*]c1cc(O)ccc1N
+0
+N
+M2---------
+M1: {'id': 'amidol', 'variable_smiles': '[*]c1ccc(O)cc1N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': 'amidol', 'variable_smiles': '[*]c1cc(O)ccc1N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: amidol 1 [*]c1ccc(O)cc1N 0 N
+	2: amidol 1 [*]c1cc(O)ccc1N 0 N
+exit same
+M1: 
+2-aminophenol
+1
+[*]c1ccccc1O
+0
+N
+M1---------
+M2: 
+cyclopentanol
+1
+[*]C1CCCC1
+0
+N
+M2---------
+M1: {'id': '2-aminophenol', 'variable_smiles': '[*]c1ccccc1O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': 'cyclopentanol', 'variable_smiles': '[*]C1CCCC1', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: 2-aminophenol 1 [*]c1ccccc1O 0 N
+	2: cyclopentanol 1 [*]C1CCCC1 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]C1CCCC1
+1
+0
+Ct
+[*]N
+1
+----2
+[*]c1ccccc1O
+1
+0
+Cache 
+{'[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', '[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]C1CCCC1>>[*:1]c1ccccc1O
+[*:1]N
+Pair:  cyclopentanol 2-aminophenol [*:1]C1CCCC1>>[*:1]c1ccccc1O [*:1]N 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec963917c8>
+M1: 
+2-aminophenol
+1
+[*]c1ccccc1O
+0
+N
+M1---------
+M2: 
+o-phenylenediamine
+1
+[*]c1ccccc1N
+0
+N
+M2---------
+M1: {'id': '2-aminophenol', 'variable_smiles': '[*]c1ccccc1O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': 'o-phenylenediamine', 'variable_smiles': '[*]c1ccccc1N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: 2-aminophenol 1 [*]c1ccccc1O 0 N
+	2: o-phenylenediamine 1 [*]c1ccccc1N 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1ccccc1N
+1
+0
+Ct
+[*]N
+1
+----2
+[*]c1ccccc1O
+1
+0
+Cache 
+{'[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', '[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1ccccc1N>>[*:1]c1ccccc1O
+[*:1]N
+Pair:  o-phenylenediamine 2-aminophenol [*:1]c1ccccc1N>>[*:1]c1ccccc1O [*:1]N 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec96391868>
+M1: 
+2-aminophenol
+1
+[*]c1ccccc1O
+0
+N
+M1---------
+M2: 
+amidol
+1
+[*]c1cc(O)ccc1N
+0
+N
+M2---------
+M1: {'id': '2-aminophenol', 'variable_smiles': '[*]c1ccccc1O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': 'amidol', 'variable_smiles': '[*]c1cc(O)ccc1N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: 2-aminophenol 1 [*]c1ccccc1O 0 N
+	2: amidol 1 [*]c1cc(O)ccc1N 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1cc(O)ccc1N
+1
+0
+Ct
+[*]N
+1
+----2
+[*]c1ccccc1O
+1
+0
+Cache 
+{'[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', '[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1cc(O)ccc1N>>[*:1]c1ccccc1O
+[*:1]N
+Pair:  amidol 2-aminophenol [*:1]c1cc(O)ccc1N>>[*:1]c1ccccc1O [*:1]N 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec96391908>
+M1: 
+cyclopentanol
+1
+[*]C1CCCC1
+0
+N
+M1---------
+M2: 
+o-phenylenediamine
+1
+[*]c1ccccc1N
+0
+N
+M2---------
+M1: {'id': 'cyclopentanol', 'variable_smiles': '[*]C1CCCC1', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': 'o-phenylenediamine', 'variable_smiles': '[*]c1ccccc1N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: cyclopentanol 1 [*]C1CCCC1 0 N
+	2: o-phenylenediamine 1 [*]c1ccccc1N 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]C1CCCC1
+1
+0
+Ct
+[*]N
+1
+----2
+[*]c1ccccc1N
+1
+0
+Cache 
+{'[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', '[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]C1CCCC1>>[*:1]c1ccccc1N
+[*:1]N
+Pair:  cyclopentanol o-phenylenediamine [*:1]C1CCCC1>>[*:1]c1ccccc1N [*:1]N 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec96391958>
+M1: 
+cyclopentanol
+1
+[*]C1CCCC1
+0
+N
+M1---------
+M2: 
+amidol
+1
+[*]c1cc(O)ccc1N
+0
+N
+M2---------
+M1: {'id': 'cyclopentanol', 'variable_smiles': '[*]C1CCCC1', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': 'amidol', 'variable_smiles': '[*]c1cc(O)ccc1N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: cyclopentanol 1 [*]C1CCCC1 0 N
+	2: amidol 1 [*]c1cc(O)ccc1N 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]C1CCCC1
+1
+0
+Ct
+[*]N
+1
+----2
+[*]c1cc(O)ccc1N
+1
+0
+Cache 
+{'[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', '[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]C1CCCC1>>[*:1]c1cc(O)ccc1N
+[*:1]N
+Pair:  cyclopentanol amidol [*:1]C1CCCC1>>[*:1]c1cc(O)ccc1N [*:1]N 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec963919f8>
+M1: 
+o-phenylenediamine
+1
+[*]c1ccccc1N
+0
+N
+M1---------
+M2: 
+amidol
+1
+[*]c1cc(O)ccc1N
+0
+N
+M2---------
+M1: {'id': 'o-phenylenediamine', 'variable_smiles': '[*]c1ccccc1N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+M2: {'id': 'amidol', 'variable_smiles': '[*]c1cc(O)ccc1N', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}
+QQQ
+	1: o-phenylenediamine 1 [*]c1ccccc1N 0 N
+	2: amidol 1 [*]c1cc(O)ccc1N 0 N
+Smirking...
+----1
+Num_cuts: 1
+[*]c1cc(O)ccc1N
+1
+0
+Ct
+[*]N
+1
+----2
+[*]c1ccccc1N
+1
+0
+Cache 
+{'[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', '[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N'}
+<class 'int'>
+Trivial
+Post smirks
+[*:1]c1cc(O)ccc1N>>[*:1]c1ccccc1N
+[*:1]N
+Pair:  amidol o-phenylenediamine [*:1]c1cc(O)ccc1N>>[*:1]c1ccccc1N [*:1]N 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec96391a98>
+Ix: 1|[*]c1ccccc1Cl|1
+	Num matches: 1
+Matches:[{'id': '2-chlorophenol', 'variable_smiles': '[*]O', 'attachment_order': '0', 'enumeration_label': 'N', 'variable_symmetry_class': '1'}]
+Ix: 2|[*]O.[*]O|11
+	Num matches: 4
+Matches:[{'id': 'hydroxyquinol', 'variable_smiles': '[*]c1ccc(O)c([*])c1', 'attachment_order': '01', 'enumeration_label': 'N', 'variable_symmetry_class': '12'}, {'id': 'hydroxyquinol', 'variable_smiles': '[*]c1ccc([*])c(O)c1', 'attachment_order': '01', 'enumeration_label': 'N', 'variable_symmetry_class': '12'}, {'id': 'hydroxyquinol', 'variable_smiles': '[*]c1ccc(O)cc1[*]', 'attachment_order': '01', 'enumeration_label': 'N', 'variable_symmetry_class': '12'}, {'id': 'catechol', 'variable_smiles': '[*]c1ccccc1[*]', 'attachment_order': '01', 'enumeration_label': 'N', 'variable_symmetry_class': '11'}]
+M1: 
+hydroxyquinol
+12
+[*]c1ccc(O)c([*])c1
+01
+N
+M1---------
+M2: 
+hydroxyquinol
+12
+[*]c1ccc([*])c(O)c1
+01
+N
+M2---------
+M1: {'id': 'hydroxyquinol', 'variable_smiles': '[*]c1ccc(O)c([*])c1', 'attachment_order': '01', 'enumeration_label': 'N', 'variable_symmetry_class': '12'}
+M2: {'id': 'hydroxyquinol', 'variable_smiles': '[*]c1ccc([*])c(O)c1', 'attachment_order': '01', 'enumeration_label': 'N', 'variable_symmetry_class': '12'}
+QQQ
+	1: hydroxyquinol 12 [*]c1ccc(O)c([*])c1 01 N
+	2: hydroxyquinol 12 [*]c1ccc([*])c(O)c1 01 N
+exit same
+M1: 
+hydroxyquinol
+12
+[*]c1ccc(O)c([*])c1
+01
+N
+M1---------
+M2: 
+hydroxyquinol
+12
+[*]c1ccc(O)cc1[*]
+01
+N
+M2---------
+M1: {'id': 'hydroxyquinol', 'variable_smiles': '[*]c1ccc(O)c([*])c1', 'attachment_order': '01', 'enumeration_label': 'N', 'variable_symmetry_class': '12'}
+M2: {'id': 'hydroxyquinol', 'variable_smiles': '[*]c1ccc(O)cc1[*]', 'attachment_order': '01', 'enumeration_label': 'N', 'variable_symmetry_class': '12'}
+QQQ
+	1: hydroxyquinol 12 [*]c1ccc(O)c([*])c1 01 N
+	2: hydroxyquinol 12 [*]c1ccc(O)cc1[*] 01 N
+exit same
+M1: 
+hydroxyquinol
+12
+[*]c1ccc(O)c([*])c1
+01
+N
+M1---------
+M2: 
+catechol
+11
+[*]c1ccccc1[*]
+01
+N
+M2---------
+M1: {'id': 'hydroxyquinol', 'variable_smiles': '[*]c1ccc(O)c([*])c1', 'attachment_order': '01', 'enumeration_label': 'N', 'variable_symmetry_class': '12'}
+M2: {'id': 'catechol', 'variable_smiles': '[*]c1ccccc1[*]', 'attachment_order': '01', 'enumeration_label': 'N', 'variable_symmetry_class': '11'}
+QQQ
+	1: hydroxyquinol 12 [*]c1ccc(O)c([*])c1 01 N
+	2: catechol 11 [*]c1ccccc1[*] 01 N
+Smirking...
+----1
+Num_cuts: 2
+[*]c1ccc(O)c([*])c1
+12
+01
+Ct
+[*]O.[*]O
+11
+----2
+[*]c1ccccc1[*]
+11
+01
+Cache 
+{'[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', '[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N'}
+<class 'int'>
+cansmirks1
+No Table
+smiles1: [*]c1ccc(O)c([*])c1 smiles2: [*]c1ccccc1[*]
+possibilities0 [((0, 1),)]
+symmetry_class1: 12 symmetry_class2: 11
+[((0, 1),)]
+12
+possibilities1 [((0, 1), (0, 1))]
+possibilities2 [((0, 1), (0, 1), (0, 1))]
+[((0, 1), (0, 1), (0, 1))]
+11
+possibilities3 [((0, 1), (0, 1), (0, 1), (0, 1)), ((0, 1), (0, 1), (0, 1), (1, 0))]
+possibilities4 [((0, 1), (0, 1), (0, 1), (0, 1), (0, 1)), ((0, 1), (0, 1), (0, 1), (1, 0), (1, 0))]
+[((0, 1), (0, 1), (0, 1), (0, 1), (0, 1)), ((0, 1), (0, 1), (0, 1), (1, 0), (1, 0))]
+11
+possibilities5 [((0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1)), ((0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (1, 0)), ((0, 1), (0, 1), (0, 1), (1, 0), (1, 0), (1, 0)), ((0, 1), (0, 1), (0, 1), (1, 0), (1, 0), (0, 1))]
+new_order: 01 constant_order: 01
+cansmirks2
+Relabel [*]O.[*]O with 01
+smiles1 [*]c1ccc(O)c([*])c1  ->  [*:1]c1ccc(O)c([*:2])c1
+smiles2 [*]c1ccccc1[*]  ->  [*:1]c1ccccc1[*:2] new_order: 01
+constant [*:1]O.[*:2]O
+Post smirks
+[*:1]c1ccc(O)c([*:2])c1>>[*:1]c1ccccc1[*:2]
+[*:1]O.[*:2]O
+Pair:  hydroxyquinol catechol [*:1]c1ccc(O)c([*:2])c1>>[*:1]c1ccccc1[*:2] [*:1]O.[*:2]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec96391b38>
+M1: 
+hydroxyquinol
+12
+[*]c1ccc([*])c(O)c1
+01
+N
+M1---------
+M2: 
+hydroxyquinol
+12
+[*]c1ccc(O)cc1[*]
+01
+N
+M2---------
+M1: {'id': 'hydroxyquinol', 'variable_smiles': '[*]c1ccc([*])c(O)c1', 'attachment_order': '01', 'enumeration_label': 'N', 'variable_symmetry_class': '12'}
+M2: {'id': 'hydroxyquinol', 'variable_smiles': '[*]c1ccc(O)cc1[*]', 'attachment_order': '01', 'enumeration_label': 'N', 'variable_symmetry_class': '12'}
+QQQ
+	1: hydroxyquinol 12 [*]c1ccc([*])c(O)c1 01 N
+	2: hydroxyquinol 12 [*]c1ccc(O)cc1[*] 01 N
+exit same
+M1: 
+hydroxyquinol
+12
+[*]c1ccc([*])c(O)c1
+01
+N
+M1---------
+M2: 
+catechol
+11
+[*]c1ccccc1[*]
+01
+N
+M2---------
+M1: {'id': 'hydroxyquinol', 'variable_smiles': '[*]c1ccc([*])c(O)c1', 'attachment_order': '01', 'enumeration_label': 'N', 'variable_symmetry_class': '12'}
+M2: {'id': 'catechol', 'variable_smiles': '[*]c1ccccc1[*]', 'attachment_order': '01', 'enumeration_label': 'N', 'variable_symmetry_class': '11'}
+QQQ
+	1: hydroxyquinol 12 [*]c1ccc([*])c(O)c1 01 N
+	2: catechol 11 [*]c1ccccc1[*] 01 N
+Smirking...
+----1
+Num_cuts: 2
+[*]c1ccc([*])c(O)c1
+12
+01
+Ct
+[*]O.[*]O
+11
+----2
+[*]c1ccccc1[*]
+11
+01
+Cache 
+{'[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', '[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N', '[*]c1ccc(O)c([*])c1': '[*:1]c1ccc(O)c([*:2])c1', ('[*]O.[*]O', '01'): '[*:1]O.[*:2]O'}
+<class 'int'>
+cansmirks1
+No Table
+smiles1: [*]c1ccc([*])c(O)c1 smiles2: [*]c1ccccc1[*]
+possibilities0 [((0, 1),)]
+symmetry_class1: 12 symmetry_class2: 11
+[((0, 1),)]
+12
+possibilities1 [((0, 1), (0, 1))]
+possibilities2 [((0, 1), (0, 1), (0, 1))]
+[((0, 1), (0, 1), (0, 1))]
+11
+possibilities3 [((0, 1), (0, 1), (0, 1), (0, 1)), ((0, 1), (0, 1), (0, 1), (1, 0))]
+possibilities4 [((0, 1), (0, 1), (0, 1), (0, 1), (0, 1)), ((0, 1), (0, 1), (0, 1), (1, 0), (1, 0))]
+[((0, 1), (0, 1), (0, 1), (0, 1), (0, 1)), ((0, 1), (0, 1), (0, 1), (1, 0), (1, 0))]
+11
+possibilities5 [((0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1)), ((0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (1, 0)), ((0, 1), (0, 1), (0, 1), (1, 0), (1, 0), (1, 0)), ((0, 1), (0, 1), (0, 1), (1, 0), (1, 0), (0, 1))]
+new_order: 01 constant_order: 01
+cansmirks2
+Relabel [*]O.[*]O with 01
+smiles1 [*]c1ccc([*])c(O)c1  ->  [*:1]c1ccc([*:2])c(O)c1
+smiles2 [*]c1ccccc1[*]  ->  [*:1]c1ccccc1[*:2] new_order: 01
+constant [*:1]O.[*:2]O
+Post smirks
+[*:1]c1ccc([*:2])c(O)c1>>[*:1]c1ccccc1[*:2]
+[*:1]O.[*:2]O
+Pair:  hydroxyquinol catechol [*:1]c1ccc([*:2])c(O)c1>>[*:1]c1ccccc1[*:2] [*:1]O.[*:2]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec96391c28>
+M1: 
+hydroxyquinol
+12
+[*]c1ccc(O)cc1[*]
+01
+N
+M1---------
+M2: 
+catechol
+11
+[*]c1ccccc1[*]
+01
+N
+M2---------
+M1: {'id': 'hydroxyquinol', 'variable_smiles': '[*]c1ccc(O)cc1[*]', 'attachment_order': '01', 'enumeration_label': 'N', 'variable_symmetry_class': '12'}
+M2: {'id': 'catechol', 'variable_smiles': '[*]c1ccccc1[*]', 'attachment_order': '01', 'enumeration_label': 'N', 'variable_symmetry_class': '11'}
+QQQ
+	1: hydroxyquinol 12 [*]c1ccc(O)cc1[*] 01 N
+	2: catechol 11 [*]c1ccccc1[*] 01 N
+Smirking...
+----1
+Num_cuts: 2
+[*]c1ccc(O)cc1[*]
+12
+01
+Ct
+[*]O.[*]O
+11
+----2
+[*]c1ccccc1[*]
+11
+01
+Cache 
+{'[*]c1ccc([*])c(N)c1': '[*:1]c1ccc([*:2])c(N)c1', ('[*]c1ccccc1[*]', '01'): '[*:1]c1ccccc1[*:2]', ('[*]N.[*]O', '10'): '[*:2]N.[*:1]O', '[*]c1ccc(N)c([*])c1': '[*:1]c1ccc(N)c([*:2])c1', '[*]c1ccc(O)cc1[*]': '[*:1]c1ccc(O)cc1[*:2]', ('[*]N.[*]N', '01'): '[*:1]N.[*:2]N', '[*]c1ccc(O)c([*])c1': '[*:1]c1ccc(O)c([*:2])c1', ('[*]O.[*]O', '01'): '[*:1]O.[*:2]O', '[*]c1ccc([*])c(O)c1': '[*:1]c1ccc([*:2])c(O)c1'}
+<class 'int'>
+cansmirks1
+No Table
+smiles1: [*]c1ccc(O)cc1[*] smiles2: [*]c1ccccc1[*]
+possibilities0 [((0, 1),)]
+symmetry_class1: 12 symmetry_class2: 11
+[((0, 1),)]
+12
+possibilities1 [((0, 1), (0, 1))]
+possibilities2 [((0, 1), (0, 1), (0, 1))]
+[((0, 1), (0, 1), (0, 1))]
+11
+possibilities3 [((0, 1), (0, 1), (0, 1), (0, 1)), ((0, 1), (0, 1), (0, 1), (1, 0))]
+possibilities4 [((0, 1), (0, 1), (0, 1), (0, 1), (0, 1)), ((0, 1), (0, 1), (0, 1), (1, 0), (1, 0))]
+[((0, 1), (0, 1), (0, 1), (0, 1), (0, 1)), ((0, 1), (0, 1), (0, 1), (1, 0), (1, 0))]
+11
+possibilities5 [((0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1)), ((0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (1, 0)), ((0, 1), (0, 1), (0, 1), (1, 0), (1, 0), (1, 0)), ((0, 1), (0, 1), (0, 1), (1, 0), (1, 0), (0, 1))]
+new_order: 01 constant_order: 01
+cansmirks2
+Relabel [*]O.[*]O with 01
+smiles1 [*]c1ccc(O)cc1[*]  ->  [*:1]c1ccc(O)cc1[*:2]
+smiles2 [*]c1ccccc1[*]  ->  [*:1]c1ccccc1[*:2] new_order: 01
+constant [*:1]O.[*:2]O
+Post smirks
+[*:1]c1ccc(O)cc1[*:2]>>[*:1]c1ccccc1[*:2]
+[*:1]O.[*:2]O
+Pair:  hydroxyquinol catechol [*:1]c1ccc(O)cc1[*:2]>>[*:1]c1ccccc1[*:2] [*:1]O.[*:2]O 5
+<mmpdblib.index_algorithm.MatchedMolecularPair object at 0x7fec96391a98>
+Closing IX iteration
+p1: 57
+[*:1]N o-phenylenediamine 2-aminophenol 5 [*:1]c1ccccc1N>>[*:1]c1ccccc1O
+[*:1]N amidol 2-aminophenol 5 [*:1]c1cc(O)ccc1N>>[*:1]c1ccccc1O
+[*:1]N amidol 2-aminophenol 5 [*:1]c1ccc(O)cc1N>>[*:1]c1ccccc1O
+[*:1]N phenylamine 2-aminophenol 5 [*:1]c1ccccc1>>[*:1]c1ccccc1O
+[*:1]N cyclopentanol 2-aminophenol 5 [*:1]C1CCCC1>>[*:1]c1ccccc1O
+[*:1]N amidol o-phenylenediamine 5 [*:1]c1cc(O)ccc1N>>[*:1]c1ccccc1N
+[*:1]N amidol o-phenylenediamine 5 [*:1]c1ccc(O)cc1N>>[*:1]c1ccccc1N
+[*:1]N phenylamine o-phenylenediamine 5 [*:1]c1ccccc1>>[*:1]c1ccccc1N
+[*:1]N cyclopentanol o-phenylenediamine 5 [*:1]C1CCCC1>>[*:1]c1ccccc1N
+[*:1]N amidol phenylamine 5 [*:1]c1cc(O)ccc1N>>[*:1]c1ccccc1
+[*:1]N cyclopentanol amidol 5 [*:1]C1CCCC1>>[*:1]c1cc(O)ccc1N
+[*:1]N amidol phenylamine 5 [*:1]c1ccc(O)cc1N>>[*:1]c1ccccc1
+[*:1]N cyclopentanol amidol 5 [*:1]C1CCCC1>>[*:1]c1ccc(O)cc1N
+[*:1]N cyclopentanol phenylamine 5 [*:1]C1CCCC1>>[*:1]c1ccccc1
+[*:1]N.[*:2]N amidol o-phenylenediamine 5 [*:1]c1ccc(O)cc1[*:2]>>[*:1]c1ccccc1[*:2]
+[*:2]N.[*:1]O amidol 2-aminophenol 5 [*:1]c1ccc(N)c([*:2])c1>>[*:1]c1ccccc1[*:2]
+[*:2]N.[*:1]O amidol 2-aminophenol 5 [*:1]c1ccc([*:2])c(N)c1>>[*:1]c1ccccc1[*:2]
+[*:1]O phenol catechol 5 [*:1]c1ccccc1>>[*:1]c1ccccc1O
+[*:1]O phenol 2-aminophenol 5 [*:1]c1ccccc1>>[*:1]c1ccccc1N
+[*:1]O phenol 2-chlorophenol 5 [*:1]c1ccccc1>>[*:1]c1ccccc1Cl
+[*:1]O amidol phenol 5 [*:1]c1ccc(N)c(N)c1>>[*:1]c1ccccc1
+[*:1]O hydroxyquinol phenol 5 [*:1]c1cc(O)ccc1O>>[*:1]c1ccccc1
+[*:1]O hydroxyquinol phenol 5 [*:1]c1ccc(O)c(O)c1>>[*:1]c1ccccc1
+[*:1]O hydroxyquinol phenol 5 [*:1]c1ccc(O)cc1O>>[*:1]c1ccccc1
+[*:1]O 2-aminophenol catechol 5 [*:1]c1ccccc1N>>[*:1]c1ccccc1O
+[*:1]O 2-chlorophenol catechol 5 [*:1]c1ccccc1Cl>>[*:1]c1ccccc1O
+[*:1]O amidol catechol 5 [*:1]c1ccc(N)c(N)c1>>[*:1]c1ccccc1O
+[*:1]O hydroxyquinol catechol 5 [*:1]c1cc(O)ccc1O>>[*:1]c1ccccc1O
+[*:1]O hydroxyquinol catechol 5 [*:1]c1ccc(O)c(O)c1>>[*:1]c1ccccc1O
+[*:1]O hydroxyquinol catechol 5 [*:1]c1ccc(O)cc1O>>[*:1]c1ccccc1O
+[*:1]O 2-chlorophenol 2-aminophenol 5 [*:1]c1ccccc1Cl>>[*:1]c1ccccc1N
+[*:1]O amidol 2-aminophenol 5 [*:1]c1ccc(N)c(N)c1>>[*:1]c1ccccc1N
+[*:1]O hydroxyquinol 2-aminophenol 5 [*:1]c1cc(O)ccc1O>>[*:1]c1ccccc1N
+[*:1]O hydroxyquinol 2-aminophenol 5 [*:1]c1ccc(O)c(O)c1>>[*:1]c1ccccc1N
+[*:1]O hydroxyquinol 2-aminophenol 5 [*:1]c1ccc(O)cc1O>>[*:1]c1ccccc1N
+[*:1]O amidol 2-chlorophenol 5 [*:1]c1ccc(N)c(N)c1>>[*:1]c1ccccc1Cl
+[*:1]O hydroxyquinol 2-chlorophenol 5 [*:1]c1cc(O)ccc1O>>[*:1]c1ccccc1Cl
+[*:1]O hydroxyquinol 2-chlorophenol 5 [*:1]c1ccc(O)c(O)c1>>[*:1]c1ccccc1Cl
+[*:1]O hydroxyquinol 2-chlorophenol 5 [*:1]c1ccc(O)cc1O>>[*:1]c1ccccc1Cl
+[*:1]O hydroxyquinol amidol 5 [*:1]c1cc(O)ccc1O>>[*:1]c1ccc(N)c(N)c1
+[*:1]O amidol hydroxyquinol 5 [*:1]c1ccc(N)c(N)c1>>[*:1]c1ccc(O)c(O)c1
+[*:1]O amidol hydroxyquinol 5 [*:1]c1ccc(N)c(N)c1>>[*:1]c1ccc(O)cc1O
+[*:1]O.[*:2]O hydroxyquinol catechol 5 [*:1]c1ccc(O)c([*:2])c1>>[*:1]c1ccccc1[*:2]
+[*:1]O.[*:2]O hydroxyquinol catechol 5 [*:1]c1ccc(O)cc1[*:2]>>[*:1]c1ccccc1[*:2]
+[*:1]O.[*:2]O hydroxyquinol catechol 5 [*:1]c1ccc([*:2])c(O)c1>>[*:1]c1ccccc1[*:2]
+[*:1]c1ccc(N)c(N)c1 o-phenylenediamine amidol 5 [*:1][H]>>[*:1]O
+[*:1]c1ccc(O)c(O)c1 catechol hydroxyquinol 5 [*:1][H]>>[*:1]O
+[*:1]c1ccccc1 phenylamine phenol 5 [*:1]N>>[*:1]O
+[*:1]c1ccccc1N o-phenylenediamine 2-aminophenol 5 [*:1]N>>[*:1]O
+[*:1]c1ccccc1N phenylamine 2-aminophenol 5 [*:1][H]>>[*:1]O
+[*:1]c1ccccc1N phenylamine o-phenylenediamine 5 [*:1][H]>>[*:1]N
+[*:1]c1ccccc1O 2-aminophenol catechol 5 [*:1]N>>[*:1]O
+[*:1]c1ccccc1O 2-chlorophenol catechol 5 [*:1]Cl>>[*:1]O
+[*:1]c1ccccc1O phenol catechol 5 [*:1][H]>>[*:1]O
+[*:1]c1ccccc1O 2-chlorophenol 2-aminophenol 5 [*:1]Cl>>[*:1]N
+[*:1]c1ccccc1O phenol 2-aminophenol 5 [*:1][H]>>[*:1]N
+[*:1]c1ccccc1O phenol 2-chlorophenol 5 [*:1][H]>>[*:1]Cl
+p2: 57
+[*:1]c1ccccc1O phenol catechol 5 [*:1][H]>>[*:1]O
+[*:1]c1ccccc1O 2-aminophenol catechol 5 [*:1]N>>[*:1]O
+[*:1]c1ccccc1O 2-chlorophenol catechol 5 [*:1]Cl>>[*:1]O
+[*:1]c1ccccc1O phenol 2-aminophenol 5 [*:1][H]>>[*:1]N
+[*:1]c1ccccc1O phenol 2-chlorophenol 5 [*:1][H]>>[*:1]Cl
+[*:1]c1ccccc1O 2-chlorophenol 2-aminophenol 5 [*:1]Cl>>[*:1]N
+[*:1]c1ccc(N)c(N)c1 o-phenylenediamine amidol 5 [*:1][H]>>[*:1]O
+[*:1]O hydroxyquinol 2-aminophenol 5 [*:1]c1cc(O)ccc1O>>[*:1]c1ccccc1N
+[*:1]O hydroxyquinol catechol 5 [*:1]c1cc(O)ccc1O>>[*:1]c1ccccc1O
+[*:1]O hydroxyquinol phenol 5 [*:1]c1cc(O)ccc1O>>[*:1]c1ccccc1
+[*:1]O hydroxyquinol 2-chlorophenol 5 [*:1]c1cc(O)ccc1O>>[*:1]c1ccccc1Cl
+[*:1]O hydroxyquinol amidol 5 [*:1]c1cc(O)ccc1O>>[*:1]c1ccc(N)c(N)c1
+[*:1]O hydroxyquinol 2-aminophenol 5 [*:1]c1ccc(O)cc1O>>[*:1]c1ccccc1N
+[*:1]O 2-aminophenol catechol 5 [*:1]c1ccccc1N>>[*:1]c1ccccc1O
+[*:1]O phenol 2-aminophenol 5 [*:1]c1ccccc1>>[*:1]c1ccccc1N
+[*:1]O 2-chlorophenol 2-aminophenol 5 [*:1]c1ccccc1Cl>>[*:1]c1ccccc1N
+[*:1]O amidol 2-aminophenol 5 [*:1]c1ccc(N)c(N)c1>>[*:1]c1ccccc1N
+[*:1]O hydroxyquinol 2-aminophenol 5 [*:1]c1ccc(O)c(O)c1>>[*:1]c1ccccc1N
+[*:1]O hydroxyquinol catechol 5 [*:1]c1ccc(O)cc1O>>[*:1]c1ccccc1O
+[*:1]O hydroxyquinol phenol 5 [*:1]c1ccc(O)cc1O>>[*:1]c1ccccc1
+[*:1]O hydroxyquinol 2-chlorophenol 5 [*:1]c1ccc(O)cc1O>>[*:1]c1ccccc1Cl
+[*:1]O amidol hydroxyquinol 5 [*:1]c1ccc(N)c(N)c1>>[*:1]c1ccc(O)cc1O
+[*:1]O phenol catechol 5 [*:1]c1ccccc1>>[*:1]c1ccccc1O
+[*:1]O 2-chlorophenol catechol 5 [*:1]c1ccccc1Cl>>[*:1]c1ccccc1O
+[*:1]O amidol catechol 5 [*:1]c1ccc(N)c(N)c1>>[*:1]c1ccccc1O
+[*:1]O hydroxyquinol catechol 5 [*:1]c1ccc(O)c(O)c1>>[*:1]c1ccccc1O
+[*:1]O phenol 2-chlorophenol 5 [*:1]c1ccccc1>>[*:1]c1ccccc1Cl
+[*:1]O amidol phenol 5 [*:1]c1ccc(N)c(N)c1>>[*:1]c1ccccc1
+[*:1]O hydroxyquinol phenol 5 [*:1]c1ccc(O)c(O)c1>>[*:1]c1ccccc1
+[*:1]O amidol 2-chlorophenol 5 [*:1]c1ccc(N)c(N)c1>>[*:1]c1ccccc1Cl
+[*:1]O hydroxyquinol 2-chlorophenol 5 [*:1]c1ccc(O)c(O)c1>>[*:1]c1ccccc1Cl
+[*:1]O amidol hydroxyquinol 5 [*:1]c1ccc(N)c(N)c1>>[*:1]c1ccc(O)c(O)c1
+[*:1]c1ccc(O)c(O)c1 catechol hydroxyquinol 5 [*:1][H]>>[*:1]O
+[*:2]N.[*:1]O amidol 2-aminophenol 5 [*:1]c1ccc([*:2])c(N)c1>>[*:1]c1ccccc1[*:2]
+[*:2]N.[*:1]O amidol 2-aminophenol 5 [*:1]c1ccc(N)c([*:2])c1>>[*:1]c1ccccc1[*:2]
+[*:1]c1ccccc1 phenylamine phenol 5 [*:1]N>>[*:1]O
+[*:1]N.[*:2]N amidol o-phenylenediamine 5 [*:1]c1ccc(O)cc1[*:2]>>[*:1]c1ccccc1[*:2]
+[*:1]c1ccccc1N phenylamine o-phenylenediamine 5 [*:1][H]>>[*:1]N
+[*:1]c1ccccc1N o-phenylenediamine 2-aminophenol 5 [*:1]N>>[*:1]O
+[*:1]c1ccccc1N phenylamine 2-aminophenol 5 [*:1][H]>>[*:1]O
+[*:1]N amidol phenylamine 5 [*:1]c1ccc(O)cc1N>>[*:1]c1ccccc1
+[*:1]N phenylamine 2-aminophenol 5 [*:1]c1ccccc1>>[*:1]c1ccccc1O
+[*:1]N cyclopentanol phenylamine 5 [*:1]C1CCCC1>>[*:1]c1ccccc1
+[*:1]N phenylamine o-phenylenediamine 5 [*:1]c1ccccc1>>[*:1]c1ccccc1N
+[*:1]N amidol phenylamine 5 [*:1]c1cc(O)ccc1N>>[*:1]c1ccccc1
+[*:1]N amidol 2-aminophenol 5 [*:1]c1ccc(O)cc1N>>[*:1]c1ccccc1O
+[*:1]N cyclopentanol amidol 5 [*:1]C1CCCC1>>[*:1]c1ccc(O)cc1N
+[*:1]N amidol o-phenylenediamine 5 [*:1]c1ccc(O)cc1N>>[*:1]c1ccccc1N
+[*:1]N cyclopentanol 2-aminophenol 5 [*:1]C1CCCC1>>[*:1]c1ccccc1O
+[*:1]N o-phenylenediamine 2-aminophenol 5 [*:1]c1ccccc1N>>[*:1]c1ccccc1O
+[*:1]N amidol 2-aminophenol 5 [*:1]c1cc(O)ccc1N>>[*:1]c1ccccc1O
+[*:1]N cyclopentanol o-phenylenediamine 5 [*:1]C1CCCC1>>[*:1]c1ccccc1N
+[*:1]N cyclopentanol amidol 5 [*:1]C1CCCC1>>[*:1]c1cc(O)ccc1N
+[*:1]N amidol o-phenylenediamine 5 [*:1]c1cc(O)ccc1N>>[*:1]c1ccccc1N
+[*:1]O.[*:2]OBuilding index ...Analyzing database ...Computing sizes ...Building index ...Analyzing database ...Computing sizes ... hydroxyquinol catechol 5 [*:1]c1ccc(O)c([*:2])c1>>[*:1]c1ccccc1[*:2]
+[*:1]O.[*:2]O hydroxyquinol catechol 5 [*:1]c1ccc([*:2])c(O)c1>>[*:1]c1ccccc1[*:2]
+[*:1]O.[*:2]O hydroxyquinol catechol 5 [*:1]c1ccc(O)cc1[*:2]>>[*:1]c1ccccc1[*:2]
+Output: test_data.mmpdb

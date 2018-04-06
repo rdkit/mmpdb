@@ -581,7 +581,7 @@ def load_fragment_index(fragment_reader, fragment_filter=None, selected_ids=None
                 continue
             other_ids = normalized_smiles_to_ids.get(constant_with_H_smiles, [])
             for other_id in other_ids:
-                print("Mem:" + str(i))
+                print("In mem ct:" + str(i))
                 print(constant_smiles + "#" + constant_symmetry_class + "#" + str(num_cuts))
                 # NOTE: this is hard-coded to "[*:1][H]", and must match the
                 # same string used in fragment.py's _hydrogen_cut_smiles

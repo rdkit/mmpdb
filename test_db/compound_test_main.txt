@@ -1,0 +1,10 @@
+normalized_smiles|id
+Oc1ccccc1|phenol
+Oc1ccccc1O|catechol
+Nc1ccccc1O|2-aminophenol
+Oc1ccccc1Cl|2-chlorophenol
+Nc1ccccc1N|o-phenylenediamine
+Nc1ccc(O)cc1N|amidol
+Oc1ccc(O)c(O)c1|hydroxyquinol
+Nc1ccccc1|phenylamine
+NC1CCCC1|cyclopentanol

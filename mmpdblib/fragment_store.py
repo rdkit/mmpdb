@@ -2,13 +2,13 @@ import subprocess
 import psycopg2
 import psycopg2.extras
 
-#db_home = "/home/oriol/dev/mmpdb/test_db/"
-#filename = "compound_test"
-#db = "mmpdb_test_new"
+db_home = "/home/oriol/dev/mmpdb/test_db/"
+filename = "compound_test"
+db = "mmpdb_test_new"
 
-db_home = "/home/oriol/dev/mmpdb/compound_all_db/"
-filename = "compound_all_new"
-db = "mmpdb_all_new"
+#db_home = "/home/oriol/dev/mmpdb/compound_all_db/"
+#filename = "compound_all_new"
+#db = "mmpdb_all_new"
 
 #db_home = "/home/oriol/dev/mmpdb/compound_100k/"
 #filename = "compound_100k_new"

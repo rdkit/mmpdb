@@ -1,0 +1,10 @@
+id|input_smiles|num_normalized_heavies|normalized_smiles
+phenol|Oc1ccccc1|7|Oc1ccccc1
+catechol|Oc1ccccc1O|8|Oc1ccccc1O
+2-aminophenol|Oc1ccccc1N|8|Nc1ccccc1O
+2-chlorophenol|Oc1ccccc1Cl|8|Oc1ccccc1Cl
+o-phenylenediamine|Nc1ccccc1N|8|Nc1ccccc1N
+amidol|Nc1cc(O)ccc1N|9|Nc1ccc(O)cc1N
+hydroxyquinol|Oc1cc(O)ccc1O|9|Oc1ccc(O)c(O)c1
+phenylamine|Nc1ccccc1|7|Nc1ccccc1
+cyclopentanol|C1CCCC1N|6|NC1CCCC1

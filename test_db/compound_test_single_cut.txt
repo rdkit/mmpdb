@@ -1,0 +1,8 @@
+constant_smiles|constant_symmetry_class|num_cuts|id|variable_symmetry_class|variable_smiles|attachment_order|enumeration_label
+[*]c1ccc(N)c(N)c1|1|1|o-phenylenediamine|1|[*:1][H]|0|N
+[*]c1ccccc1O|1|1|phenol|1|[*:1][H]|0|N
+[*]c1ccccc1O|1|1|phenol|1|[*:1][H]|0|N
+[*]c1ccccc1O|1|1|phenol|1|[*:1][H]|0|N
+[*]c1ccc(O)c(O)c1|1|1|catechol|1|[*:1][H]|0|N
+[*]c1ccccc1N|1|1|phenylamine|1|[*:1][H]|0|N
+[*]c1ccccc1N|1|1|phenylamine|1|[*:1][H]|0|N

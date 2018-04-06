@@ -1,0 +1,4 @@
+VERSION	mmpa/3
+FRAGMENT_OPTIONS	[["max_heavies", 100], ["max_rotatable_bonds", 10], ["rotatable_smarts", "[!$([NH]!@C(=O))&!D1&!$(*#*)]-&!@[!$([NH]!@C(=O))&!D1&!$(*#*)]"], ["cut_smarts", "[#6+0;!$(*=,#[!#6])]!@!=!#[!#0;!#1;!$([CH2]);!$([CH3][CH2])]"], ["num_cuts", 3], ["method", "chiral"], ["salt_remover", "<default>"]]
+INDEX_OPTIONS	[["max_variable_heavies", 10], ["symmetric", false]]
+COMMIT
