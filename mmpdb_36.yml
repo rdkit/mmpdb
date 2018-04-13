@@ -4,8 +4,9 @@ channels:
   - rdkit
   - defaults
 dependencies:
-  - ca-certificates=2017.11.5=0
-  - ipywidgets=7.1.1=py36_0
+  - ca-certificates=2018.1.18=0
+  - ipywidgets=7.1.2=py36_0
+  - nodejs=8.9.3=0
   - alabaster=0.7.10=py36h306e16b_0
   - anyqt=0.0.8=py36_0
   - asn1crypto=0.24.0=py36_0
@@ -15,7 +16,7 @@ dependencies:
   - babel=2.5.3=py36_0
   - blaze=0.11.3=py36h4e06776_0
   - bleach=2.1.2=py36_0
-  - bokeh=0.12.13=py36h2f9c1c0_0
+  - bokeh=0.12.14=py36_0
   - bottleneck=1.2.1=py36haac1ea0_0
   - bzip2=1.0.6=h9a117a8_4
   - cairo=1.14.12=h77bcde2_0
@@ -37,6 +38,7 @@ dependencies:
   - docutils=0.14=py36hb0f60f5_0
   - entrypoints=0.2.3=py36h1aec115_2
   - expat=2.2.5=he0dffb1_0
+  - flake8=3.5.0=py36_1
   - flask=0.12.2=py36hb24657c_0
   - flask-cors=3.0.3=py36h2d857d3_0
   - fontconfig=2.12.4=h88586e7_1
@@ -70,15 +72,18 @@ dependencies:
   - jsonschema=2.6.0=py36h006f8b5_0
   - jupyter_client=5.2.2=py36_0
   - jupyter_core=4.4.0=py36h7c827e3_0
-  - jupyterlab=0.31.4=py36_0
+  - jupyterlab=0.31.8=py36_0
   - jupyterlab_launcher=0.10.2=py36_0
   - keyring=10.5.0=py36h0041fa8_0
+  - krb5=1.14.2=hcdc1b81_6
   - lazy-object-proxy=1.3.1=py36h10fcdad_0
   - libedit=3.1=heed3624_0
   - libffi=3.2.1=hd88cf55_4
+  - libgcc=7.2.0=h69d50b8_2
   - libgcc-ng=7.2.0=h7cc24e2_2
   - libgfortran-ng=7.2.0=h9f7466a_2
   - libpng=1.6.34=hb9fc6fc_0
+  - libpq=9.6.6=h4e02ad2_0
   - libsodium=1.0.15=hf101ebd_0
   - libstdcxx-ng=7.2.0=h7a57d05_2
   - libtiff=4.0.9=h28f6b97_0
@@ -94,6 +99,7 @@ dependencies:
   - mkl=2018.0.1=h19d6760_4
   - msgpack-python=0.5.1=py36h6bb024c_0
   - multipledispatch=0.4.9=py36h41da3fb_0
+  - mypy=0.550=py36hd8b1e0f_0
   - nbconvert=5.3.1=py36hb41ffb7_0
   - nbformat=4.4.0=py36h31c9010_0
   - networkx=2.1=py36_0
@@ -106,6 +112,7 @@ dependencies:
   - olefile=0.45.1=py36_0
   - openssl=1.0.2n=hb7f436b_0
   - orange3=3.4.1=py36_0
+  - packaging=16.8=py36ha668100_1
   - pandas=0.22.0=py36hf484d3e_0
   - pandasql=0.7.3=py36_0
   - pandoc=1.19.2.1=hea2e7c5_1
@@ -122,6 +129,7 @@ dependencies:
   - pluggy=0.6.0=py36hb689045_0
   - prompt_toolkit=1.0.15=py36h17d85b1_0
   - psutil=5.4.3=py36h14c3975_0
+  - psycopg2=2.7.3.2=py36h2b1659c_0
   - ptyprocess=0.5.2=py36h69acd42_0
   - py=1.5.2=py36h29bf505_0
   - pycodestyle=2.3.1=py36hf609f19_0
@@ -174,6 +182,7 @@ dependencies:
   - toolz=0.9.0=py36_0
   - tornado=4.5.3=py36_0
   - traitlets=4.3.2=py36h674d592_0
+  - typed-ast=1.1.0=py36h4769eee_0
   - typing=3.6.2=py36h7da032a_0
   - ujson=1.35=py36_0
   - urllib3=1.22=py36hbe7ace6_0
@@ -196,12 +205,30 @@ dependencies:
   - pip:
     - cheroot==6.0.0
     - cherrypy==13.1.0
+    - cli-helpers==1.0.1
+    - configobj==5.0.6
+    - coremltools==0.8
+    - flake8-mypy==17.8.0
+    - graphviz==0.8.2
+    - humanize==0.5.1
+    - jsonpickle==0.9.6
     - molvs==0.1.0
     - more-itertools==4.1.0
+    - mxnet==0.12.1
+    - pgcli==1.9.0
+    - pgspecial==1.10.0
     - phitools==0.1
     - portend==2.2
-    - psycopg2==2.7.3.2
+    - prettytable==0.7.2
+    - protobuf==3.5.2
+    - psycopg2-binary==2.7.4
+    - setproctitle==1.1.10
+    - sqlitedict==1.5.0
+    - sqlparse==0.2.4
     - standardiser==0.1.7
     - tables==3.4.2
+    - tabulate==0.8.2
     - tempora==1.10
+    - terminaltables==3.1.0
+    - turicreate==4.2
 prefix: /home/oriol/.conda/envs/mmpdb_36
