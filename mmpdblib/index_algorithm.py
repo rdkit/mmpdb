@@ -58,6 +58,14 @@ MAX_RADIUS = 5  # maximum allowed environment radius
 
 
 def _positive_float(value):
+    """
+
+    Args:
+        value:
+
+    Returns:
+
+    """
     value = float(value)
     if value <= 0.0:
         raise ValueError("must be a positive float")
@@ -65,6 +73,14 @@ def _positive_float(value):
 
 
 def _nonnegative_float(value):
+    """
+
+    Args:
+        value:
+
+    Returns:
+
+    """
     value = float(value)
     if value < 0.0:
         raise ValueError("must be a positive float or zero")
@@ -72,6 +88,14 @@ def _nonnegative_float(value):
 
 
 def _nonnegative_int(value):
+    """
+
+    Args:
+        value:
+
+    Returns:
+
+    """
     value = int(value)
     if not (value >= 0):
         raise ValueError("must be a positive integer or zero")
@@ -87,9 +111,22 @@ parse_max_heavies_transf = _nonnegative_int
 
 
 class IndexOptions(object):
+    """
+    """
     def __init__(self, min_variable_heavies=None, max_variable_heavies=None,
                  min_variable_ratio=None, max_variable_ratio=None,
                  symmetric=False, max_heavies_transf=None, max_frac_trans=None):
+        """
+
+        Args:
+            min_variable_heavies:
+            max_variable_heavies:
+            min_variable_ratio:
+            max_variable_ratio:
+            symmetric:
+            max_heavies_transf:
+            max_frac_trans:
+        """
         self.min_variable_heavies = min_variable_heavies
         self.max_variable_heavies = max_variable_heavies
         self.min_variable_ratio = min_variable_ratio
@@ -100,6 +137,11 @@ class IndexOptions(object):
         self.max_frac_trans = max_frac_trans
 
     def to_dict(self):
+        """
+
+        Returns:
+
+        """
         from collections import OrderedDict
         items = [
             ("min_variable_heavies", self.min_variable_heavies),
@@ -116,81 +158,211 @@ class IndexOptions(object):
 
 
 class MinVariableRatioFilter(object):
+    """
+    """
     def __init__(self, ratio):
+        """
+
+        Args:
+            ratio:
+        """
         self.ratio = ratio
 
     def allow_fragment(self, num_variable_heavies, num_normalized_heavies):
+        """
+
+        Args:
+            num_variable_heavies:
+            num_normalized_heavies:
+
+        Returns:
+
+        """
         variable_ratio = num_variable_heavies / num_normalized_heavies
         return variable_ratio >= self.ratio
 
     def get_args(self):
+        """
+
+        Returns:
+
+        """
         return {"--min-variable-ratio": str(self.ratio)}
 
     def get_options(self):
+        """
+
+        Returns:
+
+        """
         return {"min_variable_ratio": self.ratio}
 
 
 class MaxVariableRatioFilter(object):
+    """
+    """
     def __init__(self, ratio):
+        """
+
+        Args:
+            ratio:
+        """
         self.ratio = ratio
 
     def allow_fragment(self, num_variable_heavies, num_normalized_heavies):
+        """
+
+        Args:
+            num_variable_heavies:
+            num_normalized_heavies:
+
+        Returns:
+
+        """
         variable_ratio = num_variable_heavies / num_normalized_heavies
         return variable_ratio <= self.ratio
 
     def get_args(self):
+        """
+
+        Returns:
+
+        """
         return {"--max-variable-ratio": str(self.ratio)}
 
     def get_options(self):
+        """
+
+        Returns:
+
+        """
         return {"max_variable_ratio": self.ratio}
 
 
 class MinVariableHeaviesFilter(object):
+    """
+    """
     def __init__(self, min_size):
+        """
+
+        Args:
+            min_size:
+        """
         self.min_size = min_size
 
     def allow_fragment(self, num_variable_heavies, num_normalized_heavies):
+        """
+
+        Args:
+            num_variable_heavies:
+            num_normalized_heavies:
+
+        Returns:
+
+        """
         return num_variable_heavies >= self.min_size
 
     def get_args(self):
+        """
+
+        Returns:
+
+        """
         return {"--min-variable-heavies": str(self.min_size)}
 
     def get_options(self):
+        """
+
+        Returns:
+
+        """
         return {"min_variable_heavies": self.min_size}
 
 
 class MaxVariableHeaviesFilter(object):
+    """
+    """
     def __init__(self, max_size):
+        """
+
+        Args:
+            max_size:
+        """
         self.max_size = max_size
 
     def allow_fragment(self, num_variable_heavies, num_normalized_heavies):
+        """
+
+        Args:
+            num_variable_heavies:
+            num_normalized_heavies:
+
+        Returns:
+
+        """
         return num_variable_heavies <= self.max_size
 
     def get_args(self):
+        """
+
+        Returns:
+
+        """
         return {"--max-variable-heavies": str(self.max_size)}
 
     def get_options(self):
+        """
+
+        Returns:
+
+        """
         return {"max_variable_heavies": self.max_size}
 
 
 class MultipleFilters(object):
+    """
+    """
     # Boolean 'and' of all of the tests
     def __init__(self, filters):
+        """
+
+        Args:
+            filters:
+        """
         self.filters = filters
 
     def allow_fragment(self, num_variable_heavies, num_normalized_heavies):
+        """
+
+        Args:
+            num_variable_heavies:
+            num_normalized_heavies:
+
+        Returns:
+
+        """
         for filter in self.filters:
             if not filter.allow_fragment(num_variable_heavies, num_normalized_heavies):
                 return False
         return True
 
     def get_args(self):
+        """
+
+        Returns:
+
+        """
         d = {}
         for filter in self.filters:
             d.update(filter.get_args())
         return d
 
     def get_options(self):
+        """
+
+        Returns:
+
+        """
         d = {}
         for filter in self.filters:
             d.update(filter.get_options())
@@ -198,7 +370,18 @@ class MultipleFilters(object):
 
 
 class _AllowAllFilter(object):
+    """
+    """
     def allow_fragment(self, num_variable_heavies, num_normalized_heavies):
+        """
+
+        Args:
+            num_variable_heavies:
+            num_normalized_heavies:
+
+        Returns:
+
+        """
         return True
 
 
@@ -209,14 +392,38 @@ class _AllowAllFilter(object):
 # Canonical mapping from smiles1 -> smiles2
 #
 def sym11(p):
+    """
+
+    Args:
+        p:
+
+    Returns:
+
+    """
     return [(p[0], p[1]), (p[1], p[0])]
 
 
 def sym12(p):
+    """
+
+    Args:
+        p:
+
+    Returns:
+
+    """
     return [(p[0], p[1])]
 
 
 def sym111(p):
+    """
+
+    Args:
+        p:
+
+    Returns:
+
+    """
     return [(p[0], p[1], p[2]),
             (p[0], p[2], p[1]),
             (p[1], p[0], p[2]),
@@ -226,21 +433,53 @@ def sym111(p):
 
 
 def sym112(p):
+    """
+
+    Args:
+        p:
+
+    Returns:
+
+    """
     return [(p[0], p[1], p[2]),
             (p[1], p[0], p[2])]
 
 
 def sym121(p):
+    """
+
+    Args:
+        p:
+
+    Returns:
+
+    """
     return [(p[0], p[1], p[2]),
             (p[2], p[1], p[0])]
 
 
 def sym122(p):
+    """
+
+    Args:
+        p:
+
+    Returns:
+
+    """
     return [(p[0], p[1], p[2]),
             (p[0], p[2], p[1])]
 
 
 def sym123(p):
+    """
+
+    Args:
+        p:
+
+    Returns:
+
+    """
     return [(p[0], p[1], p[2])]
 
 
@@ -256,6 +495,9 @@ _symm_funcs = {
 
 
 def _check_sym_funcs():
+    """
+
+    """
     seen_results = set()
 
     for name, f in _symm_funcs.items():
@@ -279,6 +521,15 @@ _check_sym_funcs()
 
 
 def enumerate_symmetry(possibilities, symmetry_class):
+    """
+
+    Args:
+        possibilities:
+        symmetry_class:
+
+    Returns:
+
+    """
     func = _symm_funcs[symmetry_class]
     result = []
     for p in possibilities:
@@ -289,6 +540,15 @@ def enumerate_symmetry(possibilities, symmetry_class):
 
 
 def reorder(possibilities, order):
+    """
+
+    Args:
+        possibilities:
+        order:
+
+    Returns:
+
+    """
     result = []
     for p in possibilities:
         q = tuple(p[-1][offset] for offset in map(int, order))
@@ -298,6 +558,14 @@ def reorder(possibilities, order):
 
 
 def _invert_order(order):
+    """
+
+    Args:
+        order:
+
+    Returns:
+
+    """
     values = list(map(int, order))
     indices = list(range(len(values)))
     indices.sort(key=lambda i: values[i])
@@ -309,6 +577,14 @@ _order_table = dict((s, _invert_order(s))
 
 
 def invert_order(order):
+    """
+
+    Args:
+        order:
+
+    Returns:
+
+    """
     return _order_table[order]
 
 
@@ -318,6 +594,18 @@ def _get_smirks_order(
         constant_symmetry_class,
         symmetry_class2,
         attachment_order2):
+    """
+
+    Args:
+        symmetry_class1:
+        attachment_order1:
+        constant_symmetry_class:
+        symmetry_class2:
+        attachment_order2:
+
+    Returns:
+
+    """
     # the i-th variable * goes to the attachment_order[i]-th constant *.
     # "120" will generate ...[*:2]...[*:3]...[*:1]... for the variable part.
     # The constant part will always be :1, :2, :3
@@ -369,6 +657,11 @@ def _get_smirks_order(
 
 
 def _init_cansmirks_table():
+    """
+
+    Returns:
+
+    """
     # Enumerate all possibilities. Use brute-force to minimize errors.
 
     # There will be 4532 elements.
@@ -424,7 +717,17 @@ if USE_SMIRKS_TABLE:
 
 
 class RelabelCache(dict):
+    """
+    """
     def __missing__(self, key):
+        """
+
+        Args:
+            key:
+
+        Returns:
+
+        """
         if isinstance(key, _compat.basestring):
             result = fragment_io.relabel(key)
         else:
@@ -440,6 +743,23 @@ def cansmirks(num_cuts,
               smiles2, symmetry_class2, attachment_order2,
               relabel_cache
               ):
+    """
+
+    Args:
+        num_cuts:
+        smiles1:
+        symmetry_class1:
+        attachment_order1:
+        constant_smiles:
+        constant_symmetry_class:
+        smiles2:
+        symmetry_class2:
+        attachment_order2:
+        relabel_cache:
+
+    Returns:
+
+    """
     if num_cuts == 1:
         # This is trivial
         smirks = smiles1 + ">>" + smiles2
@@ -468,30 +788,63 @@ def cansmirks(num_cuts,
     return (relabel_cache[smiles1] + ">>" + relabel_cache[smiles2, new_order],
             relabel_cache[constant_smiles, constant_order])
 
-
 class FragmentIndex(object):
+    """
+    """
     def __init__(self, index, id_to_record):
+        """
+
+        Args:
+            index:
+            id_to_record:
+        """
         self._index = index
         self._id_to_record = id_to_record
 
     def __len__(self):
+        """
+
+        Returns:
+
+        """
         n = sum(1 for matches in self._index.values() if len(matches) > 1)
         return n
 
     def iter_constant_matches(self):
+        """
+
+        """
         for (constant_smiles, constant_symmetry_class, num_cuts), matches in sorted(self._index.items()):
             if len(matches) <= 1:
                 continue
             yield num_cuts, constant_smiles, constant_symmetry_class, matches
 
     def get_input_record(self, id):
+        """
+
+        Args:
+            id:
+
+        Returns:
+
+        """
         return self._id_to_record[id]
 
 
 class InputRecord(object):
+    """
+    """
     __slots__ = ("id", "input_smiles", "num_normalized_heavies", "normalized_smiles")
 
     def __init__(self, id, input_smiles, num_normalized_heavies, normalized_smiles):
+        """
+
+        Args:
+            id:
+            input_smiles:
+            num_normalized_heavies:
+            normalized_smiles:
+        """
         self.id = id
         self.input_smiles = input_smiles
         self.num_normalized_heavies = num_normalized_heavies
@@ -499,6 +852,16 @@ class InputRecord(object):
 
 
 def load_fragment_index(fragment_reader, fragment_filter=None, selected_ids=None):
+    """
+
+    Args:
+        fragment_reader:
+        fragment_filter:
+        selected_ids:
+
+    Returns:
+
+    """
     if fragment_filter is None:
         fragment_filter = _AllowAllFilter()
     inmem = True
@@ -599,13 +962,25 @@ def load_fragment_index(fragment_reader, fragment_filter=None, selected_ids=None
     fragment_store.pg_load_sc()
     fragment_store.pg_reagg()
     fragment_store.dump(dict(index), id_to_record)
-    return FragmentIndex(dict(index), id_to_record)
+    #return FragmentIndex(dict(index), id_to_record)
+    return fragment_store.FragmentIndexDB()
 
 
 class MatchedMolecularPair(object):
+    """
+    """
     __slots__ = ("id1", "id2", "smirks", "constant_smiles", "max_constant_radius")
 
     def __init__(self, id1, id2, smirks, constant_smiles, max_constant_radius):
+        """
+
+        Args:
+            id1:
+            id2:
+            smirks:
+            constant_smiles:
+            max_constant_radius:
+        """
         self.id1 = id1
         self.id2 = id2
         self.smirks = smirks
@@ -631,6 +1006,14 @@ _atom_pat = re.compile(r"""
 
 
 def get_num_heavies(smiles):
+    """
+
+    Args:
+        smiles:
+
+    Returns:
+
+    """
     num_atoms = 0
     for m in _atom_pat.finditer(smiles):
         # I think a cleverer pattern could exclude these matches.
@@ -651,7 +1034,17 @@ assert 1 / 2 != 0, "why did you disable future division?"
 
 # A different approach to caching
 class _NumHeaviesCache(dict):
+    """
+    """
     def __missing__(self, smiles):
+        """
+
+        Args:
+            smiles:
+
+        Returns:
+
+        """
         n = get_num_heavies(smiles)
         self[smiles] = n
         return n
@@ -662,6 +1055,16 @@ _num_heavies_cache = _NumHeaviesCache()
 
 def get_max_radius_for_fraction_transfer(
         max_frac_trans, smirks, constant_smiles):
+    """
+
+    Args:
+        max_frac_trans:
+        smirks:
+        constant_smiles:
+
+    Returns:
+
+    """
     # Need to figure out the maximum radius to use
 
     # A pair has compounds C1 and C2. There are N1 and N2 atoms in each, respectively.
@@ -737,16 +1140,34 @@ def get_max_radius_for_fraction_transfer(
 
 
 class EnvironmentCache(object):
+    """
+    """
     def __init_(self, index_cache):
+        """
+
+        Args:
+            index_cache:
+        """
         self.index_cache = index_cache
 
     def __init__(self):
+        """
+
+        """
         self._centers_cache = {}
         self._radii_cache = {}
         self._environment_cache = {}
         self._interned_fingerprints = {}
 
     def get_or_compute_centers(self, constant_smiles):
+        """
+
+        Args:
+            constant_smiles:
+
+        Returns:
+
+        """
         centers = self._centers_cache.get(constant_smiles, None)
         if centers is None:
             centers = environment.find_centers(constant_smiles.encode("ascii"))
@@ -754,6 +1175,15 @@ class EnvironmentCache(object):
         return centers
 
     def get_or_compute_center_radii(self, constant_smiles, max_radius):
+        """
+
+        Args:
+            constant_smiles:
+            max_radius:
+
+        Returns:
+
+        """
         key = (constant_smiles, max_radius)
         radii = self._radii_cache.get(key, None)
         if radii is None:
@@ -763,6 +1193,15 @@ class EnvironmentCache(object):
         return radii
 
     def get_or_compute_constant_environment(self, constant_smiles, max_radius):
+        """
+
+        Args:
+            constant_smiles:
+            max_radius:
+
+        Returns:
+
+        """
         key = (constant_smiles, max_radius)
         env_fps = self._environment_cache.get(key, None)
         if env_fps is None:
@@ -779,6 +1218,12 @@ class EnvironmentCache(object):
         return env_fps
 
 def find_matched_molecular_pairs_olm(index_options=IndexOptions(), reporter=None):
+    """
+
+    Args:
+        index_options:
+        reporter:
+    """
     print("-----------\n\n")
     print("init mmp\n")
     symmetric = index_options.symmetric
@@ -919,6 +1364,13 @@ def find_matched_molecular_pairs_olm(index_options=IndexOptions(), reporter=None
 def find_matched_molecular_pairs(
         index, index_options=IndexOptions(),
         reporter=None):
+    """
+
+    Args:
+        index:
+        index_options:
+        reporter:
+    """
     symmetric = index_options.symmetric
     max_heavies_transf = index_options.max_heavies_transf
     max_frac_trans = index_options.max_frac_trans
@@ -1052,7 +1504,18 @@ def find_matched_molecular_pairs(
 
 ###
 class BaseWriter(object):
+    """
+    """
     def __init__(self, backend, fragment_options, fragment_index, index_options, properties):
+        """
+
+        Args:
+            backend:
+            fragment_options:
+            fragment_index:
+            index_options:
+            properties:
+        """
         self.backend = backend
         self.fragment_options = fragment_options
         self.fragment_index = fragment_index
@@ -1064,32 +1527,70 @@ class BaseWriter(object):
             self.num_properties = len(properties.property_columns)
 
     def start(self):
+        """
+
+        """
         pass
 
     def end(self, reporter=None):
+        """
+
+        Args:
+            reporter:
+        """
         pass
 
     def close(self):
+        """
+
+        """
         self.backend.close()
 
     def __enter__(self):
+        """
+
+        Returns:
+
+        """
         return self
 
     def __exit__(self, type, value, traceback):
+        """
+
+        Args:
+            type:
+            value:
+            traceback:
+        """
         if type is not None:
             self.backend.rollback()
         else:
             self.backend.commit()
 
     def write_matched_molecule_pairs(self, pairs):
+        """
+
+        Args:
+            pairs:
+        """
         raise NotImplementedError
 
 
 class CSVPairWriter(BaseWriter):
+    """
+    """
     def start(self):
+        """
+
+        """
         self.num_pairs = 0
 
     def write_matched_molecule_pairs(self, pairs):
+        """
+
+        Args:
+            pairs:
+        """
         backend = self.backend
         fragment_index = self.fragment_index
 
@@ -1103,14 +1604,39 @@ class CSVPairWriter(BaseWriter):
         self.num_pairs += n
 
     def __exit__(self, type, value, traceback):
+        """
+
+        Args:
+            type:
+            value:
+            traceback:
+        """
         self.backend.close()
+
+from sqlitedict import SqliteDict
+
 
 
 class RuleSmilesTable(dict):
+    """
+    """
     def __init__(self, backend):
+        """
+
+        Args:
+            backend:
+        """
         self.backend = backend
 
     def __missing__(self, smiles):
+        """
+
+        Args:
+            smiles:
+
+        Returns:
+
+        """
         idx = len(self)
         self.backend.add_rule_smiles(idx, smiles)
         self[smiles] = idx
@@ -1119,9 +1645,22 @@ class RuleSmilesTable(dict):
 
 class ConstantSmilesTable(dict):  # XXX Merge with SmilesTable?
     def __init__(self, backend):
+        """
+
+        Args:
+            backend:
+        """
         self.backend = backend
 
     def __missing__(self, smiles):
+        """
+
+        Args:
+            smiles:
+
+        Returns:
+
+        """
         idx = len(self)
         self.backend.add_constant_smiles(idx, smiles)
         self[smiles] = idx
@@ -1129,11 +1668,27 @@ class ConstantSmilesTable(dict):  # XXX Merge with SmilesTable?
 
 
 class RuleTable(dict):
+    """
+    """
     def __init__(self, rule_smiles_table, backend):
+        """
+
+        Args:
+            rule_smiles_table:
+            backend:
+        """
         self.rule_smiles_table = rule_smiles_table
         self.backend = backend
 
     def __missing__(self, smirks):
+        """
+
+        Args:
+            smirks:
+
+        Returns:
+
+        """
         from_smiles, gtgt, to_smiles = smirks.partition(">>")
         assert gtgt == ">>", smirks
 
@@ -1147,12 +1702,29 @@ class RuleTable(dict):
 
 
 class RuleEnvironmentTable(dict):
+    """
+    """
     def __init__(self, num_properties, environment_cache, backend):
+        """
+
+        Args:
+            num_properties:
+            environment_cache:
+            backend:
+        """
         self.num_properties = num_properties
         self.environment_cache = environment_cache
         self.backend = backend
 
     def __missing__(self, key):
+        """
+
+        Args:
+            key:
+
+        Returns:
+
+        """
         # Note: "string-encoded-key" (see corresponding note, below)
         # Decode the key to get the actualy key data.
         rule_idx, env_fp_idx, radius = map(int, key.split(","))
@@ -1171,6 +1743,9 @@ class RuleEnvironmentTable(dict):
         return rule_env
 
     def iter_sorted_rule_environments(self):
+        """
+
+        """
         if self.num_properties == 0:
             # These are raw integers. Wrap them in an empty RuleEnvironment.
             # Note: I don't actualy use this branch in the code
@@ -1186,12 +1761,26 @@ class RuleEnvironmentTable(dict):
             for rule_env in rule_envs:
                 yield rule_env
 
-
 class EnvironmentFingerprintTable(dict):
+    """
+    """
     def __init__(self, backend):
+        """
+
+        Args:
+            backend:
+        """
         self.backend = backend
 
     def __missing__(self, env_fp):
+        """
+
+        Args:
+            env_fp:
+
+        Returns:
+
+        """
         idx = len(self)
         self.backend.add_environment_fingerprint(idx, env_fp)
         self[env_fp] = idx
@@ -1199,13 +1788,31 @@ class EnvironmentFingerprintTable(dict):
 
 
 class CompoundTable(dict):
+    """
+    """
     def __init__(self, fragment_index, property_name_idxs, properties, backend):
+        """
+
+        Args:
+            fragment_index:
+            property_name_idxs:
+            properties:
+            backend:
+        """
         self.fragment_index = fragment_index
         self.property_name_idxs = property_name_idxs
         self.properties = properties
         self.backend = backend
 
     def __missing__(self, compound_id):
+        """
+
+        Args:
+            compound_id:
+
+        Returns:
+
+        """
         compound_idx = len(self)
 
         record = self.fragment_index.get_input_record(compound_id)
@@ -1226,7 +1833,12 @@ class CompoundTable(dict):
 
 ## _heap = None
 class MMPWriter(BaseWriter):
+    """
+    """
     def start(self):
+        """
+
+        """
         self._environment_pair_id_counter = itertools.count(0)
         self._environment_cache = EnvironmentCache()
 
@@ -1240,15 +1852,18 @@ class MMPWriter(BaseWriter):
         self._constant_smiles_table = ConstantSmilesTable(self.backend)
         self._rule_table = RuleTable(self._rule_smiles_table, self.backend)
         self._fingerprint_table = EnvironmentFingerprintTable(self.backend)
-        self._compound_table = CompoundTable(
-            self.fragment_index, property_name_idxs, self.properties, self.backend)
-        self._rule_environment_table = RuleEnvironmentTable(
-            self.num_properties, self._environment_cache, self.backend)
+        self._compound_table = CompoundTable(self.fragment_index, property_name_idxs, self.properties, self.backend)
+        self._rule_environment_table = RuleEnvironmentTable(self.num_properties, self._environment_cache, self.backend)
 
         self.backend.start(self.fragment_options, self.index_options)
         self.num_pairs = 0
 
     def end(self, reporter=None):
+        """
+
+        Args:
+            reporter:
+        """
         reporter = reporters.get_reporter(reporter)
         if self.properties is not None:
             add_rule_environment_statistics = self.backend.add_rule_environment_statistics
@@ -1268,17 +1883,28 @@ class MMPWriter(BaseWriter):
         self.backend.end(reporter)
 
     def write_matched_molecule_pairs(self, pairs):
+        """
+
+        Args:
+            pairs:
+        """
         # The main entry point for writing results to a file.
-
         has_properties = (self.properties is not None)
-
         pair_i = -1
         for pair_i, pair in enumerate(pairs):
             # Figure out which rule it goes into.
+            print("-----------")
+            print("Writing pair")
+            print(pair_i)
+            print(pair.smirks)
+            print("FROM:" +pair.id1)
+            print("TO:"+pair.id2)
             rule_idx = self._rule_table[pair.smirks]
+
 
             # Get the environment for the constant part, at different radii.
             rule_envs = self._get_rule_environments(rule_idx, pair.constant_smiles, pair.max_constant_radius)
+            print("enviroments: ", str(len(rule_envs)))
             if rule_envs:
                 compound1_idx = self._compound_table[pair.id1]
                 compound2_idx = self._compound_table[pair.id2]
@@ -1302,6 +1928,16 @@ class MMPWriter(BaseWriter):
         self.num_pairs += (pair_i + 1)
 
     def _get_rule_environments(self, rule_idx, constant_smiles, max_radius):
+        """
+
+        Args:
+            rule_idx:
+            constant_smiles:
+            max_radius:
+
+        Returns:
+
+        """
         # XXX Add another layer of cache? I don't think it makes much sense.
         env_fps = self._environment_cache.get_or_compute_constant_environment(constant_smiles, max_radius)
         rule_envs = []
@@ -1325,6 +1961,21 @@ class MMPWriter(BaseWriter):
 def open_mmpa_writer(destination, format, title, fragment_options,
                      fragment_index, index_options, properties,
                      environment_cache):
+    """
+
+    Args:
+        destination:
+        format:
+        title:
+        fragment_options:
+        fragment_index:
+        index_options:
+        properties:
+        environment_cache:
+
+    Returns:
+
+    """
     if format is None:
         if destination is None:
             format = "mmpa"
@@ -1372,7 +2023,17 @@ def open_mmpa_writer(destination, format, title, fragment_options,
 # PAIR id rule_id compound_id1 compound_id2
 
 class Compound(object):
+    """
+    """
     def __init__(self, idx, compound_id, record, property_values):
+        """
+
+        Args:
+            idx:
+            compound_id:
+            record:
+            property_values:
+        """
         self.idx = idx
         self.compound_id = compound_id
         self.record = record
@@ -1382,6 +2043,14 @@ class Compound(object):
 # From https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Online_algorithm
 # with changes to return None if there isn't enough data
 def online_variance(values):
+    """
+
+    Args:
+        values:
+
+    Returns:
+
+    """
     n = 0
     mean = 0.0
     M2 = 0.0
@@ -1399,6 +2068,14 @@ def online_variance(values):
 
 
 def online_kurtosis(data):
+    """
+
+    Args:
+        data:
+
+    Returns:
+
+    """
     n = 0
     mean = 0
     M2 = 0
@@ -1424,6 +2101,14 @@ def online_kurtosis(data):
 
 
 def get_median(values):
+    """
+
+    Args:
+        values:
+
+    Returns:
+
+    """
     n = len(values)
     if n == 0:
         return None
@@ -1444,6 +2129,14 @@ def get_median(values):
 # Compute interpolated quartiles according to "Method 3" of
 # https://en.wikipedia.org/wiki/Quartile#Method_3
 def compute_quartiles(values):
+    """
+
+    Args:
+        values:
+
+    Returns:
+
+    """
     n = len(values)
     assert n > 0
     if n == 1:
@@ -1496,6 +2189,14 @@ aggregate_value_names = (
 
 
 def compute_aggregate_values(value_list):
+    """
+
+    Args:
+        value_list:
+
+    Returns:
+
+    """
     value_list = sorted(value_list)
 
     results = []
@@ -1577,6 +2278,9 @@ def compute_aggregate_values(value_list):
 
 
 def test_aggregate_values():
+    """
+
+    """
     values = compute_aggregate_values([2., 1., 3., 6.])
     assert len(aggregate_value_names) == len(values)
     count, avg, std, kurtosis, skewness, min_, q1, median, q3, max_, paired_t, p_value = values
@@ -1597,13 +2301,30 @@ test_aggregate_values()
 
 
 class RuleEnvironment(object):
+    """
+    """
     __slots__ = ("idx", "property_value_lists")
 
     def __init__(self, idx, property_value_lists):
+        """
+
+        Args:
+            idx:
+            property_value_lists:
+        """
         self.idx = idx
         self.property_value_lists = property_value_lists
 
     def append_pair_properties(self, property_values1, property_values2):
+        """
+
+        Args:
+            property_values1:
+            property_values2:
+
+        Returns:
+
+        """
         if not (property_values1 and property_values2):
             return
         if self.property_value_lists is None:

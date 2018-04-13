@@ -13,6 +13,9 @@ fname = '/home/oriol/dev/mmpdb/tests_dict/d1.sqlite'
 db = SqliteDict(filename=fname)
 
 def insert():
+    """
+
+    """
     with db:
         db['key'] = 'value'
         db.commit()
@@ -22,6 +25,11 @@ def insert():
         db.close()
 
 def read():
+    """
+
+    Returns:
+
+    """
     mydict = SqliteDict(fname, autocommit=True)
     return mydict
 

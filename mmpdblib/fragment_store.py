@@ -27,70 +27,154 @@ filename_rejected = db_home + filename + "_rejected.txt"
 
 
 class FragmentStore:
+    """
+    """
     def __init__(self, filename):
+        """
+
+        Args:
+            filename:
+        """
         self.text_file = open(filename, "w")
         self.text_file.write(
             "constant_smiles|constant_symmetry_class|num_cuts|id|variable_symmetry_class|variable_smiles|attachment_order|enumeration_label\n")
 
     def insert(self, constant_smiles, constant_symmetry_class, num_cuts, id, variable_symmetry_class, variable_smiles,
                attachment_order, enumeration_label):
+        """
+
+        Args:
+            constant_smiles:
+            constant_symmetry_class:
+            num_cuts:
+            id:
+            variable_symmetry_class:
+            variable_smiles:
+            attachment_order:
+            enumeration_label:
+        """
         self.text_file.write(constant_smiles + "|" + constant_symmetry_class + "|" + str(num_cuts) + "|" + str(
             id) + "|" + variable_symmetry_class + "|" + variable_smiles + "|" + attachment_order + "|" + enumeration_label + "\n")
 
     def close(self):
+        """
+
+        """
         self.text_file.close()
 
 
 class ConstantStore:
+    """
+    """
     def __init__(self):
+        """
+
+        """
         self.text_file = open(filename_cte, "w")
         self.text_file.write("constant_smiles|constant_with_H_smiles\n")
 
     def insert(self, constant_smiles, constant_with_H_smiles):
+        """
+
+        Args:
+            constant_smiles:
+            constant_with_H_smiles:
+        """
         self.text_file.write(constant_smiles + "|" + constant_with_H_smiles + "\n")
 
     def close(self):
+        """
+
+        """
         self.text_file.close()
 
 
 class MainStore:
+    """
+    """
     def __init__(self):
+        """
+
+        """
         self.text_file = open(filename_main, "w")
         self.text_file.write("normalized_smiles|id\n")
 
     def insert(self, normalized_smiles, id):
+        """
+
+        Args:
+            normalized_smiles:
+            id:
+        """
         self.text_file.write(normalized_smiles + "|" + str(id) + "\n")
 
     def close(self):
+        """
+
+        """
         self.text_file.close()
 
 
 class IdRecordStore:
+    """
+    """
     def __init__(self):
+        """
+
+        """
         self.text_file = open(filename_idrecord, "w")
         self.text_file.write("id|input_smiles|num_normalized_heavies|normalized_smiles\n")
 
     def insert(self, id, input_smiles, num_normalized_heavies, normalized_smiles):
+        """
+
+        Args:
+            id:
+            input_smiles:
+            num_normalized_heavies:
+            normalized_smiles:
+        """
         self.text_file.write(
             id + "|" + input_smiles + "|" + str(num_normalized_heavies) + "|" + normalized_smiles + "\n")
 
     def close(self):
+        """
+
+        """
         self.text_file.close()
 
 
 class RejectedStore:
+    """
+    """
     def __init__(self):
+        """
+
+        """
         self.text_file = open(filename_rejected, "w")
         self.text_file.write("number|id|input_smiles\n")
 
     def insert(self, i, rid, input_smiles):
+        """
+
+        Args:
+            i:
+            rid:
+            input_smiles:
+        """
         self.text_file.write(i + "|" + rid + "|" + input_smiles + "\n")
 
     def close(self):
+        """
+
+        """
         self.text_file.close()
 
 
 def pg_create_tables():
+    """
+
+    """
     print("Creating tables\n")
     myinput = open(db_scripts + 'create_tables.sql')
     p = subprocess.Popen(["psql", "-U", user, "-h", host, "-d", db], stdin=myinput)
@@ -98,6 +182,9 @@ def pg_create_tables():
 
 
 def pg_load():
+    """
+
+    """
     print("Loading CSVs\n")
     print("Loading index\n")
     conn = psycopg2.connect("dbname='" + db + "' user='" + user + "' host='" + host + "' password='" + password + "'")
@@ -161,6 +248,9 @@ def pg_load():
 
 
 def pg_transform():
+    """
+
+    """
     print("Transforming\n")
     # tranform
     myinput = open(db_scripts + 'scripts.sql')
@@ -169,6 +259,9 @@ def pg_transform():
 
 
 def pg_reagg():
+    """
+
+    """
     print("Reagg\n")
     # reagg
     myinput = open(db_scripts + 'script_reagg.sql')
@@ -177,6 +270,9 @@ def pg_reagg():
 
 
 def pg_load_sc():
+    """
+
+    """
     print("Load Single cut ct\n")
     # myinput = open(db_home + 'import_h_cte.sql')
     # p = subprocess.Popen(["psql", "-U", user, "-h", host, "-d", db], stdin=myinput)
@@ -199,6 +295,15 @@ def pg_load_sc():
 
 
 def get_ct(conn, smiles):
+    """
+
+    Args:
+        conn:
+        smiles:
+
+    Returns:
+
+    """
     cur = conn.cursor()
     cur.execute("""SELECT constant_with_h_smiles from constant_unique where constant_smiles='%s' """ % smiles)
     rows = cur.fetchall()
@@ -213,6 +318,15 @@ def get_ct(conn, smiles):
 
 
 def get_id(conn, smiles):
+    """
+
+    Args:
+        conn:
+        smiles:
+
+    Returns:
+
+    """
     cur = conn.cursor()
     cur.execute("""SELECT id from main where normalized_smiles='%s' """ % smiles)
     rows = cur.fetchall()
@@ -226,6 +340,9 @@ def get_id(conn, smiles):
 
 
 def addsc():
+    """
+
+    """
     print("Add SC\n")
     ## Add the single cut hydrogen transformations
 
@@ -291,9 +408,72 @@ def addsc():
     conn.close()
     fstore.close()
 
+class FragmentIndexDB(object):
+    """
+    """
+    def __init__(self):
+        """
+
+        """
+        print("Open Id to record iteration")
+        self.conn = psycopg2.connect("dbname='" + db + "' user='" + user + "' host='" + host + "' password='" + password + "'")
+        self.cur = self.conn.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
+        self.cur.itersize = 50000
+        self.cur.execute("""SELECT id,input_smiles,normalized_smiles,num_normalized_heavies from idrecord;""")
+        self.rows = self.cur.fetchall()
+
+    def close(self):
+        """
+
+        """
+        print("Closing IX iteration")
+        self.conn.close()
+
+    def __len__(self):
+        """
+
+        """
+        raise("FragmentIndexDB len error")
+
+    def test_iter(self):
+        """
+
+        """
+        for i in self.iter_constant_matches():
+            print(i)
+
+    def iter_constant_matches(self):
+        """
+
+        Returns:
+
+        """
+        return self.rows
+
+    def get_input_record(self,id):
+        """
+
+        Args:
+            id:
+
+        Returns:
+
+        """
+        cur=self.conn.cursor( cursor_factory=psycopg2.extras.NamedTupleCursor)
+        cur.itersize = 50000
+        cur.execute("""SELECT id,input_smiles,normalized_smiles,num_normalized_heavies from idrecord where id=%s;""",(id,))
+        rows = cur.fetchall()
+        cur.close()
+        return(rows[0])
+
 
 class IndexIteration:
+    """
+    """
     def __init__(self):
+        """
+
+        """
         print("Open IX iteration")
         self.conn = psycopg2.connect("dbname='" + db + "' user='" + user + "' host='" + host + "' password='" + password + "'")
         self.cur = self.conn.cursor(name="index_agg_cursor", cursor_factory=psycopg2.extras.NamedTupleCursor)
@@ -303,10 +483,17 @@ class IndexIteration:
 
 
     def close(self):
+        """
+
+        """
         print("Closing IX iteration")
         self.conn.close()
 
+
 def test_ix():
+    """
+
+    """
     it=IndexIteration()
     for num_cuts,constant_smiles,csc,vp in it.rows:
         print(constant_smiles)
@@ -317,7 +504,23 @@ def test_ix():
             print("\t"+ m1['id'])
     it.close()
 
+def test_idrecord():
+    """
+
+    """
+    it=IdToRecordIteration()
+    for id,input_smiles,normalized_smiles,num_normalized_heavies in it.rows:
+        print(id)
+        print(input_smiles)
+        print(normalized_smiles)
+        print(num_normalized_heavies)
+    it.close()
+
+
 def test_db():
+    """
+
+    """
     conn = psycopg2.connect("dbname='mmpdb_all' user='" + user + "' host='" + host + "' password='" + password + "'")
     cur = conn.cursor(name="index_agg_cursor", cursor_factory=psycopg2.extras.NamedTupleCursor)
     cur.itersize = 100
@@ -340,6 +543,11 @@ def test_db():
     conn.close()
 
 def test_sframe():
+        """
+
+        Returns:
+
+        """
         import  turicreate
         from turicreate import SFrame
         conn = psycopg2.connect(
@@ -350,6 +558,12 @@ def test_sframe():
 
 
 def dump(index, id_to_record):
+    """
+
+    Args:
+        index:
+        id_to_record:
+    """
     text_file = open(db_home + "index_mem.txt", "w")
     text_file.write(
         "constant_smiles|constant_symmetry_class|num_cuts)|idr|variable_symmetry_class|variable_smiles|attachment_order|enumeration_label\n")
