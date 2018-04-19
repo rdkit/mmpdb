@@ -1140,34 +1140,16 @@ def get_max_radius_for_fraction_transfer(
 
 
 class EnvironmentCache(object):
-    """
-    """
     def __init_(self, index_cache):
-        """
-
-        Args:
-            index_cache:
-        """
         self.index_cache = index_cache
 
     def __init__(self):
-        """
-
-        """
         self._centers_cache = {}
         self._radii_cache = {}
         self._environment_cache = {}
         self._interned_fingerprints = {}
 
     def get_or_compute_centers(self, constant_smiles):
-        """
-
-        Args:
-            constant_smiles:
-
-        Returns:
-
-        """
         centers = self._centers_cache.get(constant_smiles, None)
         if centers is None:
             centers = environment.find_centers(constant_smiles.encode("ascii"))
@@ -1175,15 +1157,6 @@ class EnvironmentCache(object):
         return centers
 
     def get_or_compute_center_radii(self, constant_smiles, max_radius):
-        """
-
-        Args:
-            constant_smiles:
-            max_radius:
-
-        Returns:
-
-        """
         key = (constant_smiles, max_radius)
         radii = self._radii_cache.get(key, None)
         if radii is None:
@@ -1193,15 +1166,6 @@ class EnvironmentCache(object):
         return radii
 
     def get_or_compute_constant_environment(self, constant_smiles, max_radius):
-        """
-
-        Args:
-            constant_smiles:
-            max_radius:
-
-        Returns:
-
-        """
         key = (constant_smiles, max_radius)
         env_fps = self._environment_cache.get(key, None)
         if env_fps is None:
@@ -1218,12 +1182,6 @@ class EnvironmentCache(object):
         return env_fps
 
 def find_matched_molecular_pairs_olm(index_options=IndexOptions(), reporter=None):
-    """
-
-    Args:
-        index_options:
-        reporter:
-    """
     print("-----------\n\n")
     print("init mmp\n")
     symmetric = index_options.symmetric
@@ -1618,120 +1576,89 @@ from sqlitedict import SqliteDict
 
 
 class RuleSmilesTable(dict):
-    """
-    """
     def __init__(self, backend):
-        """
-
-        Args:
-            backend:
-        """
         self.backend = backend
+        self.counter=0
 
     def __missing__(self, smiles):
-        """
-
-        Args:
-            smiles:
-
-        Returns:
-
-        """
-        idx = len(self)
+        idx = self.counter
+        self.counter=self.counter+1
+        print("Inserting rule_smiles: "+ str(idx),smiles)
         self.backend.add_rule_smiles(idx, smiles)
-        self[smiles] = idx
+        #self[smiles] = idx
         return idx
 
+    def __getitem__(self, k):
+        print("Getting RuleSmilesTable: "+ k)
+        v2 = self.backend.get_rule_smiles(k)
+        if v2 is None: return self.__missing__(k)
+        print("V2: " + str(v2))
+        return v2
 
 class ConstantSmilesTable(dict):  # XXX Merge with SmilesTable?
     def __init__(self, backend):
-        """
-
-        Args:
-            backend:
-        """
         self.backend = backend
+        self.counter=0
 
     def __missing__(self, smiles):
-        """
-
-        Args:
-            smiles:
-
-        Returns:
-
-        """
-        idx = len(self)
+        idx = self.counter
+        self.counter=self.counter + 1
         self.backend.add_constant_smiles(idx, smiles)
-        self[smiles] = idx
+        #self[smiles] = idx
         return idx
+
+    def __getitem__(self, k):
+        print("Getting ConstantSmilesTable: "+ k)
+        v = self.backend.get_constant_smiles(k)
+        if v is None: return self.__missing__(k)
+        return v
 
 
 class RuleTable(dict):
-    """
-    """
     def __init__(self, rule_smiles_table, backend):
-        """
-
-        Args:
-            rule_smiles_table:
-            backend:
-        """
         self.rule_smiles_table = rule_smiles_table
         self.backend = backend
+        self.counter =0
 
     def __missing__(self, smirks):
-        """
-
-        Args:
-            smirks:
-
-        Returns:
-
-        """
         from_smiles, gtgt, to_smiles = smirks.partition(">>")
         assert gtgt == ">>", smirks
 
-        rule_idx = len(self)
+        rule_idx = self.counter
+        self.counter=self.counter + 1
         from_smiles_idx = self.rule_smiles_table[from_smiles]
         to_smiles_idx = self.rule_smiles_table[to_smiles]
 
         self.backend.add_rule(rule_idx, from_smiles_idx, to_smiles_idx)
-        self[smirks] = rule_idx
+        #self[smirks] = rule_idx
         return rule_idx
 
+    def __getitem__(self, smirks):
+        print("Getting RuleTable: "+ smirks)
+        from_smiles, gtgt, to_smiles = smirks.partition(">>")
+        assert gtgt == ">>", smirks
+        from_smiles_idx = self.rule_smiles_table[from_smiles]
+        to_smiles_idx = self.rule_smiles_table[to_smiles]
+        v2 = self.backend.get_rule(from_smiles_idx,to_smiles_idx)
+        if v2 is None: return self.__missing__(smirks)
+        return v2
 
 class RuleEnvironmentTable(dict):
-    """
-    """
     def __init__(self, num_properties, environment_cache, backend):
-        """
-
-        Args:
-            num_properties:
-            environment_cache:
-            backend:
-        """
         self.num_properties = num_properties
         self.environment_cache = environment_cache
         self.backend = backend
+        self.counter = 0
 
     def __missing__(self, key):
-        """
-
-        Args:
-            key:
-
-        Returns:
-
-        """
         # Note: "string-encoded-key" (see corresponding note, below)
         # Decode the key to get the actualy key data.
         rule_idx, env_fp_idx, radius = map(int, key.split(","))
 
         # To save space, if there are no properties then only store the index,
         # otherwise store the index and lists of property values.
-        rule_env_idx = len(self)
+        rule_env_idx = self.counter
+        self.counter=self.counter+1
         if self.num_properties == 0:
             rule_env = rule_env_idx
         else:
@@ -1739,8 +1666,14 @@ class RuleEnvironmentTable(dict):
             rule_env = RuleEnvironment(rule_env_idx, property_value_lists)
 
         self.backend.add_rule_environment(rule_env_idx, rule_idx, env_fp_idx, radius)
-        self[key] = rule_env
+        #self[key] = rule_env
         return rule_env
+
+    def __getitem__(self, key):
+        print("Getting RuleEnvironmentTable: " + key)
+        v = self.backend.get_rule_environment(key)
+        if v is None: return self.__missing__(key)
+        return v
 
     def iter_sorted_rule_environments(self):
         """
@@ -1762,65 +1695,41 @@ class RuleEnvironmentTable(dict):
                 yield rule_env
 
 class EnvironmentFingerprintTable(dict):
-    """
-    """
     def __init__(self, backend):
-        """
-
-        Args:
-            backend:
-        """
         self.backend = backend
+        self.counter=0
 
     def __missing__(self, env_fp):
-        """
-
-        Args:
-            env_fp:
-
-        Returns:
-
-        """
-        idx = len(self)
+        idx = self.counter
+        self.counter= self.counter + 1
         self.backend.add_environment_fingerprint(idx, env_fp)
-        self[env_fp] = idx
+        #self[env_fp] = idx
         return idx
+
+    def __getitem__(self, env_fp):
+        print("Getting EnvironmentFingerprintTable: "+ env_fp)
+        v = self.backend.get_environment_fingerprint(env_fp)
+        if v is None: return self.__missing__(env_fp)
+        print("V: " + str(v))
+        return v
 
 
 class CompoundTable(dict):
-    """
-    """
     def __init__(self, fragment_index, property_name_idxs, properties, backend):
-        """
-
-        Args:
-            fragment_index:
-            property_name_idxs:
-            properties:
-            backend:
-        """
         self.fragment_index = fragment_index
         self.property_name_idxs = property_name_idxs
         self.properties = properties
         self.backend = backend
+        self.counter = 0
 
     def __missing__(self, compound_id):
-        """
-
-        Args:
-            compound_id:
-
-        Returns:
-
-        """
-        compound_idx = len(self)
-
+        compound_idx = self.counter
+        self.counter=self.counter+1
         record = self.fragment_index.get_input_record(compound_id)
-
         # "id", "public_id", "input_smiles", "clean_smiles", "clean_num_heavies"]
         self.backend.add_compound(compound_idx, compound_id, record.input_smiles,
                                   record.normalized_smiles, record.num_normalized_heavies)
-        self[compound_id] = compound_idx
+        #self[compound_id] = compound_idx
 
         if self.properties:
             property_values = self.properties.get_property_values(compound_id)
@@ -1830,8 +1739,57 @@ class CompoundTable(dict):
 
         return compound_idx
 
+    def __getitem__(self, compound_id):
+        print("Getting CompoundTable: "+ compound_id)
+        v = self.backend.get_compound(compound_id)
+        if v is None: return self.__missing__(compound_id)
+        print("V: " + str(v))
+        return v
 
-## _heap = None
+
+class MMPWriter_OLM(BaseWriter):
+
+    def write_matched_molecule_pairs(self, pairs):
+        # The main entry point for writing results to a file.
+        has_properties = (self.properties is not None)
+        pair_i = -1
+        for pair_i, pair in enumerate(pairs):
+            # Figure out which rule it goes into.
+            print("-----------")
+            print("Writing pair")
+            print(pair_i)
+            print(pair.smirks)
+            print("FROM:" +pair.id1)
+            print("TO:"+pair.id2)
+            rule_idx = self._rule_table[pair.smirks]
+
+
+            # Get the environment for the constant part, at different radii.
+            rule_envs = self._get_rule_environments(rule_idx, pair.constant_smiles, pair.max_constant_radius)
+            print("enviroments: ", str(len(rule_envs)))
+            if rule_envs:
+                compound1_idx = self._compound_table[pair.id1]
+                compound2_idx = self._compound_table[pair.id2]
+                constant_idx = self._constant_smiles_table[pair.constant_smiles]
+
+                for rule_env in rule_envs:
+                    pair_idx = next(self._environment_pair_id_counter)
+
+                    if has_properties:
+                        # then the rule_env is a RuleEnvironment instance
+                        self.backend.add_rule_environment_pair(
+                            pair_idx, rule_env.idx, compound1_idx, compound2_idx, constant_idx)
+                        rule_env.append_pair_properties(
+                            self.properties.get_property_values(pair.id1),
+                            self.properties.get_property_values(pair.id2))
+                    else:
+                        # then the rule_env is an integer
+                        self.backend.add_rule_environment_pair(
+                            pair_idx, rule_env, compound1_idx, compound2_idx, constant_idx)
+
+        self.num_pairs += (pair_i + 1)
+
+
 class MMPWriter(BaseWriter):
     """
     """
@@ -1883,11 +1841,6 @@ class MMPWriter(BaseWriter):
         self.backend.end(reporter)
 
     def write_matched_molecule_pairs(self, pairs):
-        """
-
-        Args:
-            pairs:
-        """
         # The main entry point for writing results to a file.
         has_properties = (self.properties is not None)
         pair_i = -1
@@ -1901,13 +1854,18 @@ class MMPWriter(BaseWriter):
             print("TO:"+pair.id2)
             rule_idx = self._rule_table[pair.smirks]
 
-
             # Get the environment for the constant part, at different radii.
             rule_envs = self._get_rule_environments(rule_idx, pair.constant_smiles, pair.max_constant_radius)
             print("enviroments: ", str(len(rule_envs)))
             if rule_envs:
+                #print("Inserting: "+ str(pair.id1))
                 compound1_idx = self._compound_table[pair.id1]
+                #print("Inserted: " + str(compound1_idx))
                 compound2_idx = self._compound_table[pair.id2]
+
+                #print("Test compound inserting:")
+                #print(pair.id1)
+                #print(self._compound_table[pair.id1])
                 constant_idx = self._constant_smiles_table[pair.constant_smiles]
 
                 for rule_env in rule_envs:
@@ -1928,16 +1886,6 @@ class MMPWriter(BaseWriter):
         self.num_pairs += (pair_i + 1)
 
     def _get_rule_environments(self, rule_idx, constant_smiles, max_radius):
-        """
-
-        Args:
-            rule_idx:
-            constant_smiles:
-            max_radius:
-
-        Returns:
-
-        """
         # XXX Add another layer of cache? I don't think it makes much sense.
         env_fps = self._environment_cache.get_or_compute_constant_environment(constant_smiles, max_radius)
         rule_envs = []
@@ -1961,21 +1909,6 @@ class MMPWriter(BaseWriter):
 def open_mmpa_writer(destination, format, title, fragment_options,
                      fragment_index, index_options, properties,
                      environment_cache):
-    """
-
-    Args:
-        destination:
-        format:
-        title:
-        fragment_options:
-        fragment_index:
-        index_options:
-        properties:
-        environment_cache:
-
-    Returns:
-
-    """
     if format is None:
         if destination is None:
             format = "mmpa"

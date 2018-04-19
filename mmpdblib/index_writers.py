@@ -273,38 +273,52 @@ class BaseSqliteIndexWriter(object):
                          index_options_str, index_options.symmetric))
 
     def add_property_name(self, property_name_idx, property_name):
-        """
-
-        Args:
-            property_name_idx:
-            property_name:
-        """
         self.conn.execute("INSERT INTO property_name (id, name) VALUES (?, ?)",
                           (property_name_idx, property_name))
         
     def add_rule_smiles(self, smiles_idx, smiles):
-        """
-
-        Args:
-            smiles_idx:
-            smiles:
-        """
         print("add_rule_smiles", str(smiles_idx),smiles)
         self.conn.execute("INSERT INTO rule_smiles (id, smiles, num_heavies) VALUES (?, ?, ?)",
                           (smiles_idx, smiles, get_num_heavies_from_smiles(smiles)))
+        self.db.commit()
+
+
+
+    def get_rule_smiles(self, smiles):
+        print("Smiles: "+ smiles)
+        cur = self.conn.execute("SELECT id FROM rule_smiles WHERE smiles==?",(smiles,))
+        rows = cur.fetchone()
+        print("S: "+str(rows))
+        print(type(rows))
+        if ( rows != None):
+            print("Row")
+            r = rows[0]
+        else:
+            print("Not found!")
+            r = None
+        print("Result rule_smile: "+str(smiles) +"|"+str(r))
+        return (r)
 
     def add_rule(self, rule_idx, from_smiles_idx, to_smiles_idx):
-        """
-
-        Args:
-            rule_idx:
-            from_smiles_idx:
-            to_smiles_idx:
-        """
         print("add_rule", str(rule_idx), str(from_smiles_idx),str(to_smiles_idx))
         self.conn.execute("INSERT INTO rule (id, from_smiles_id, to_smiles_id) "
                           "  VALUES (?, ?, ?)",
                           (rule_idx, from_smiles_idx, to_smiles_idx))
+
+    def get_rule(self,from_smiles_idx,to_smiles_idx):
+        cur = self.conn.execute("SELECT id FROM rule WHERE from_smiles_id=? and to_smiles_id=?",(from_smiles_idx,to_smiles_idx))
+        rows = cur.fetchone()
+        print("S: "+str(rows))
+        print(type(rows))
+        if ( rows != None):
+            print("Row")
+            r = rows[0]
+        else:
+            print("Not found!")
+            r = None
+        return(r)
+
+
 
     def add_environment_fingerprint(self, fp_idx, environment_fingerprint):
         """
@@ -318,81 +332,80 @@ class BaseSqliteIndexWriter(object):
                           " VALUES (?, ?)",
                           (fp_idx, environment_fingerprint))
 
-    def add_rule_environment(self, rule_env_idx, rule_idx, env_fp_idx, radius):
-        """
+    def get_environment_fingerprint(self,environment_fingerprint):
+        cur = self.conn.execute("SELECT id FROM environment_fingerprint WHERE fingerprint=?",(environment_fingerprint,))
+        rows = cur.fetchone()
+        if ( rows != None):
+            r = rows[0]
+        else:
+            print("Not found!")
+            r = None
+        return(r)
 
-        Args:
-            rule_env_idx:
-            rule_idx:
-            env_fp_idx:
-            radius:
-        """
-        print("add_rule_environment", str(rule_env_idx), str(rule_idx),"FPIX: ",str(env_fp_idx), str(radius))
+    def add_rule_environment(self, rule_env_idx, rule_idx, env_fp_idx, radius):
+        print("add_rule_environment", str(rule_env_idx), str(rule_idx),"FPIX: ",str(env_fp_idx), "Radius: "+str(radius))
         self.conn.execute("INSERT INTO rule_environment (id, rule_id, environment_fingerprint_id,  radius) "
                           "  VALUES (?, ?, ?, ?)",
                           (rule_env_idx, rule_idx, env_fp_idx, radius))
 
+    def get_rule_environment(self, key):
+        rule_idx, env_fp_idx, radius = map(int, key.split(","))
+        cur = self.conn.execute("SELECT id FROM rule_environment WHERE rule_id=? and environment_fingerprint_id=? and radius=?",
+                                (rule_idx,env_fp_idx,radius))
+        rows = cur.fetchone()
+        if (rows != None):
+            r = rows[0]
+        else:
+            print("Not found!")
+            r = None
+        return (r)
+
     def add_compound(self, compound_idx, compound_id, input_smiles,
                      normalized_smiles, num_normalized_heavies):
-        """
-
-        Args:
-            compound_idx:
-            compound_id:
-            input_smiles:
-            normalized_smiles:
-            num_normalized_heavies:
-        """
         print("add_compound", str(compound_idx), str(compound_id), str(input_smiles), normalized_smiles,str(num_normalized_heavies))
         self.conn.execute("INSERT INTO compound (id, public_id, input_smiles, clean_smiles, clean_num_heavies) "
                           "   VALUES (?, ?, ?, ?, ?)",
                           (compound_idx, compound_id, input_smiles, normalized_smiles, num_normalized_heavies))
+
+    def get_compound(self,compound_id):
+        cur=self.conn.execute("SELECT id FROM compound WHERE public_id=?", (compound_id,))
+        rows = cur.fetchone()
+        if ( rows != None):
+            r = rows[0]
+        else:
+            print("Not found!")
+            r = None
+        return(r)
+
+
         
     def add_constant_smiles(self, smiles_idx, constant_smiles):
-        """
-
-        Args:
-            smiles_idx:
-            constant_smiles:
-        """
         print("add_constant_smiles", str(smiles_idx), constant_smiles)
         self.conn.execute("INSERT INTO constant_smiles (id, smiles) VALUES (?, ?)",
                           (smiles_idx, constant_smiles))
 
-    def add_rule_environment_pair(self, pair_idx, env_idx, compound1_idx, compound2_idx, constant_idx):
-        """
+    def get_constant_smiles(self,constant_smiles):
+        cur=self.conn.execute("SELECT id FROM constant_smiles WHERE smiles=?", (constant_smiles,))
+        rows = cur.fetchone()
+        if ( rows != None):
+            r = rows[0]
+        else:
+            r = None
+        return(r)
 
-        Args:
-            pair_idx:
-            env_idx:
-            compound1_idx:
-            compound2_idx:
-            constant_idx:
-        """
+
+
+    def add_rule_environment_pair(self, pair_idx, env_idx, compound1_idx, compound2_idx, constant_idx):
         print("add_rule_environment_pair", str(env_idx), str(compound1_idx), str(compound2_idx),  str(constant_idx))
         self.conn.execute("INSERT INTO pair (id, rule_environment_id, compound1_id, compound2_id, constant_id) "
                           "  VALUES (?, ?, ?, ?, ?)",
                           (pair_idx, env_idx, compound1_idx, compound2_idx, constant_idx))
 
     def add_compound_property(self, compound_idx, property_name_idx, value):
-        """
-
-        Args:
-            compound_idx:
-            property_name_idx:
-            value:
-        """
         self.conn.execute("INSERT INTO compound_property (compound_id, property_name_id, value) VALUES (?, ?, ?)",
                           (compound_idx, property_name_idx, value))
 
     def add_rule_environment_statistics(self, rule_env_idx, property_name_idx, values):
-        """
-
-        Args:
-            rule_env_idx:
-            property_name_idx:
-            values:
-        """
         count, avg, std, kurtosis, skewness, min, q1, median, q3, max, paired_t, p_value = values
         assert rule_env_idx is not None
         assert property_name_idx is not None
