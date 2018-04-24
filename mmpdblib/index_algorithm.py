@@ -864,7 +864,7 @@ def load_fragment_index(fragment_reader, fragment_filter=None, selected_ids=None
     """
     if fragment_filter is None:
         fragment_filter = _AllowAllFilter()
-    inmem = True
+    inmem = False
 
     # constant -> list of records containing that constant
     index = defaultdict(list)
@@ -1144,6 +1144,7 @@ class EnvironmentCache(object):
         self.index_cache = index_cache
 
     def __init__(self):
+        self.enabled_cache=False
         self._centers_cache = {}
         self._radii_cache = {}
         self._environment_cache = {}
@@ -1153,7 +1154,7 @@ class EnvironmentCache(object):
         centers = self._centers_cache.get(constant_smiles, None)
         if centers is None:
             centers = environment.find_centers(constant_smiles.encode("ascii"))
-            self._centers_cache[constant_smiles] = centers
+            if self.enabled_cache: self._centers_cache[constant_smiles] = centers
         return centers
 
     def get_or_compute_center_radii(self, constant_smiles, max_radius):
@@ -1162,7 +1163,7 @@ class EnvironmentCache(object):
         if radii is None:
             centers = self.get_or_compute_centers(constant_smiles)
             radii = list(enumerate(environment.iter_num_atoms_for_radii(centers, max_radius)))
-            self._radii_cache[key] = radii
+            if self.enabled_cache: self._radii_cache[key] = radii
         return radii
 
     def get_or_compute_constant_environment(self, constant_smiles, max_radius):
@@ -1178,7 +1179,7 @@ class EnvironmentCache(object):
                 fp = env_fp.fingerprint
                 env_fp.fingerprint = self._interned_fingerprints.setdefault(fp, fp)
 
-            self._environment_cache[key] = env_fps
+            if self.enabled_cache: self._environment_cache[key] = env_fps
         return env_fps
 
 def find_matched_molecular_pairs_olm(index_options=IndexOptions(), reporter=None):
@@ -1200,7 +1201,7 @@ def find_matched_molecular_pairs_olm(index_options=IndexOptions(), reporter=None
     # OLM
     it = fragment_store.IndexIteration()
     #print("IT: "+str(it.rows))
-    for num_cuts_str, constant_smiles, constant_symmetry_class, matches in it.rows:
+    for num_cuts_str, constant_smiles, constant_symmetry_class, matches in it.cur:
         print("Iteration: " + str(i) + "\n")
         i = i + 1
         num_cuts=int(num_cuts_str)
@@ -1756,8 +1757,7 @@ class MMPWriter_OLM(BaseWriter):
         for pair_i, pair in enumerate(pairs):
             # Figure out which rule it goes into.
             print("-----------")
-            print("Writing pair")
-            print(pair_i)
+            print("Writing pair: "+ str(pair_i))
             print(pair.smirks)
             print("FROM:" +pair.id1)
             print("TO:"+pair.id2)
@@ -1844,11 +1844,16 @@ class MMPWriter(BaseWriter):
         # The main entry point for writing results to a file.
         has_properties = (self.properties is not None)
         pair_i = -1
+        import datetime
+        import time
+
+
         for pair_i, pair in enumerate(pairs):
             # Figure out which rule it goes into.
             print("-----------")
-            print("Writing pair")
-            print(pair_i)
+            ts = time.time()
+            st = datetime.datetime.fromtimestamp(ts).strftime('%Y%m%d#%H:%M:%S')
+            print("Running writing pair:#"+ str(pair_i)+ "#"+st)
             print(pair.smirks)
             print("FROM:" +pair.id1)
             print("TO:"+pair.id2)

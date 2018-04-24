@@ -41,6 +41,7 @@ from . import fragment_io
 from . import fragment_types
 from . import properties_io
 from ._compat import open_universal
+from . import fragment_store
 
 try:
     import psutil
@@ -145,6 +146,7 @@ def index_command(parser, args):
         parser:
         args:
     """
+    load_fragments=False
     reporter = command_support.get_reporter(args.quiet)
 
     if args.title:
@@ -201,10 +203,14 @@ def index_command(parser, args):
         fragment_reader = fragment_io.read_fragment_records(args.fragment_filename)
     except fragment_types.FragmentFormatError as err:
         parser.error(str(err))
-        
-    with fragment_reader:
-        with reporter.progress(fragment_reader, "Loaded fragment record") as report_fragment_reader:
-            fragment_index = index_algorithm.load_fragment_index(report_fragment_reader, fragment_filter, selected_ids)
+    # Step 1 load fragments to DB
+    print("Step 1: load fragments")
+    if load_fragments:
+        with fragment_reader:
+            with reporter.progress(fragment_reader, "Loaded fragment record\n") as report_fragment_reader:
+                fragment_index = index_algorithm.load_fragment_index(report_fragment_reader, fragment_filter, selected_ids)
+    else:
+        fragment_index = fragment_store.FragmentIndexDB()
 
     index_options = fragment_filter.get_options()
     index_options.update(
@@ -244,6 +250,8 @@ def index_command(parser, args):
                 human_memory(end_mmp_memory - start_mmp_memory)))
     if args.olm_mmp:
         print("OLM MMP")
+        # Step 2 find MMP
+        print("Step 2: cursor")
         pairs2 = index_algorithm.find_matched_molecular_pairs_olm(index_options,reporter)
         print("OLM MMP end")
         lfilename=args.output.split(".")
@@ -261,6 +269,8 @@ def index_command(parser, args):
             print("---------------------------")
             print("Writing.............")
             print("---------------------------")
+            # Step 3 write MMP
+            print("Step 3 write MMP")
             pair_writer.write_matched_molecule_pairs(pairs2)
             end_mmp_memory = get_memory_use()
             pair_writer.end(reporter)

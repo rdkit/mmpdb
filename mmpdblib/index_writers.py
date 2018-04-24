@@ -432,7 +432,7 @@ class BaseSqliteIndexWriter(object):
             reporter:
         """
         reporter.update("Building index ...")
-        schema.create_index(self.conn)
+        #schema.create_index(self.conn)
         
         # Improve SQLite query planning
         reporter.update("Analyzing database ...")
@@ -535,7 +535,8 @@ def open_sqlite_index_writer(filename, title):
         klass = APSWIndexWriter
     
     schema.create_schema_for_sqlite(db)
-    conn = db.cursor()
 
+    conn = db.cursor()
+    schema.create_index(conn)
     return klass(db, conn, title)
 

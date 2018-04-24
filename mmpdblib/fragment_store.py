@@ -2,13 +2,13 @@ import subprocess
 import psycopg2
 import psycopg2.extras
 
-db_home = "/home/oriol/dev/mmpdb/test_db/"
-filename = "compound_test"
-db = "mmpdb_test_new"
+#db_home = "/home/oriol/dev/mmpdb/test_db/"
+#filename = "compound_test"
+#db = "mmpdb_test_new"
 
-#db_home = "/home/oriol/dev/mmpdb/compound_all_db/"
-#filename = "compound_all_new"
-#db = "mmpdb_all_new"
+db_home = "/home/oriol/dev/mmpdb/compound_all_db/"
+filename = "compound_all_new"
+db = "mmpdb_all_new"
 
 #db_home = "/home/oriol/dev/mmpdb/compound_100k/"
 #filename = "compound_100k_new"
@@ -418,9 +418,9 @@ class FragmentIndexDB(object):
         print("Open Id to record iteration")
         self.conn = psycopg2.connect("dbname='" + db + "' user='" + user + "' host='" + host + "' password='" + password + "'")
         self.cur = self.conn.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
-        self.cur.itersize = 50000
-        self.cur.execute("""SELECT id,input_smiles,normalized_smiles,num_normalized_heavies from idrecord;""")
-        self.rows = self.cur.fetchall()
+        self.cur.itersize = 100000
+        self.cur.execute("""SELECT id,input_smiles,normalized_smiles,num_normalized_heavies from idrecord limit 1000;""")
+        #self.rows = self.cur.fetchall()
 
     def close(self):
         """
@@ -477,9 +477,9 @@ class IndexIteration:
         print("Open IX iteration")
         self.conn = psycopg2.connect("dbname='" + db + "' user='" + user + "' host='" + host + "' password='" + password + "'")
         self.cur = self.conn.cursor(name="index_agg_cursor", cursor_factory=psycopg2.extras.NamedTupleCursor)
-        self.cur.itersize = 50000
-        self.cur.execute("""SELECT num_cuts,constant_smiles,constant_symmetry_class,variable_part from index_agg;""")
-        self.rows = self.cur.fetchall()
+        self.cur.itersize = 10000
+        self.cur.execute("""SELECT num_cuts,constant_smiles,constant_symmetry_class,variable_part from index_agg limit 100000;""")
+        #self.rows = self.cur.fetchall()
 
 
     def close(self):
