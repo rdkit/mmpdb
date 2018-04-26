@@ -34,7 +34,7 @@ from distutils.core import setup
 
 setup(
     name = "mmpdb",
-    version = "2.1",
+    version = "2.1b1",
     description = "A package to identify matched molecular pairs and use them to predict property changes",
     author = "Andrew Dalke",
     author_email = "dalke@dalkescientific.com",
