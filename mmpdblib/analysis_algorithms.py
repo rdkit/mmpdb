@@ -786,16 +786,16 @@ def enumerate_permutations(dataset, smiles):
             
     if n == 2:
         sub_terms = ["[*:2]", "[*:1]"]
-        yield "12", wilcard_pat.sub(lambda pat: sub_terms.pop(), smiles)
+        yield "12", wildcard_pat.sub(lambda pat: sub_terms.pop(), smiles)
         if dataset.is_symmetric:
             return
         sub_terms = ["[*:1]", "[*:2]"]
-        yield "21", wilcard_pat.sub(lambda pat: sub_terms.pop(), smiles)
+        yield "21", wildcard_pat.sub(lambda pat: sub_terms.pop(), smiles)
         return
     
     if n == 3:
         sub_terms = ["[*:3]", "[*:2]", "[*:1]"]
-        yield "123", wilcard_pat.sub(lambda pat: sub_terms.pop(), smiles)
+        yield "123", wildcard_pat.sub(lambda pat: sub_terms.pop(), smiles)
         if dataset.is_symmetric:
             return
         
