@@ -1,4 +1,4 @@
-# mmpdb 2.0 - matched molecular pair database generation and analysis
+# mmpdb 2.1 - matched molecular pair database generation and analysis
 
 
 ## Synopsis
