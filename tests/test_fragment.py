@@ -54,7 +54,7 @@ wildcard_atom = Chem.CanonSmiles("*")
 if wildcard_atom == "[*]":
     # The tests were made for the pre-2018 when RDKit returned "[*]"
     def FIX(s):
-        return x
+        return s
 elif wildcard_atom == "*":
     # RDKit 2018 change the behavior to return "*"
     def FIX(s):
