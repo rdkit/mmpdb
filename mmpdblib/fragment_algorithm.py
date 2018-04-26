@@ -98,6 +98,7 @@ _atom_and_dot_disconnect_pat = re.compile(r"""
  Br? |
  [NOSPFIbcnosp] |
  \[[^]]*\] |
+ \* |
  \.
 )
 """, re.X)
@@ -299,8 +300,13 @@ def replace_wildcard_with_H(smiles):
         return _H_cache[smiles]
     except KeyError:
         pass
-    assert smiles.count("[*]") == 1, smiles
-    smiles_with_H = smiles.replace("[*]", "[H]")
+    if smiles.count("[*]") == 1:
+        smiles_with_H = smiles.replace("[*]", "[H]")
+    elif smiles.count("*") == 1:
+        smiles_with_H = smiles.replace("*", "[H]")
+    else:
+        raise AssertionError("Could not find the '*' atom")
+        
     new_smiles = Chem.CanonSmiles(smiles_with_H)
     if len(_H_cache) > 10000:
         _H_cache.clear()

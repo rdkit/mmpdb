@@ -39,7 +39,17 @@ from mmpdblib import commandline
 from support import capture_stdout, capture_stderr
 from support import get_filename, create_test_filename
 
-TEST_DATA_MMPDB = get_filename("test_data.mmpdb")
+from rdkit import Chem
+wildcard_atom = Chem.CanonSmiles("*")
+if wildcard_atom == "[*]":
+    TEST_DATA_MMPDB = get_filename("test_data.mmpdb")
+elif wildcard_atom == "*":
+    # The dataset was generated with:
+    #   python -m mmpdblib.commandline index test_data.fragments --properties test_data.csv -o test_data_2018.mmpdb
+    TEST_DATA_MMPDB = get_filename("test_data_2018.mmpdb")
+else:
+    raise AssertionError(wildcard_atom)
+    
 
 class Table(list):
     def get_column(self, column_name):

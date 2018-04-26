@@ -406,9 +406,21 @@ def cansmirks(num_cuts,
               relabel_cache
               ):
     if num_cuts == 1:
-        # This is trivial
+        # This is easy enough that I'll relabel them directly
         smirks = smiles1 + ">>" + smiles2
-        return smirks.replace("[*]", "[*:1]"), constant_smiles.replace("[*]", "[*:1]")
+        if "[*]" in smirks:
+            smirks = smirks.replace("[*]", "[*:1]")
+        elif "*" in smirks:
+            smirks = smirks.replace("*", "[*:1]")
+        else:
+            raise AssertionError(smirks)
+        if "[*]" in constant_smiles:
+            constant_smiles = constant_smiles.replace("[*]", "[*:1]")
+        elif "*" in constant_smiles:
+            constant_smiles = constant_smiles.replace("*", "[*:1]")
+        else:
+            raise AssertionError(constant_smiles)
+        return smirks, constant_smiles
 
     if USE_SMIRKS_TABLE:
         new_order, constant_order = _smirks_table[
