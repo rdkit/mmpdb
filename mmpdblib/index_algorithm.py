@@ -1584,16 +1584,16 @@ class RuleSmilesTable(dict):
     def __missing__(self, smiles):
         idx = self.counter
         self.counter=self.counter+1
-        print("Inserting rule_smiles: "+ str(idx),smiles)
+        #print("Inserting rule_smiles: "+ str(idx),smiles)
         self.backend.add_rule_smiles(idx, smiles)
         #self[smiles] = idx
         return idx
 
     def __getitem__(self, k):
-        print("Getting RuleSmilesTable: "+ k)
+        #print("Getting RuleSmilesTable: "+ k)
         v2 = self.backend.get_rule_smiles(k)
         if v2 is None: return self.__missing__(k)
-        print("V2: " + str(v2))
+        #print("V2: " + str(v2))
         return v2
 
 class ConstantSmilesTable(dict):  # XXX Merge with SmilesTable?
@@ -1630,12 +1630,12 @@ class RuleTable(dict):
         from_smiles_idx = self.rule_smiles_table[from_smiles]
         to_smiles_idx = self.rule_smiles_table[to_smiles]
 
-        self.backend.add_rule(rule_idx, from_smiles_idx, to_smiles_idx)
+        self.backend.add_rule(rule_idx, from_smiles_idx, to_smiles_idx,from_smiles,to_smiles)
         #self[smirks] = rule_idx
         return rule_idx
 
     def __getitem__(self, smirks):
-        print("Getting RuleTable: "+ smirks)
+        #print("Getting RuleTable: "+ smirks)
         from_smiles, gtgt, to_smiles = smirks.partition(">>")
         assert gtgt == ">>", smirks
         from_smiles_idx = self.rule_smiles_table[from_smiles]
@@ -1708,10 +1708,10 @@ class EnvironmentFingerprintTable(dict):
         return idx
 
     def __getitem__(self, env_fp):
-        print("Getting EnvironmentFingerprintTable: "+ env_fp)
+        #print("Getting EnvironmentFingerprintTable: "+ env_fp)
         v = self.backend.get_environment_fingerprint(env_fp)
         if v is None: return self.__missing__(env_fp)
-        print("V: " + str(v))
+        #print("V: " + str(v))
         return v
 
 
@@ -1847,10 +1847,9 @@ class MMPWriter(BaseWriter):
         import datetime
         import time
 
-
-        for pair_i, pair in enumerate(pairs):
+        pairs_fragment = list(itertools.islice(pairs, 1))
+        for pair_i, pair in enumerate(pairs_fragment):
             # Figure out which rule it goes into.
-            print("-----------")
             ts = time.time()
             st = datetime.datetime.fromtimestamp(ts).strftime('%Y%m%d#%H:%M:%S')
             print("Running writing pair:#"+ str(pair_i)+ "#"+st)
@@ -1861,21 +1860,16 @@ class MMPWriter(BaseWriter):
 
             # Get the environment for the constant part, at different radii.
             rule_envs = self._get_rule_environments(rule_idx, pair.constant_smiles, pair.max_constant_radius)
-            print("enviroments: ", str(len(rule_envs)))
+            #print("enviroments: ", str(len(rule_envs)))
             if rule_envs:
-                #print("Inserting: "+ str(pair.id1))
+                print("Inserting: "+ str(pair.id1))
                 compound1_idx = self._compound_table[pair.id1]
-                #print("Inserted: " + str(compound1_idx))
+                print("Inserted: " + str(compound1_idx))
                 compound2_idx = self._compound_table[pair.id2]
-
-                #print("Test compound inserting:")
-                #print(pair.id1)
-                #print(self._compound_table[pair.id1])
                 constant_idx = self._constant_smiles_table[pair.constant_smiles]
-
-                for rule_env in rule_envs:
+                for rule_env_tuple in rule_envs:
+                    rule_env= rule_env_tuple[0]
                     pair_idx = next(self._environment_pair_id_counter)
-
                     if has_properties:
                         # then the rule_env is a RuleEnvironment instance
                         self.backend.add_rule_environment_pair(
@@ -1885,15 +1879,14 @@ class MMPWriter(BaseWriter):
                             self.properties.get_property_values(pair.id2))
                     else:
                         # then the rule_env is an integer
-                        self.backend.add_rule_environment_pair(
-                            pair_idx, rule_env, compound1_idx, compound2_idx, constant_idx)
-
+                        self.backend.add_rule_environment_pair(pair_idx, rule_env, compound1_idx, compound2_idx, constant_idx,pair)
         self.num_pairs += (pair_i + 1)
 
     def _get_rule_environments(self, rule_idx, constant_smiles, max_radius):
         # XXX Add another layer of cache? I don't think it makes much sense.
         env_fps = self._environment_cache.get_or_compute_constant_environment(constant_smiles, max_radius)
         rule_envs = []
+        print("Environments:")
         for env_fp in env_fps:
             env_fp_idx = self._fingerprint_table[env_fp.fingerprint]
             # NOTE: "string-encoded-key"
@@ -1905,8 +1898,11 @@ class MMPWriter(BaseWriter):
             # On the other hand, an encoded-string takes only about 70 bytes total.
             # Across 10M objects, this saves about 10E6*(110-70)/1024/1024 = 380 GB.
             key = "%d,%d,%d" % (rule_idx, env_fp_idx, env_fp.radius)
+            print("\tRadius: "+ str(env_fp.radius))
+            print("\tFP: " + str(env_fp.fingerprint))
             rule_env = self._rule_environment_table[key]
-            rule_envs.append(rule_env)
+            rule_env_tuple = (rule_env,env_fp.radius,env_fp.fingerprint)
+            rule_envs.append(rule_env_tuple)
 
         return rule_envs
 

@@ -244,24 +244,28 @@ class BaseSqliteIndexWriter(object):
     """
     """
     def __init__(self, db, conn, title):
-        """
-
-        Args:
-            db:
-            conn:
-            title:
-        """
         self.db = db
         self.conn = conn
         self.title = title
+        import csv
+
+        self.fileCompound=open("compound.csv", "w")
+        self.writerCompound = csv.writer(self.fileCompound,delimiter='\t')
+
+        self.fileRule = open("rule.csv", "w")
+        self.writerRule = csv.writer(self.fileRule,delimiter='\t')
+
+        self.fileRuleSmiles = open("rule_smiles.csv", "w")
+        self.writerRuleSmiles = csv.writer(self.fileRuleSmiles,delimiter='\t')
+
+        self.fileConstantSmiles = open("constant_smiles.csv", "w")
+        self.writerConstantSmiles = csv.writer(self.fileConstantSmiles,delimiter='\t')
+
+        self.filePair = open("pair.csv", "w")
+        self.writerPair = csv.writer(self.filePair, delimiter='\t')
 
     def start(self, fragment_options, index_options):
-        """
 
-        Args:
-            fragment_options:
-            index_options:
-        """
         creation_date = datetime.datetime.now().isoformat(sep=" ")
         fragment_options_str = json.dumps(fragment_options.to_dict())
         index_options_str = json.dumps(index_options.to_dict())
@@ -278,55 +282,37 @@ class BaseSqliteIndexWriter(object):
         
     def add_rule_smiles(self, smiles_idx, smiles):
         print("add_rule_smiles", str(smiles_idx),smiles)
+        num_heavies=get_num_heavies_from_smiles(smiles)
         self.conn.execute("INSERT INTO rule_smiles (id, smiles, num_heavies) VALUES (?, ?, ?)",
-                          (smiles_idx, smiles, get_num_heavies_from_smiles(smiles)))
-        self.db.commit()
-
-
+                          (smiles_idx, smiles, num_heavies))
+        self.writerRuleSmiles.writerow([smiles,num_heavies])
 
     def get_rule_smiles(self, smiles):
-        print("Smiles: "+ smiles)
         cur = self.conn.execute("SELECT id FROM rule_smiles WHERE smiles==?",(smiles,))
         rows = cur.fetchone()
-        print("S: "+str(rows))
-        print(type(rows))
         if ( rows != None):
-            print("Row")
             r = rows[0]
         else:
-            print("Not found!")
             r = None
-        print("Result rule_smile: "+str(smiles) +"|"+str(r))
         return (r)
 
-    def add_rule(self, rule_idx, from_smiles_idx, to_smiles_idx):
+    def add_rule(self, rule_idx, from_smiles_idx, to_smiles_idx,from_smiles,to_smiles):
         print("add_rule", str(rule_idx), str(from_smiles_idx),str(to_smiles_idx))
         self.conn.execute("INSERT INTO rule (id, from_smiles_id, to_smiles_id) "
                           "  VALUES (?, ?, ?)",
                           (rule_idx, from_smiles_idx, to_smiles_idx))
+        self.writerRule.writerow([from_smiles,to_smiles])
 
     def get_rule(self,from_smiles_idx,to_smiles_idx):
         cur = self.conn.execute("SELECT id FROM rule WHERE from_smiles_id=? and to_smiles_id=?",(from_smiles_idx,to_smiles_idx))
         rows = cur.fetchone()
-        print("S: "+str(rows))
-        print(type(rows))
         if ( rows != None):
-            print("Row")
             r = rows[0]
         else:
-            print("Not found!")
             r = None
         return(r)
 
-
-
     def add_environment_fingerprint(self, fp_idx, environment_fingerprint):
-        """
-
-        Args:
-            fp_idx:
-            environment_fingerprint:
-        """
         print("add_environment_fingerprint", str(fp_idx), str(environment_fingerprint))
         self.conn.execute("INSERT INTO environment_fingerprint (id, fingerprint) "
                           " VALUES (?, ?)",
@@ -338,7 +324,6 @@ class BaseSqliteIndexWriter(object):
         if ( rows != None):
             r = rows[0]
         else:
-            print("Not found!")
             r = None
         return(r)
 
@@ -356,13 +341,13 @@ class BaseSqliteIndexWriter(object):
         if (rows != None):
             r = rows[0]
         else:
-            print("Not found!")
             r = None
         return (r)
 
     def add_compound(self, compound_idx, compound_id, input_smiles,
                      normalized_smiles, num_normalized_heavies):
         print("add_compound", str(compound_idx), str(compound_id), str(input_smiles), normalized_smiles,str(num_normalized_heavies))
+        self.writerCompound.writerow([compound_id, input_smiles, normalized_smiles, num_normalized_heavies])
         self.conn.execute("INSERT INTO compound (id, public_id, input_smiles, clean_smiles, clean_num_heavies) "
                           "   VALUES (?, ?, ?, ?, ?)",
                           (compound_idx, compound_id, input_smiles, normalized_smiles, num_normalized_heavies))
@@ -373,16 +358,15 @@ class BaseSqliteIndexWriter(object):
         if ( rows != None):
             r = rows[0]
         else:
-            print("Not found!")
             r = None
         return(r)
 
 
-        
     def add_constant_smiles(self, smiles_idx, constant_smiles):
         print("add_constant_smiles", str(smiles_idx), constant_smiles)
         self.conn.execute("INSERT INTO constant_smiles (id, smiles) VALUES (?, ?)",
                           (smiles_idx, constant_smiles))
+        self.writerConstantSmiles.writerow([constant_smiles])
 
     def get_constant_smiles(self,constant_smiles):
         cur=self.conn.execute("SELECT id FROM constant_smiles WHERE smiles=?", (constant_smiles,))
@@ -395,11 +379,12 @@ class BaseSqliteIndexWriter(object):
 
 
 
-    def add_rule_environment_pair(self, pair_idx, env_idx, compound1_idx, compound2_idx, constant_idx):
-        print("add_rule_environment_pair", str(env_idx), str(compound1_idx), str(compound2_idx),  str(constant_idx))
+    def add_rule_environment_pair(self, pair_idx, env_idx, compound1_idx, compound2_idx, constant_idx,pair):
+        print("add_rule_environment_pair", str(pair_idx),str(env_idx), str(compound1_idx), str(compound2_idx),  str(constant_idx))
         self.conn.execute("INSERT INTO pair (id, rule_environment_id, compound1_id, compound2_id, constant_id) "
                           "  VALUES (?, ?, ?, ?, ?)",
                           (pair_idx, env_idx, compound1_idx, compound2_idx, constant_idx))
+        self.writerPair.writerow([pair.id1,pair.id2,pair.constant_smiles])
 
     def add_compound_property(self, compound_idx, property_name_idx, value):
         self.conn.execute("INSERT INTO compound_property (compound_id, property_name_id, value) VALUES (?, ?, ?)",
@@ -426,11 +411,6 @@ class BaseSqliteIndexWriter(object):
                            kurtosis, skewness, min, q1, median, q3, max, paired_t, p_value))
         
     def end(self, reporter):
-        """
-
-        Args:
-            reporter:
-        """
         reporter.update("Building index ...")
         #schema.create_index(self.conn)
         
@@ -449,6 +429,11 @@ class BaseSqliteIndexWriter(object):
                           (num_compounds, num_rules, num_pairs, num_envs, num_stats))
         
         reporter.update("")
+        self.fileCompound.close()
+        self.fileRule.close()
+        self.fileRuleSmiles.close()
+        self.fileConstantSmiles.close()
+        self.filePair.close()
 
 class SQLiteIndexWriter(BaseSqliteIndexWriter):
     """

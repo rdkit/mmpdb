@@ -146,7 +146,7 @@ def index_command(parser, args):
         parser:
         args:
     """
-    load_fragments=False
+    load_fragments=True
     reporter = command_support.get_reporter(args.quiet)
 
     if args.title:
