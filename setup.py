@@ -38,7 +38,7 @@ setup(
     description = "A package to identify matched molecular pairs and use them to predict property changes",
     author = "Andrew Dalke",
     author_email = "dalke@dalkescientific.com",
-    url = "file://README", # to suppress "python setup.py sdist" warning
+    url = "https://github.com/rdkit/mmpdb",
     classifiers = [
         "Development Status :: 5 - Production/Stable",
         "Environment :: Console",
