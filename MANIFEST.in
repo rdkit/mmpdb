@@ -1,7 +1,7 @@
 include LICENSE
 include README.md
 include MANIFEST.in
-include CHANGELOG
+include CHANGELOG.md
 include mmpdb
 include setup.py
 include mmpdblib/__init__.py
