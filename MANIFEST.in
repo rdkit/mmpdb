@@ -4,6 +4,7 @@ include MANIFEST.in
 include CHANGELOG.md
 include mmpdb
 include setup.py
+include setup.cfg
 include mmpdblib/__init__.py
 include mmpdblib/__main__.py
 include mmpdblib/_compat.py
