@@ -38,7 +38,7 @@ import re
 # Match a '*' in the different forms that might occur,
 # including with directional single bonds inside of ()s.
 _wildcard_regex = " |\n".join(re.escape(regex) for regex in
-  ("*", "[*]", "(*)", "([*])", "(/*)", "(/[*])", "/[*]", "(\\*)", "(\\[*])", "\\[*]"))
+  ("*", "[*]", "(*)", "([*])", "(/*)", "(/[*])", "/*", "/[*]", "(\\*)", "(\\[*])", "\\*", "\\[*]"))
 _wildcard_pattern = re.compile(_wildcard_regex, re.X)
 
 # Match the SMILES for an atom, followed by its closures
@@ -46,7 +46,7 @@ _atom_pattern = re.compile(r"""
 (
  Cl? |             # Cl and Br are part of the organic subset
  Br? |
- [NOSPFIbcnosp] |  # as are these single-letter elements
+ [NOSPFIbcnosp*] |  # as are these single-letter elements
  \[[^]]*\]         # everything else must be in []s
 )
 """, re.X)

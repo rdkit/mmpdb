@@ -399,6 +399,8 @@ class RelabelCache(dict):
         self[key] = result
         return result
 
+_wildcard_regex = re.compile(re.escape("[*]") + "|" + re.escape("*"))
+
 def cansmirks(num_cuts,
               smiles1, symmetry_class1, attachment_order1,
               constant_smiles, constant_symmetry_class,
@@ -406,9 +408,17 @@ def cansmirks(num_cuts,
               relabel_cache
               ):
     if num_cuts == 1:
-        # This is trivial
+        # This is easy enough that I'll relabel them directly
         smirks = smiles1 + ">>" + smiles2
-        return smirks.replace("[*]", "[*:1]"), constant_smiles.replace("[*]", "[*:1]")
+        if "*" in smirks:
+            smirks = _wildcard_regex.sub(lambda x: "[*:1]", smirks)
+        else:
+            raise AssertionError(smirks)
+        if "*" in constant_smiles:
+            constant_smiles = _wildcard_regex.sub(lambda x: "[*:1]", constant_smiles)
+        else:
+            raise AssertionError(constant_smiles)
+        return smirks, constant_smiles
 
     if USE_SMIRKS_TABLE:
         new_order, constant_order = _smirks_table[
@@ -518,9 +528,9 @@ def load_fragment_index(fragment_reader, fragment_filter=None, selected_ids=None
             continue
         other_ids = normalized_smiles_to_ids.get(constant_with_H_smiles, [])
         for other_id in other_ids:
-            # NOTE: this is hard-coded to "[*:1][H]", and must match the
-            # same string used in fragment.py's _hydrogen_cut_smiles
-            matches.append( (other_id, "1", "[*:1][H]", "0", "N") )
+            # NOTE: this is hard-coded to "[*][H]", and must match the
+            # same string used in fragment_algorithm.py's _hydrogen_cut_smiles
+            matches.append( (other_id, "1", "[*][H]", "0", "N") )
 
 
     return FragmentIndex(dict(index), id_to_record)

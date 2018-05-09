@@ -30,15 +30,15 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-from distutils.core import setup
+from setuptools import setup
 
 setup(
     name = "mmpdb",
-    version = "2.0",
+    version = "2.1",
     description = "A package to identify matched molecular pairs and use them to predict property changes",
     author = "Andrew Dalke",
     author_email = "dalke@dalkescientific.com",
-    url = "file://README", # to suppress "python setup.py sdist" warning
+    url = "https://github.com/rdkit/mmpdb",
     classifiers = [
         "Development Status :: 5 - Production/Stable",
         "Environment :: Console",

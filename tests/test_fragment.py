@@ -49,6 +49,19 @@ SPACE_SMI_GZ = get_filename("space.smi.gz")
 COMMA_SMI = get_filename("comma.smi")
 CACHED_FRAGMENTS = get_filename("cached.fragments")
 
+from rdkit import Chem
+wildcard_atom = Chem.CanonSmiles("*")
+if wildcard_atom == "[*]":
+    # The tests were made for the pre-2018 when RDKit returned "[*]"
+    def FIX(s):
+        return s
+elif wildcard_atom == "*":
+    # RDKit 2018 change the behavior to return "*"
+    def FIX(s):
+        return s.replace("[*]", "*")
+else:
+    raise AssertionError(wildcard_atom)
+
 def fix_fragment_args(args):
     salt_remover = True
     new_args = []
@@ -544,8 +557,8 @@ class TestSmiFrag(unittest.TestCase):
     def test_phenol(self):
         result = smifrag("c1ccccc1O")
         self.assertEqual(result, [
-            ['1', 'N', '1', '1', '[*]O', '0', '6', '1', '[*]c1ccccc1', 'c1ccccc1'],
-            ['1', 'N', '6', '1', '[*]c1ccccc1', '0', '1', '1', '[*]O', 'O'],
+            ['1', 'N', '1', '1', FIX('[*]O'), '0', '6', '1', FIX('[*]c1ccccc1'), 'c1ccccc1'],
+            ['1', 'N', '6', '1', FIX('[*]c1ccccc1'), '0', '1', '1', FIX('[*]O'), 'O'],
             ])
 
     def test_max_heavies(self):
@@ -562,11 +575,11 @@ class TestSmiFrag(unittest.TestCase):
         self.assertEqual(result, [])
         result = smifrag("CCCC", "--cut-smarts", "cut_AlkylChains")
         self.assertEqual(result, [
-            ['1', 'N', '3', '1', '[*]CCC', '0', '1', '1', '[*]C', 'C'],
-            ['1', 'N', '1', '1', '[*]C', '0', '3', '1', '[*]CCC', 'CCC'],
-            ['2', 'N', '1', '11', '[*]C[*]', '01', '3', '12', '[*]C.[*]CC', '-'],
-            ['2', 'N', '2', '11', '[*]CC[*]', '01', '2', '11', '[*]C.[*]C', '-'],
-            ['1', 'N', '2', '1', '[*]CC', '0', '2', '1', '[*]CC', 'CC']
+            ['1', 'N', '3', '1', FIX('[*]CCC'), '0', '1', '1', FIX('[*]C'), 'C'],
+            ['1', 'N', '1', '1', FIX('[*]C'), '0', '3', '1', FIX('[*]CCC'), 'CCC'],
+            ['2', 'N', '1', '11', FIX('[*]C[*]'), '01', '3', '12', FIX('[*]C.[*]CC'), '-'],
+            ['2', 'N', '2', '11', FIX('[*]CC[*]'), '01', '2', '11', FIX('[*]C.[*]C'), '-'],
+            ['1', 'N', '2', '1', FIX('[*]CC'), '0', '2', '1', FIX('[*]CC'), 'CC']
             ])
 
     def test_cut_smarts(self):
@@ -574,7 +587,7 @@ class TestSmiFrag(unittest.TestCase):
         self.assertEqual(result, [])
         result = smifrag("CCCC", "--cut-smarts", "[CH2][CH2]")
         self.assertEqual(result, [
-            ['1', 'N', '2', '1', '[*]CC', '0', '2', '1', '[*]CC', 'CC']
+            ['1', 'N', '2', '1', FIX('[*]CC'), '0', '2', '1', FIX('[*]CC'), 'CC']
             ])
 
     def test_num_cuts(self):
@@ -583,9 +596,9 @@ class TestSmiFrag(unittest.TestCase):
         result = smifrag("CCCC", "--cut-smarts", "cut_AlkylChains",
                          "--num-cuts", "1")
         self.assertEqual(result, [
-            ['1', 'N', '3', '1', '[*]CCC', '0', '1', '1', '[*]C', 'C'],
-            ['1', 'N', '1', '1', '[*]C', '0', '3', '1', '[*]CCC', 'CCC'],
-            ['1', 'N', '2', '1', '[*]CC', '0', '2', '1', '[*]CC', 'CC']
+            ['1', 'N', '3', '1', FIX('[*]CCC'), '0', '1', '1', FIX('[*]C'), 'C'],
+            ['1', 'N', '1', '1', FIX('[*]C'), '0', '3', '1', FIX('[*]CCC'), 'CCC'],
+            ['1', 'N', '2', '1', FIX('[*]CC'), '0', '2', '1', FIX('[*]CC'), 'CC']
             ])
         
 # TODO: Add a large number of tests for the different interesting ways to fragment.

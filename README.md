@@ -1,4 +1,4 @@
-# mmpdb 2.0 - matched molecular pair database generation and analysis
+# mmpdb 2.1 - matched molecular pair database generation and analysis
 
 
 ## Synopsis
@@ -191,7 +191,7 @@ include structures where there is no data, then you can specify
 the properties file as well:
 
 ```shell
-  % mmpdb index test_data.fragments -o test_data.mmpa --properties test_data.csv
+  % mmpdb index test_data.fragments -o test_data.mmpdb --properties test_data.csv
 ```
 Use "`mmpdb help-property-format`" for property file format details.
 

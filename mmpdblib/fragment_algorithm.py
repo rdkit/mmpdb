@@ -98,6 +98,7 @@ _atom_and_dot_disconnect_pat = re.compile(r"""
  Br? |
  [NOSPFIbcnosp] |
  \[[^]]*\] |
+ \* |
  \.
 )
 """, re.X)
@@ -299,8 +300,13 @@ def replace_wildcard_with_H(smiles):
         return _H_cache[smiles]
     except KeyError:
         pass
-    assert smiles.count("[*]") == 1, smiles
-    smiles_with_H = smiles.replace("[*]", "[H]")
+    if smiles.count("[*]") == 1:
+        smiles_with_H = smiles.replace("[*]", "[H]")
+    elif smiles.count("*") == 1:
+        smiles_with_H = smiles.replace("*", "[H]")
+    else:
+        raise AssertionError("Could not find the '*' atom")
+        
     new_smiles = Chem.CanonSmiles(smiles_with_H)
     if len(_H_cache) > 10000:
         _H_cache.clear()
@@ -728,7 +734,8 @@ def _fragment_mol(mol, fragment_filter, num_heavies=None):
 
 ### fragment on hydrogens
 
-# NOTE: this is hard-coded to match the string used in XXX indexing.py's load_fragment_index
+# NOTE: this is hard-coded to match the string used in
+# index_algorithm.py's load_fragment_index
 _hydrogen_cut_smiles = "[*][H]"
 
 
@@ -782,7 +789,7 @@ def fragment_molecule_on_explicit_hydrogens(smiles):
         left, mid, right = new_smiles.partition(".")
         assert mid == ".", new_smiles
 
-        if left == "[*][H]":
+        if left == "[*][H]":  # Hard-coded
             cut_smiles = right
         elif right == "[*][H]":
             cut_smiles = left

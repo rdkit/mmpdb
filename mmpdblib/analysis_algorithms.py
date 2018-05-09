@@ -766,28 +766,54 @@ class TransformTool(Tool):
 
 # Enumerate all of the ways that the canonical unlabeled SMILES
 # might be turned into a non-canonical labeled SMILES.
+
+_bracket_wildcard_pat = re.compile(re.escape("[*]"))
+_organic_wildcard_pat = re.compile(re.escape("*"))
+
 def enumerate_permutations(dataset, smiles):
+    # RDKit pre-2018 used "[*]"; this changed to using a bare "*".
+    if "[*]" in smiles:
+        wildcard_pat = _bracket_wildcard_pat
+        wildcard = "[*]"
+    elif "*" in smiles:
+        wildcard_pat = _organic_wildcard_pat
+        wildcard = "*"
+        
     n = smiles.count("*")
     if n == 1:
-        yield "1", smiles.replace("[*]", "[*:1]")
+        yield "1", smiles.replace(wildcard, "[*:1]")
         return
             
     if n == 2:
-        yield "12", smiles.replace("[*]", "[*:1]", 1).replace("[*]", "[*:2]", 1)
+        sub_terms = ["[*:2]", "[*:1]"]
+        yield "12", wildcard_pat.sub(lambda pat: sub_terms.pop(), smiles)
         if dataset.is_symmetric:
             return
-        yield "21", smiles.replace("[*]", "[*:2]", 1).replace("[*]", "[*:1]", 1)
+        sub_terms = ["[*:1]", "[*:2]"]
+        yield "21", wildcard_pat.sub(lambda pat: sub_terms.pop(), smiles)
         return
     
     if n == 3:
-        yield "123", smiles.replace("[*]", "[*:1]", 1).replace("[*]", "[*:2]", 1).replace("[*]", "[*:3]", 1)
+        sub_terms = ["[*:3]", "[*:2]", "[*:1]"]
+        yield "123", wildcard_pat.sub(lambda pat: sub_terms.pop(), smiles)
         if dataset.is_symmetric:
             return
-        yield "132", smiles.replace("[*]", "[*:1]", 1).replace("[*]", "[*:3]", 1).replace("[*]", "[*:2]", 1)
-        yield "213", smiles.replace("[*]", "[*:2]", 1).replace("[*]", "[*:1]", 1).replace("[*]", "[*:3]", 1)
-        yield "231", smiles.replace("[*]", "[*:2]", 1).replace("[*]", "[*:3]", 1).replace("[*]", "[*:1]", 1)
-        yield "312", smiles.replace("[*]", "[*:3]", 1).replace("[*]", "[*:1]", 1).replace("[*]", "[*:2]", 1)
-        yield "321", smiles.replace("[*]", "[*:3]", 1).replace("[*]", "[*:2]", 1).replace("[*]", "[*:1]", 1)
+        
+        sub_terms = ["[*:2]", "[*:3]", "[*:1]"]
+        yield "132", wildcard_pat.sub(lambda pat: sub_terms.pop(), smiles)
+        
+        sub_terms = ["[*:3]", "[*:1]", "[*:2]"]
+        yield "213", wildcard_pat.sub(lambda pat: sub_terms.pop(), smiles)
+        
+        sub_terms = ["[*:1]", "[*:3]", "[*:2]"]
+        yield "231", wildcard_pat.sub(lambda pat: sub_terms.pop(), smiles)
+        
+        sub_terms = ["[*:2]", "[*:1]", "[*:3]"]
+        yield "312", wildcard_pat.sub(lambda pat: sub_terms.pop(), smiles)
+        
+        sub_terms = ["[*:1]", "[*:2]", "[*:3]"]
+        yield "321", wildcard_pat.sub(lambda pat: sub_terms.pop(), smiles)
+        
         return
 
     raise AssertionError(smiles)
