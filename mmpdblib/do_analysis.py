@@ -62,6 +62,7 @@ def transform_command(parser, args):
     min_radius = int(min_radius)
     min_pairs = int(args.min_pairs)
     min_variable_size = args.min_variable_size
+    max_variable_size = args.max_variable_size
     min_constant_size = args.min_constant_size
     
     explain = command_support.get_explain(args.explain)
@@ -110,6 +111,7 @@ def transform_command(parser, args):
             min_radius = min_radius,
             min_pairs = min_pairs,
             min_variable_size = min_variable_size,
+            max_variable_size = max_variable_size,
             min_constant_size = min_constant_size,
             substructure_pat = substructure_pat,
             pool = pool,

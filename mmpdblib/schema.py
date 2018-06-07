@@ -394,14 +394,14 @@ SELECT property_name.name, count(property_name_id)
 
 
 
-    def find_rule_environments_for_transform(self, smiles_id, possible_env_fps,
+    def find_rule_environments_for_transform(self, smiles_id, possible_env_fps, max_variable_size=9999,
                                              cursor=None):
         assert len(possible_env_fps) > 0, possible_env_fps
         cursor = self.mmpa_db.get_cursor(cursor)
 
         test_fp_in = " OR ".join(("environment_fingerprint.fingerprint = ?",)*len(possible_env_fps))
         
-        execute_args = (smiles_id, ) + tuple(possible_env_fps)
+        execute_args = (smiles_id, ) + tuple(possible_env_fps) + (max_variable_size,)
 
         # Find the rule environments which use this SMILES on the LHS
         sql = ("SELECT rule_environment.rule_id, rule_environment.id, rule_smiles.smiles, 0\n"  # 0 = forward
@@ -410,7 +410,8 @@ SELECT property_name.name, count(property_name_id)
                "   AND rule.from_smiles_id = ?\n"  # NOTE: *from*_smiles_id
                "   AND rule_environment.environment_fingerprint_id = environment_fingerprint.id\n"
                "   AND (" + test_fp_in + ")\n"
-               "   AND rule.to_smiles_id = rule_smiles.id\n" # NOTE: *to*_smiles_id
+               "   AND rule.to_smiles_id = rule_smiles.id" # NOTE: *to*_smiles_id
+               "   AND rule_smiles.num_heavies <= ?\n"
                )
         if not self.is_symmetric:
             sql += (
@@ -422,6 +423,7 @@ SELECT property_name.name, count(property_name_id)
                "   AND rule_environment.environment_fingerprint_id = environment_fingerprint.id\n"
                "   AND (" + test_fp_in + ")\n"
                "   AND rule.from_smiles_id = rule_smiles.id\n" # NOTE: *from*_smiles_id
+               "   AND rule_smiles.num_heavies <= ?"
                )
             execute_args = execute_args + execute_args # Double the args, one for each direction
 
