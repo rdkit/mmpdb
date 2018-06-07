@@ -63,6 +63,7 @@ def transform_command(parser, args):
     min_pairs = int(args.min_pairs)
     min_variable_size = args.min_variable_size
     max_variable_size = args.max_variable_size
+    assert max_variable_size > min_variable_size, "max-variable-size must be greater than min-variable-size"
     min_constant_size = args.min_constant_size
     
     explain = command_support.get_explain(args.explain)
