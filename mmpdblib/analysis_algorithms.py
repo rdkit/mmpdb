@@ -740,7 +740,7 @@ class TransformTool(Tool):
         return record
     
     def transform(self, transform_fragments, property_names,
-                  min_radius=0, min_pairs=0, min_variable_size=0, min_constant_size=0,
+                  min_radius=0, min_pairs=0, min_variable_size=0, max_variable_size=9999, min_constant_size=0,
                   substructure_pat=None,
                   pool=None,
                   explain=None):
@@ -759,7 +759,8 @@ class TransformTool(Tool):
                 rule_selection_function=self.rule_selection_function,
                 substructure_pat=substructure_pat,
                 min_radius=min_radius, min_pairs=min_pairs,
-                min_variable_size=min_variable_size, min_constant_size=min_constant_size,
+                min_variable_size=min_variable_size, max_variable_size=max_variable_size,
+                min_constant_size=min_constant_size,
                 pool=pool,
                 cursor=cursor, explain=explain)
 
@@ -875,6 +876,7 @@ def make_transform(
         rule_selection_function,
         substructure_pat=None,
         min_radius=0, min_pairs=0, min_variable_size=0, min_constant_size=0,
+        max_variable_size=9999,
         pool=None,
         cursor=None, explain=None):
     if explain is None:
@@ -906,13 +908,19 @@ def make_transform(
         explain("Processing fragment %r", frag)
 
         # Check if the fragmentation is allowed
-        if min_variable_size and frag.num_variable_heavies < min_variable_size:
-            explain("  The %d heavy atoms of constant %r is below the --min-constant-size of %d. Skipping fragment.",
-                    frag.num_variable_heavies, frag.variable_smiles, min_variable_size)
+        if min_variable_size and frag.variable_num_heavies < min_variable_size:
+            explain("  The %d heavy atoms of variable %r is below the --min-variable-size of %d. Skipping fragment.",
+                    frag.variable_num_heavies, frag.variable_smiles, min_variable_size)
             continue
-        if min_constant_size and frag.num_constant_heavies < min_constant_size:
+
+        if frag.variable_num_heavies > max_variable_size:
+            explain("  The %d heavy atoms of variable %r is above the --max-variable-size of %d. Skipping fragment.",
+                    frag.variable_num_heavies, frag.variable_smiles, max_variable_size)
+            continue
+        
+        if min_constant_size and frag.constant_num_heavies < min_constant_size:
             explain("  The %d heavy atoms of constant %r is below the --min-constant-size of %d. Skipping fragment.",
-                    frag.num_constant_heavies, frag.constant_smiles, min_constant_size)
+                    frag.constant_num_heavies, frag.constant_smiles, min_constant_size)
             continue
             
         # XXX TODO: handle 'constant_with_H_smiles'?
@@ -960,7 +968,7 @@ def make_transform(
                 all_center_fps, frag.variable_symmetry_class, permutation)
             
             rows = dataset.find_rule_environments_for_transform(
-                permuted_variable_smiles_id, sorted(possible_envs), cursor=cursor)
+                permuted_variable_smiles_id, sorted(possible_envs), max_variable_size=max_variable_size, cursor=cursor)
 
             to_weld.extend( (frag.constant_smiles, frag.variable_smiles, substructure_pat, row) for row in rows )
         
