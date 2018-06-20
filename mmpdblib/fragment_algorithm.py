@@ -744,6 +744,7 @@ _hydrogen_cut_smiles = "[*][H]"
 def get_hydrogen_fragmentations(smiles, num_heavies):
     fragmentations = []
     mol = Chem.MolFromSmiles(smiles)
+    mol = Chem.RemoveHs(mol)
     seen = set()
     for atom in mol.GetAtoms():
         # All hydrogens are equivalent, so only need 1 h-fragment per atoms
@@ -763,12 +764,33 @@ def get_hydrogen_fragmentations(smiles, num_heavies):
                 "0",
                 num_heavies, "1", cut_smiles, smiles)
             fragmentations.append(new_fragmentation)
-    return fragmentations
 
+        elif atom.GetNumExplicitHs() > 0:
+            emol = Chem.EditableMol(mol)
+            # Add the "*", single-bonded to the atom
+            wildcard_atom_idx = emol.AddAtom(Chem.Atom(0))
+            atom_idx = atom.GetIdx()
+            emol.AddBond(atom_idx, wildcard_atom_idx, Chem.BondType.SINGLE)
+            cut_mol = emol.GetMol()
+            cut_mol_atom = cut_mol.GetAtoms()[atom_idx]
+            num_explicit_Hs = cut_mol_atom.GetNumExplicitHs()
+            cut_mol_atom.SetNumExplicitHs(num_explicit_Hs-1)
+            cut_smiles = Chem.MolToSmiles(cut_mol, isomericSmiles=True)
+            if cut_smiles in seen:
+                continue
+            seen.add(cut_smiles)
+            new_fragmentation = Fragmentation(
+                1, EnumerationLabel.NO_ENUMERATION,
+                0, "1", _hydrogen_cut_smiles,
+                "0",
+                num_heavies, "1", cut_smiles, smiles)
+            fragmentations.append(new_fragmentation)
+
+    return fragmentations
 
 ###
 
-# If there is an explicit '[H]' in the SMILES then fragment only on that.
+# If there is an explicit '[H]' in the SMILES then fragment only on that. (but not on [nH] explicit hydrogens since they are added by the drawer)
 
 _hydrogen_cut_pat = Chem.MolFromSmarts("[!#1]-[0#1v1!+!-]")
 
