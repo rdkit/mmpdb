@@ -91,6 +91,8 @@ def transform_command(parser, args):
     
     transform_tool = analysis_algorithms.get_transform_tool(dataset, rule_selection_function)
     transform_record = transform_tool.fragment_transform_smiles(args.smiles)
+    transform_record = transform_tool.expand_variable_symmetry(transform_record)
+
     if transform_record.errmsg:
         parser.error("Unable to fragment --smiles %r: %s"
                      % (args.smiles, transform_record.errmsg))

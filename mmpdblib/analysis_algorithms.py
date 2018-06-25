@@ -34,6 +34,7 @@ from __future__ import print_function, absolute_import
 
 from collections import defaultdict
 import re
+import copy
 
 from rdkit import Chem
 
@@ -764,6 +765,78 @@ class TransformTool(Tool):
                 pool=pool,
                 cursor=cursor, explain=explain)
 
+    def expand_variable_symmetry(self, transform_record):
+        # Expand fragmentations of transform where the variable part is symmetric
+        symmetry_fragments = []
+        for fragment in transform_record.fragments:
+            if fragment.num_cuts == 1: 
+                continue         # No symmetry here
+            elif fragment.num_cuts == 2 and fragment.variable_symmetry_class == "11":
+                if fragment.constant_symmetry_class == "11": continue     # Both variable and constant are symmetric
+                new_fragment = copy.copy(fragment)
+                frag1, frag2 = new_fragment.constant_smiles.split(".")
+                new_fragment.constant_smiles = frag2 + "." + frag1
+                symmetry_fragments.append(new_fragment)
+        
+            elif fragment.num_cuts == 3 and fragment.variable_symmetry_class == '111':
+                new_fragment = copy.copy(fragment)
+                frag1, frag2, frag3 = new_fragment.constant_smiles.split(".")
+                new_fragment.constant_smiles = frag1 + "." + frag3 + "." + frag2
+                symmetry_fragments.append(new_fragment)
+                new_fragment = copy.copy(fragment)
+                new_fragment.constant_smiles = frag2 + "." + frag1 + "." + frag3
+                symmetry_fragments.append(new_fragment)
+                new_fragment = copy.copy(fragment)
+                new_fragment.constant_smiles = frag2 + "." + frag3 + "." + frag1
+                symmetry_fragments.append(new_fragment)
+                new_fragment = copy.copy(fragment)
+                new_fragment.constant_smiles = frag3 + "." + frag1 + "." + frag2
+                symmetry_fragments.append(new_fragment)
+                new_fragment = copy.copy(fragment)
+                new_fragment.constant_smiles = frag3 + "." + frag2 + "." + frag1
+                symmetry_fragments.append(new_fragment)
+
+            elif fragment.num_cuts == 3 and fragment.variable_symmetry_class == '112':
+                change_idx1, change_idx2 = int(fragment.attachment_order[0]), int(fragment.attachment_order[1])
+                keep_idx = int(fragment.attachment_order[2])
+                new_fragment = copy.copy(fragment)
+                frags = new_fragment.constant_smiles.split(".")
+                new_frags = ['','','']
+                new_frags[keep_idx] = frags[keep_idx]
+                new_frags[change_idx1] = frags[change_idx2]
+                new_frags[change_idx2] = frags[change_idx1]
+                new_fragment.constant_smiles = new_frags[0] + "." + new_frags[1] + "." + new_frags[2]
+                symmetry_fragments.append(new_fragment)
+
+            elif fragment.num_cuts == 3 and fragment.variable_symmetry_class == '121':
+                change_idx1, change_idx2 = int(fragment.attachment_order[0]), int(fragment.attachment_order[2])
+                keep_idx = int(fragment.attachment_order[1])
+                new_fragment = copy.copy(fragment)
+                frags = new_fragment.constant_smiles.split(".")
+                new_frags = ['','','']
+                new_frags[keep_idx] = frags[keep_idx]
+                new_frags[change_idx1] = frags[change_idx2]
+                new_frags[change_idx2] = frags[change_idx1]
+                new_fragment.constant_smiles = new_frags[0] + "." + new_frags[1] + "." + new_frags[2]
+                symmetry_fragments.append(new_fragment)
+
+            elif fragment.num_cuts == 3 and fragment.variable_symmetry_class == '122':
+                change_idx1, change_idx2 = int(fragment.attachment_order[1]), int(fragment.attachment_order[2])
+                keep_idx = int(fragment.attachment_order[0])
+                new_fragment = copy.copy(fragment)
+                frags = new_fragment.constant_smiles.split(".")
+                new_frags = ['','','']
+                new_frags[keep_idx] = frags[keep_idx]
+                new_frags[change_idx1] = frags[change_idx2]
+                new_frags[change_idx2] = frags[change_idx1]
+                new_fragment.constant_smiles = new_frags[0] + "." + new_frags[1] + "." + new_frags[2]
+                symmetry_fragments.append(new_fragment)
+
+        for frag in symmetry_fragments:
+            transform_record.fragments.append(frag)
+
+        return transform_record
+
 
 # Enumerate all of the ways that the canonical unlabeled SMILES
 # might be turned into a non-canonical labeled SMILES.
@@ -959,7 +1032,7 @@ def make_transform(
         #   (The pairs are ordered so the matching SMILES is the 'from' side of the transform)
         #   The transformed SMILES goes from variable+constant -> dest_smiles+constant
         #   so weld the destinition SMILES (smi2) with the constant
-        
+       
         for permutation, permuted_variable_smiles, permuted_variable_smiles_id in query_possibilities:
             explain(" Evaluate constant %r with permutation %r against rules using SMILES %s (%d)",
                     frag.constant_smiles, permutation, permuted_variable_smiles, permuted_variable_smiles_id)
@@ -971,7 +1044,7 @@ def make_transform(
                 permuted_variable_smiles_id, sorted(possible_envs), max_variable_size=max_variable_size, cursor=cursor)
 
             to_weld.extend( (frag.constant_smiles, frag.variable_smiles, substructure_pat, row) for row in rows )
-        
+    
     if pool is None:
         results = _compat.imap(_weld_and_filter, to_weld)
     else:
