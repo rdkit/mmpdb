@@ -62,6 +62,8 @@ def transform_command(parser, args):
     min_radius = int(min_radius)
     min_pairs = int(args.min_pairs)
     min_variable_size = args.min_variable_size
+    max_variable_size = args.max_variable_size
+    assert max_variable_size > min_variable_size, "max-variable-size must be greater than min-variable-size"
     min_constant_size = args.min_constant_size
     
     explain = command_support.get_explain(args.explain)
@@ -89,6 +91,8 @@ def transform_command(parser, args):
     
     transform_tool = analysis_algorithms.get_transform_tool(dataset, rule_selection_function)
     transform_record = transform_tool.fragment_transform_smiles(args.smiles)
+    transform_record = transform_tool.expand_variable_symmetry(transform_record)
+
     if transform_record.errmsg:
         parser.error("Unable to fragment --smiles %r: %s"
                      % (args.smiles, transform_record.errmsg))
@@ -110,6 +114,7 @@ def transform_command(parser, args):
             min_radius = min_radius,
             min_pairs = min_pairs,
             min_variable_size = min_variable_size,
+            max_variable_size = max_variable_size,
             min_constant_size = min_constant_size,
             substructure_pat = substructure_pat,
             pool = pool,

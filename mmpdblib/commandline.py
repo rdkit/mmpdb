@@ -347,7 +347,6 @@ p.add_argument("--memory", action="store_true",
 p.add_argument("fragment_filename", nargs="?", default=None,
                help="SMILES filename (default: read from stdin)")
 
-
 p.set_defaults(command=index_command,
                subparser=p)
 
@@ -683,6 +682,8 @@ p.add_argument("--smiles", "-s", required=True,
                help="the base structure to transform")
 p.add_argument("--min-variable-size", type=nonnegative_int, metavar="N", default=0,
                help="require at least N atoms in the variable fragment (default: 0)")
+p.add_argument("--max-variable-size", type=nonnegative_int, metavar="N", default=9999,
+               help="allow at most N atoms in the variable fragment (default: 9999)")
 p.add_argument("--min-constant-size", type=nonnegative_int, metavar="N", default=0,
                help="require at least N atoms in the constant fragment (default: 0)")
 p.add_argument("--min-radius", "-r", choices=("0", "1", "2", "3", "4", "5"), default="0",

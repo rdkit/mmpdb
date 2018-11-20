@@ -153,6 +153,11 @@ def find_center_fingerprints(centers, radius):
     center_fps = []
     for atom_idx in centers.atom_ids:
         fp = AllChem.GetMorganFingerprint(centers.mol, radius, fromAtoms=[atom_idx])
+        env = Chem.FindAtomEnvironmentOfRadiusN(centers.mol, radius, atom_idx)
+        submol = Chem.PathToSubmol(centers.mol, env)
+        smiles = Chem.MolToSmiles(centers.mol)
+        subsmiles=Chem.MolToSmiles(submol)
+        print("Submol: "+ smiles + " "+ str(radius)+ " "+ subsmiles)
         # Hash so everything so they are a constant 32 binary bytes.
         center_fp = hashlib.sha256(fp.ToBinary()).digest()
         center_fps.append(center_fp)
@@ -189,6 +194,7 @@ def find_environment_fingerprint(centers, radius):
     # TODO: the fingerprints at r=0 are constant based on the number of cuts.
     # Would it be faster to have special code for that case?
     concat_fp = _make_fp(*find_center_fingerprints(centers, radius))
+    print(concat_fp)
     return concat_fp
 
 # The input is a SMILES for the constant term, like

@@ -2,9 +2,14 @@ import subprocess
 import psycopg2
 import psycopg2.extras
 
-db_home = "/home/oriol/dev/mmpdb/test_db/"
-filename = "compound_test"
-db = "mmpdb_test_new"
+#db_home = "/home/oriol/dev/mmpdb/test_db/"
+#filename = "compound_test"
+#db = "mmpdb_test_new"
+
+
+db_home = "/ssd/mmpdb_data/intermediate_test_target/"
+filename = "compound_test_target"
+db = "mmpdb_test_target"
 
 #db_home = "/home/oriol/dev/mmpdb/compound_all_db/"
 #filename = "compound_all_new"

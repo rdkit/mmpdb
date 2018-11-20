@@ -54,53 +54,25 @@ from . import fragment_store
 
 ###
 
-MAX_RADIUS = 5  # maximum allowed environment radius
-
+MAX_RADIUS = 5 # maximum allowed environment radius
 
 def _positive_float(value):
-    """
-
-    Args:
-        value:
-
-    Returns:
-
-    """
     value = float(value)
     if value <= 0.0:
         raise ValueError("must be a positive float")
     return value
 
-
 def _nonnegative_float(value):
-    """
-
-    Args:
-        value:
-
-    Returns:
-
-    """
     value = float(value)
     if value < 0.0:
         raise ValueError("must be a positive float or zero")
     return value
 
-
 def _nonnegative_int(value):
-    """
-
-    Args:
-        value:
-
-    Returns:
-
-    """
     value = int(value)
     if not (value >= 0):
         raise ValueError("must be a positive integer or zero")
     return value
-
 
 parse_min_variable_heavies_value = _nonnegative_int
 parse_max_variable_heavies_value = _nonnegative_int
@@ -109,39 +81,20 @@ parse_max_variable_ratio_value = _nonnegative_float
 parse_min_variable_ratio_value = _positive_float
 parse_max_heavies_transf = _nonnegative_int
 
-
 class IndexOptions(object):
-    """
-    """
     def __init__(self, min_variable_heavies=None, max_variable_heavies=None,
-                 min_variable_ratio=None, max_variable_ratio=None,
-                 symmetric=False, max_heavies_transf=None, max_frac_trans=None):
-        """
-
-        Args:
-            min_variable_heavies:
-            max_variable_heavies:
-            min_variable_ratio:
-            max_variable_ratio:
-            symmetric:
-            max_heavies_transf:
-            max_frac_trans:
-        """
+                     min_variable_ratio=None, max_variable_ratio=None,
+                     symmetric=False, max_heavies_transf=None, max_frac_trans=None):
         self.min_variable_heavies = min_variable_heavies
         self.max_variable_heavies = max_variable_heavies
         self.min_variable_ratio = min_variable_ratio
         self.max_variable_ratio = max_variable_ratio
-
+        
         self.symmetric = symmetric
         self.max_heavies_transf = max_heavies_transf
         self.max_frac_trans = max_frac_trans
-
+    
     def to_dict(self):
-        """
-
-        Returns:
-
-        """
         from collections import OrderedDict
         items = [
             ("min_variable_heavies", self.min_variable_heavies),
@@ -153,237 +106,91 @@ class IndexOptions(object):
             ("max_frac_trans", self.max_frac_trans)]
         return OrderedDict([(key, value) for (key, value) in items if value is not None])
 
-
 ### Filter the fragments coming in
 
 
 class MinVariableRatioFilter(object):
-    """
-    """
     def __init__(self, ratio):
-        """
-
-        Args:
-            ratio:
-        """
         self.ratio = ratio
 
     def allow_fragment(self, num_variable_heavies, num_normalized_heavies):
-        """
-
-        Args:
-            num_variable_heavies:
-            num_normalized_heavies:
-
-        Returns:
-
-        """
         variable_ratio = num_variable_heavies / num_normalized_heavies
         return variable_ratio >= self.ratio
 
     def get_args(self):
-        """
-
-        Returns:
-
-        """
         return {"--min-variable-ratio": str(self.ratio)}
 
     def get_options(self):
-        """
-
-        Returns:
-
-        """
         return {"min_variable_ratio": self.ratio}
 
-
 class MaxVariableRatioFilter(object):
-    """
-    """
     def __init__(self, ratio):
-        """
-
-        Args:
-            ratio:
-        """
         self.ratio = ratio
 
     def allow_fragment(self, num_variable_heavies, num_normalized_heavies):
-        """
-
-        Args:
-            num_variable_heavies:
-            num_normalized_heavies:
-
-        Returns:
-
-        """
         variable_ratio = num_variable_heavies / num_normalized_heavies
         return variable_ratio <= self.ratio
 
     def get_args(self):
-        """
-
-        Returns:
-
-        """
         return {"--max-variable-ratio": str(self.ratio)}
-
+        
     def get_options(self):
-        """
-
-        Returns:
-
-        """
         return {"max_variable_ratio": self.ratio}
 
-
 class MinVariableHeaviesFilter(object):
-    """
-    """
     def __init__(self, min_size):
-        """
-
-        Args:
-            min_size:
-        """
         self.min_size = min_size
-
+        
     def allow_fragment(self, num_variable_heavies, num_normalized_heavies):
-        """
-
-        Args:
-            num_variable_heavies:
-            num_normalized_heavies:
-
-        Returns:
-
-        """
         return num_variable_heavies >= self.min_size
 
     def get_args(self):
-        """
-
-        Returns:
-
-        """
         return {"--min-variable-heavies": str(self.min_size)}
 
     def get_options(self):
-        """
-
-        Returns:
-
-        """
         return {"min_variable_heavies": self.min_size}
 
-
 class MaxVariableHeaviesFilter(object):
-    """
-    """
     def __init__(self, max_size):
-        """
-
-        Args:
-            max_size:
-        """
         self.max_size = max_size
-
+        
     def allow_fragment(self, num_variable_heavies, num_normalized_heavies):
-        """
-
-        Args:
-            num_variable_heavies:
-            num_normalized_heavies:
-
-        Returns:
-
-        """
         return num_variable_heavies <= self.max_size
 
     def get_args(self):
-        """
-
-        Returns:
-
-        """
         return {"--max-variable-heavies": str(self.max_size)}
-
+        
     def get_options(self):
-        """
-
-        Returns:
-
-        """
         return {"max_variable_heavies": self.max_size}
 
-
+            
 class MultipleFilters(object):
-    """
-    """
     # Boolean 'and' of all of the tests
     def __init__(self, filters):
-        """
-
-        Args:
-            filters:
-        """
         self.filters = filters
 
     def allow_fragment(self, num_variable_heavies, num_normalized_heavies):
-        """
-
-        Args:
-            num_variable_heavies:
-            num_normalized_heavies:
-
-        Returns:
-
-        """
         for filter in self.filters:
             if not filter.allow_fragment(num_variable_heavies, num_normalized_heavies):
                 return False
         return True
-
+    
     def get_args(self):
-        """
-
-        Returns:
-
-        """
         d = {}
         for filter in self.filters:
             d.update(filter.get_args())
         return d
 
     def get_options(self):
-        """
-
-        Returns:
-
-        """
         d = {}
         for filter in self.filters:
             d.update(filter.get_options())
         return d
-
-
+    
 class _AllowAllFilter(object):
-    """
-    """
     def allow_fragment(self, num_variable_heavies, num_normalized_heavies):
-        """
-
-        Args:
-            num_variable_heavies:
-            num_normalized_heavies:
-
-        Returns:
-
-        """
         return True
-
+    
 
 #########
 
@@ -392,96 +199,29 @@ class _AllowAllFilter(object):
 # Canonical mapping from smiles1 -> smiles2
 #
 def sym11(p):
-    """
-
-    Args:
-        p:
-
-    Returns:
-
-    """
     return [(p[0], p[1]), (p[1], p[0])]
 
-
 def sym12(p):
-    """
-
-    Args:
-        p:
-
-    Returns:
-
-    """
     return [(p[0], p[1])]
 
-
 def sym111(p):
-    """
-
-    Args:
-        p:
-
-    Returns:
-
-    """
     return [(p[0], p[1], p[2]),
             (p[0], p[2], p[1]),
             (p[1], p[0], p[2]),
             (p[1], p[2], p[0]),
             (p[2], p[1], p[0]),
             (p[2], p[0], p[1])]
-
-
 def sym112(p):
-    """
-
-    Args:
-        p:
-
-    Returns:
-
-    """
     return [(p[0], p[1], p[2]),
             (p[1], p[0], p[2])]
-
-
 def sym121(p):
-    """
-
-    Args:
-        p:
-
-    Returns:
-
-    """
     return [(p[0], p[1], p[2]),
             (p[2], p[1], p[0])]
-
-
 def sym122(p):
-    """
-
-    Args:
-        p:
-
-    Returns:
-
-    """
     return [(p[0], p[1], p[2]),
             (p[0], p[2], p[1])]
-
-
 def sym123(p):
-    """
-
-    Args:
-        p:
-
-    Returns:
-
-    """
     return [(p[0], p[1], p[2])]
-
 
 _symm_funcs = {
     "11": sym11,
@@ -491,45 +231,29 @@ _symm_funcs = {
     "121": sym121,
     "122": sym122,
     "123": sym123,
-}
-
-
+    }
 def _check_sym_funcs():
-    """
-
-    """
     seen_results = set()
+    
 
     for name, f in _symm_funcs.items():
         n = len(name)
-        query = list(range(4, 4 + n))
+        query = list(range(4, 4+n))
         result = f(query)
-
+        
         x = tuple(sorted(result))
         assert x not in seen_results, x
         seen_results.add(x)
-
+        
         seen_terms = set()
         for term in result:
-            assert len(term) == n, (query, term)
-            assert set(term) == set(query), (query, term)
-            assert term not in seen_terms
-            seen_terms.add(term)
-
-
-_check_sym_funcs()
-
+           assert len(term) == n, (query, term)
+           assert set(term) == set(query), (query, term)
+           assert term not in seen_terms
+           seen_terms.add(term)
+_check_sym_funcs()        
 
 def enumerate_symmetry(possibilities, symmetry_class):
-    """
-
-    Args:
-        possibilities:
-        symmetry_class:
-
-    Returns:
-
-    """
     func = _symm_funcs[symmetry_class]
     result = []
     for p in possibilities:
@@ -538,17 +262,7 @@ def enumerate_symmetry(possibilities, symmetry_class):
             result.append(new_p)
     return result
 
-
 def reorder(possibilities, order):
-    """
-
-    Args:
-        possibilities:
-        order:
-
-    Returns:
-
-    """
     result = []
     for p in possibilities:
         q = tuple(p[-1][offset] for offset in map(int, order))
@@ -556,37 +270,18 @@ def reorder(possibilities, order):
         result.append(new_p)
     return result
 
-
 def _invert_order(order):
-    """
-
-    Args:
-        order:
-
-    Returns:
-
-    """
     values = list(map(int, order))
     indices = list(range(len(values)))
-    indices.sort(key=lambda i: values[i])
+    indices.sort(key = lambda i: values[i])
     return "".join(str(i) for i in indices)
 
 
 _order_table = dict((s, _invert_order(s))
-                    for s in ("01", "10", "012", "021", "102", "120", "201", "210"))
-
+                       for s in ("01", "10", "012", "021", "102", "120", "201", "210"))
 
 def invert_order(order):
-    """
-
-    Args:
-        order:
-
-    Returns:
-
-    """
-    return _order_table[order]
-
+    return _order_table[order]    
 
 def _get_smirks_order(
         symmetry_class1,
@@ -594,18 +289,6 @@ def _get_smirks_order(
         constant_symmetry_class,
         symmetry_class2,
         attachment_order2):
-    """
-
-    Args:
-        symmetry_class1:
-        attachment_order1:
-        constant_symmetry_class:
-        symmetry_class2:
-        attachment_order2:
-
-    Returns:
-
-    """
     # the i-th variable * goes to the attachment_order[i]-th constant *.
     # "120" will generate ...[*:2]...[*:3]...[*:1]... for the variable part.
     # The constant part will always be :1, :2, :3
@@ -635,33 +318,27 @@ def _get_smirks_order(
     possibilities = [(indices,)]
     #print("possibilities0", possibilities)
     #print("symmetry_class1:", symmetry_class1, "symmetry_class2:", symmetry_class2)
-    possibilities = enumerate_symmetry(possibilities, symmetry_class1)  # symmetry in smiles1
+    possibilities = enumerate_symmetry(possibilities, symmetry_class1) # symmetry in smiles1
     #print("possibilities1", possibilities)
     possibilities = reorder(possibilities, invert_order(attachment_order1))  # map to the constant
     #print("possibilities2", possibilities)
     possibilities = enumerate_symmetry(possibilities, constant_symmetry_class)  # symmetry in the constant
     #print("possibilities3", possibilities)
-    possibilities = reorder(possibilities, attachment_order2)  # map to smiles2
+    possibilities = reorder(possibilities, attachment_order2)              # map to smiles2
     #print("possibilities4", possibilities)
-    possibilities = enumerate_symmetry(possibilities, symmetry_class2)  # symmetry in smiles2
+    possibilities = enumerate_symmetry(possibilities, symmetry_class2)     # symmetry in smiles2
     #print("possibilities5", possibilities)
-
-    # print(sorted(possibilities))
+    
+    #print(sorted(possibilities))
     possibilities = [(p[5], p[3]) for p in possibilities]
-
+    
     best_possibility = min(possibilities)
-
+    
     s = "".join(str(i) for i in best_possibility[0])
     t = "".join(str(i) for i in best_possibility[1])
     return s, t
 
-
 def _init_cansmirks_table():
-    """
-
-    Returns:
-
-    """
     # Enumerate all possibilities. Use brute-force to minimize errors.
 
     # There will be 4532 elements.
@@ -670,7 +347,7 @@ def _init_cansmirks_table():
             (("11", "12"), ("01", "10")),
             (("111", "112", "121", "122", "123"),
              ("012", "021", "102", "120", "201", "210")),
-    ):
+             ):
 
         for symmetry_class1 in symmetry_classes:
             for attachment_order1 in permutations:
@@ -683,20 +360,19 @@ def _init_cansmirks_table():
                                 constant_symmetry_class,
                                 symmetry_class2,
                                 attachment_order2)
-
+                            
                             table[symmetry_class1 +
                                   attachment_order1 +
                                   constant_symmetry_class +
                                   symmetry_class2 +
                                   attachment_order2] = smirks_order
-    print(len(table), "elements")
+    #print(len(table), "elements")
     return table
-
 
 # Using the pre-computed table is almost 3x faster, but it's
 # harder to debug failures in smirks canonicalization.
-USE_SMIRKS_TABLE = False
-USE_PRECOMPUTED_TABLE = False
+USE_SMIRKS_TABLE = True
+USE_PRECOMPUTED_TABLE = True
 
 if USE_SMIRKS_TABLE:
     if USE_PRECOMPUTED_TABLE:
@@ -707,27 +383,16 @@ if USE_SMIRKS_TABLE:
         if 0:
             # Code used to generated the pre-computed table.
             import pprint
-
             with open("cansmirks_table.py", "w") as outfile:
                 outfile.write("# The contents of this file were generated from index_algorithm.py. Do not modify.\n")
                 outfile.write("#pylint: disable=bad-continuation\n")
                 outfile.write("cansmirks_table = ")
                 pprint.pprint(_smirks_table, stream=outfile)
             raise SystemExit("cansmirks_table.py generated")
-
+    
 
 class RelabelCache(dict):
-    """
-    """
     def __missing__(self, key):
-        """
-
-        Args:
-            key:
-
-        Returns:
-
-        """
         if isinstance(key, _compat.basestring):
             result = fragment_io.relabel(key)
         else:
@@ -737,60 +402,52 @@ class RelabelCache(dict):
         return result
 
 
+_wildcard_regex = re.compile(re.escape("[*]") + "|" + re.escape("*"))
+
 def cansmirks(num_cuts,
               smiles1, symmetry_class1, attachment_order1,
               constant_smiles, constant_symmetry_class,
               smiles2, symmetry_class2, attachment_order2,
               relabel_cache
               ):
-    """
-
-    Args:
-        num_cuts:
-        smiles1:
-        symmetry_class1:
-        attachment_order1:
-        constant_smiles:
-        constant_symmetry_class:
-        smiles2:
-        symmetry_class2:
-        attachment_order2:
-        relabel_cache:
-
-    Returns:
-
-    """
     if num_cuts == 1:
-        # This is trivial
+        # This is easy enough that I'll relabel them directly
         smirks = smiles1 + ">>" + smiles2
-        return smirks.replace("[*]", "[*:1]"), constant_smiles.replace("[*]", "[*:1]")
-    #print("cansmirks1")
+        if "*" in smirks:
+            smirks = _wildcard_regex.sub(lambda x: "[*:1]", smirks)
+        else:
+            raise AssertionError(smirks)
+        if "*" in constant_smiles:
+            constant_smiles = _wildcard_regex.sub(lambda x: "[*:1]", constant_smiles)
+        else:
+            raise AssertionError(constant_smiles)
+        return smirks, constant_smiles
+    # print("cansmirks1")
     if USE_SMIRKS_TABLE:
         new_order, constant_order = _smirks_table[
             symmetry_class1 + attachment_order1 +
             constant_symmetry_class +
             symmetry_class2 + attachment_order2]
     else:
-        #print("No Table")
-        #print("smiles1:", smiles1, "smiles2:", smiles2)
+        ## print("smiles1:", smiles1, "smiles2:", smiles2)
         new_order, constant_order = _get_smirks_order(
-            symmetry_class1,
-            attachment_order1,
-            constant_symmetry_class,
-            symmetry_class2,
-            attachment_order2)
-        #print("new_order:", new_order, "constant_order:", constant_order)
-    # print("cansmirks2")
-    # print("Relabel", constant_smiles, "with", constant_order)
-    # print("smiles1", smiles1, " -> ", fragment_io.relabel(smiles1))
-    # print("smiles2", smiles2, " -> ", fragment_io.relabel(smiles2, new_order), "new_order:", new_order)
-    # print("constant", fragment_io.relabel(constant_smiles, constant_order))
+                                    symmetry_class1,
+                                    attachment_order1,
+                                    constant_symmetry_class,
+                                    symmetry_class2,
+                                    attachment_order2)
+        ## print("new_order:", new_order, "constant_order:", constant_order)
+
+    ## print("Relabel", constant_smiles, "with", constant_order)
+    ## print("smiles1", smiles1, " -> ", fragment_io.relabel(smiles1))
+    ## print("smiles2", smiles2, " -> ", fragment_io.relabel(smiles2, new_order), "new_order:", new_order)
+    ## print("constant", fragment_io.relabel(constant_smiles, constant_order))
+    
     return (relabel_cache[smiles1] + ">>" + relabel_cache[smiles2, new_order],
-            relabel_cache[constant_smiles, constant_order])
+                relabel_cache[constant_smiles, constant_order])
+    
 
 class FragmentIndex(object):
-    """
-    """
     def __init__(self, index, id_to_record):
         """
 
@@ -962,7 +619,7 @@ def load_fragment_index(fragment_reader, fragment_filter=None, selected_ids=None
     fragment_store.pg_load_sc()
     fragment_store.pg_reagg()
     fragment_store.dump(dict(index), id_to_record)
-    #return FragmentIndex(dict(index), id_to_record)
+    # return FragmentIndex(dict(index), id_to_record)
     return fragment_store.FragmentIndexDB()
 
 
@@ -1036,6 +693,7 @@ assert 1 / 2 != 0, "why did you disable future division?"
 class _NumHeaviesCache(dict):
     """
     """
+
     def __missing__(self, smiles):
         """
 
@@ -1144,7 +802,7 @@ class EnvironmentCache(object):
         self.index_cache = index_cache
 
     def __init__(self):
-        self.enabled_cache=False
+        self.enabled_cache = False
         self._centers_cache = {}
         self._radii_cache = {}
         self._environment_cache = {}
@@ -1182,6 +840,7 @@ class EnvironmentCache(object):
             if self.enabled_cache: self._environment_cache[key] = env_fps
         return env_fps
 
+
 def find_matched_molecular_pairs_olm(index_options=IndexOptions(), reporter=None):
     print("-----------\n\n")
     print("init mmp\n")
@@ -1196,18 +855,18 @@ def find_matched_molecular_pairs_olm(index_options=IndexOptions(), reporter=None
     relabel_cache = RelabelCache()
     NO_ENUMERATION = fragment_algorithm.EnumerationLabel.NO_ENUMERATION
     print("Init report\n")
-    i=0
+    i = 0
     # Go through the upper-diagonal matrix of the NxN matches
     # OLM
     it = fragment_store.IndexIteration()
-    #print("IT: "+str(it.rows))
+    # print("IT: "+str(it.rows))
     for num_cuts_str, constant_smiles, constant_symmetry_class, matches in it.cur:
         print("Iteration: " + str(i) + "\n")
         i = i + 1
-        num_cuts=int(num_cuts_str)
-        print("Ix: "+str(i) + " " +str(num_cuts) + "|" + constant_smiles + "|" + constant_symmetry_class)
-        #print("\tNum matches: " + str(len(matches)))
-        #print("Matches:"+ str(matches))
+        num_cuts = int(num_cuts_str)
+        print("Ix: " + str(i) + " " + str(num_cuts) + "|" + constant_smiles + "|" + constant_symmetry_class)
+        # print("\tNum matches: " + str(len(matches)))
+        # print("Matches:"+ str(matches))
         for offset, m1 in enumerate(matches):
             for m2 in matches[offset + 1:]:
                 id1 = m1['id']
@@ -1237,9 +896,9 @@ def find_matched_molecular_pairs_olm(index_options=IndexOptions(), reporter=None
                 #
                 # print("M1: "+str(m1))
                 # print("M2: "+str(m2))
-                #print("QQQ")
-                #print("\t1:", id1, symmetry_class1, smiles1, attachment_order1, enumeration_label1)
-                #print("\t2:", id2, symmetry_class2, smiles2, attachment_order2, enumeration_label2)
+                # print("QQQ")
+                # print("\t1:", id1, symmetry_class1, smiles1, attachment_order1, enumeration_label1)
+                # print("\t2:", id2, symmetry_class2, smiles2, attachment_order2, enumeration_label2)
                 # Eliminate duplicates based on id or matching variable fragment
                 if id1 == id2:
                     print("exit same")
@@ -1311,11 +970,12 @@ def find_matched_molecular_pairs_olm(index_options=IndexOptions(), reporter=None
                         if max_radius is None:
                             # skip this pair
                             continue
-                    #mmp=MatchedMolecularPair(tmp_id1, tmp_id2, smirks, tmp_constant_smiles, max_radius)
-                    #print("Pair: ",tmp_id1, tmp_id2, smirks, tmp_constant_smiles, max_radius)
-                    #print(mmp)
+                    # mmp=MatchedMolecularPair(tmp_id1, tmp_id2, smirks, tmp_constant_smiles, max_radius)
+                    # print("Pair: ",tmp_id1, tmp_id2, smirks, tmp_constant_smiles, max_radius)
+                    # print(mmp)
                     yield MatchedMolecularPair(tmp_id1, tmp_id2, smirks, tmp_constant_smiles, max_radius)
     it.close()
+
 
 ###
 
@@ -1346,9 +1006,9 @@ def find_matched_molecular_pairs(
         for num_cuts, constant_smiles, constant_symmetry_class, matches in it:
             for offset, (id1, symmetry_class1, smiles1, attachment_order1, enumeration_label1) in enumerate(matches):
                 for (id2, symmetry_class2, smiles2, attachment_order2, enumeration_label2) in matches[offset + 1:]:
-                    #print("QQQ")
-                    #print("1:", id1, symmetry_class1, smiles1, attachment_order1, enumeration_label1)
-                    #print("2:", id2, symmetry_class2, smiles2, attachment_order2, enumeration_label2)
+                    # print("QQQ")
+                    # print("1:", id1, symmetry_class1, smiles1, attachment_order1, enumeration_label1)
+                    # print("2:", id2, symmetry_class2, smiles2, attachment_order2, enumeration_label2)
                     # Eliminate duplicates based on id or matching variable fragment
                     if id1 == id2:
                         continue
@@ -1465,6 +1125,7 @@ def find_matched_molecular_pairs(
 class BaseWriter(object):
     """
     """
+
     def __init__(self, backend, fragment_options, fragment_index, index_options, properties):
         """
 
@@ -1538,6 +1199,7 @@ class BaseWriter(object):
 class CSVPairWriter(BaseWriter):
     """
     """
+
     def start(self):
         """
 
@@ -1572,44 +1234,45 @@ class CSVPairWriter(BaseWriter):
         """
         self.backend.close()
 
-from sqlitedict import SqliteDict
 
+from sqlitedict import SqliteDict
 
 
 class RuleSmilesTable(dict):
     def __init__(self, backend):
         self.backend = backend
-        self.counter=0
+        self.counter = 0
 
     def __missing__(self, smiles):
         idx = self.counter
-        self.counter=self.counter+1
-        #print("Inserting rule_smiles: "+ str(idx),smiles)
+        self.counter = self.counter + 1
+        # print("Inserting rule_smiles: "+ str(idx),smiles)
         self.backend.add_rule_smiles(idx, smiles)
-        #self[smiles] = idx
+        # self[smiles] = idx
         return idx
 
     def __getitem__(self, k):
-        #print("Getting RuleSmilesTable: "+ k)
+        # print("Getting RuleSmilesTable: "+ k)
         v2 = self.backend.get_rule_smiles(k)
         if v2 is None: return self.__missing__(k)
-        #print("V2: " + str(v2))
+        # print("V2: " + str(v2))
         return v2
+
 
 class ConstantSmilesTable(dict):  # XXX Merge with SmilesTable?
     def __init__(self, backend):
         self.backend = backend
-        self.counter=0
+        self.counter = 0
 
     def __missing__(self, smiles):
         idx = self.counter
-        self.counter=self.counter + 1
+        self.counter = self.counter + 1
         self.backend.add_constant_smiles(idx, smiles)
-        #self[smiles] = idx
+        # self[smiles] = idx
         return idx
 
     def __getitem__(self, k):
-        print("Getting ConstantSmilesTable: "+ k)
+        print("Getting ConstantSmilesTable: " + k)
         v = self.backend.get_constant_smiles(k)
         if v is None: return self.__missing__(k)
         return v
@@ -1619,30 +1282,31 @@ class RuleTable(dict):
     def __init__(self, rule_smiles_table, backend):
         self.rule_smiles_table = rule_smiles_table
         self.backend = backend
-        self.counter =0
+        self.counter = 0
 
     def __missing__(self, smirks):
         from_smiles, gtgt, to_smiles = smirks.partition(">>")
         assert gtgt == ">>", smirks
 
         rule_idx = self.counter
-        self.counter=self.counter + 1
+        self.counter = self.counter + 1
         from_smiles_idx = self.rule_smiles_table[from_smiles]
         to_smiles_idx = self.rule_smiles_table[to_smiles]
 
-        self.backend.add_rule(rule_idx, from_smiles_idx, to_smiles_idx,from_smiles,to_smiles)
-        #self[smirks] = rule_idx
+        self.backend.add_rule(rule_idx, from_smiles_idx, to_smiles_idx, from_smiles, to_smiles)
+        # self[smirks] = rule_idx
         return rule_idx
 
     def __getitem__(self, smirks):
-        #print("Getting RuleTable: "+ smirks)
+        # print("Getting RuleTable: "+ smirks)
         from_smiles, gtgt, to_smiles = smirks.partition(">>")
         assert gtgt == ">>", smirks
         from_smiles_idx = self.rule_smiles_table[from_smiles]
         to_smiles_idx = self.rule_smiles_table[to_smiles]
-        v2 = self.backend.get_rule(from_smiles_idx,to_smiles_idx)
+        v2 = self.backend.get_rule(from_smiles_idx, to_smiles_idx)
         if v2 is None: return self.__missing__(smirks)
         return v2
+
 
 class RuleEnvironmentTable(dict):
     def __init__(self, num_properties, environment_cache, backend):
@@ -1659,7 +1323,7 @@ class RuleEnvironmentTable(dict):
         # To save space, if there are no properties then only store the index,
         # otherwise store the index and lists of property values.
         rule_env_idx = self.counter
-        self.counter=self.counter+1
+        self.counter = self.counter + 1
         if self.num_properties == 0:
             rule_env = rule_env_idx
         else:
@@ -1667,7 +1331,7 @@ class RuleEnvironmentTable(dict):
             rule_env = RuleEnvironment(rule_env_idx, property_value_lists)
 
         self.backend.add_rule_environment(rule_env_idx, rule_idx, env_fp_idx, radius)
-        #self[key] = rule_env
+        # self[key] = rule_env
         return rule_env
 
     def __getitem__(self, key):
@@ -1695,23 +1359,24 @@ class RuleEnvironmentTable(dict):
             for rule_env in rule_envs:
                 yield rule_env
 
+
 class EnvironmentFingerprintTable(dict):
     def __init__(self, backend):
         self.backend = backend
-        self.counter=0
+        self.counter = 0
 
     def __missing__(self, env_fp):
         idx = self.counter
-        self.counter= self.counter + 1
+        self.counter = self.counter + 1
         self.backend.add_environment_fingerprint(idx, env_fp)
-        #self[env_fp] = idx
+        # self[env_fp] = idx
         return idx
 
     def __getitem__(self, env_fp):
-        #print("Getting EnvironmentFingerprintTable: "+ env_fp)
+        # print("Getting EnvironmentFingerprintTable: "+ env_fp)
         v = self.backend.get_environment_fingerprint(env_fp)
         if v is None: return self.__missing__(env_fp)
-        #print("V: " + str(v))
+        # print("V: " + str(v))
         return v
 
 
@@ -1725,12 +1390,12 @@ class CompoundTable(dict):
 
     def __missing__(self, compound_id):
         compound_idx = self.counter
-        self.counter=self.counter+1
+        self.counter = self.counter + 1
         record = self.fragment_index.get_input_record(compound_id)
         # "id", "public_id", "input_smiles", "clean_smiles", "clean_num_heavies"]
         self.backend.add_compound(compound_idx, compound_id, record.input_smiles,
                                   record.normalized_smiles, record.num_normalized_heavies)
-        #self[compound_id] = compound_idx
+        # self[compound_id] = compound_idx
 
         if self.properties:
             property_values = self.properties.get_property_values(compound_id)
@@ -1741,7 +1406,7 @@ class CompoundTable(dict):
         return compound_idx
 
     def __getitem__(self, compound_id):
-        print("Getting CompoundTable: "+ compound_id)
+        print("Getting CompoundTable: " + compound_id)
         v = self.backend.get_compound(compound_id)
         if v is None: return self.__missing__(compound_id)
         print("V: " + str(v))
@@ -1757,12 +1422,11 @@ class MMPWriter_OLM(BaseWriter):
         for pair_i, pair in enumerate(pairs):
             # Figure out which rule it goes into.
             print("-----------")
-            print("Writing pair: "+ str(pair_i))
+            print("Writing pair: " + str(pair_i))
             print(pair.smirks)
-            print("FROM:" +pair.id1)
-            print("TO:"+pair.id2)
+            print("FROM:" + pair.id1)
+            print("TO:" + pair.id2)
             rule_idx = self._rule_table[pair.smirks]
-
 
             # Get the environment for the constant part, at different radii.
             rule_envs = self._get_rule_environments(rule_idx, pair.constant_smiles, pair.max_constant_radius)
@@ -1793,6 +1457,7 @@ class MMPWriter_OLM(BaseWriter):
 class MMPWriter(BaseWriter):
     """
     """
+
     def start(self):
         """
 
@@ -1847,28 +1512,29 @@ class MMPWriter(BaseWriter):
         import datetime
         import time
 
-        pairs_fragment = list(itertools.islice(pairs, 1))
-        for pair_i, pair in enumerate(pairs_fragment):
+        #pairs_fragment = list(itertools.islice(pairs, 1))
+        for pair_i, pair in enumerate(pairs):
             # Figure out which rule it goes into.
             ts = time.time()
             st = datetime.datetime.fromtimestamp(ts).strftime('%Y%m%d#%H:%M:%S')
-            print("Running writing pair:#"+ str(pair_i)+ "#"+st)
+            print("Running writing pair:#" + str(pair_i) + "#" + st)
             print(pair.smirks)
-            print("FROM:" +pair.id1)
-            print("TO:"+pair.id2)
+            print("FROM:" + pair.id1)
+            print("TO:" + pair.id2)
             rule_idx = self._rule_table[pair.smirks]
 
             # Get the environment for the constant part, at different radii.
             rule_envs = self._get_rule_environments(rule_idx, pair.constant_smiles, pair.max_constant_radius)
-            #print("enviroments: ", str(len(rule_envs)))
+            # print("enviroments: ", str(len(rule_envs)))
             if rule_envs:
-                print("Inserting: "+ str(pair.id1))
+                print("Inserting: " + str(pair.id1))
                 compound1_idx = self._compound_table[pair.id1]
-                print("Inserted: " + str(compound1_idx))
+                print("Inserting: " + str(pair.id2))
                 compound2_idx = self._compound_table[pair.id2]
                 constant_idx = self._constant_smiles_table[pair.constant_smiles]
                 for rule_env_tuple in rule_envs:
-                    rule_env= rule_env_tuple[0]
+                    rule_env, radius, fingerprint = rule_env_tuple
+                    print("Envs: " + str(rule_env) + " Radius:" + str(radius) + " FP: " + fingerprint)
                     pair_idx = next(self._environment_pair_id_counter)
                     if has_properties:
                         # then the rule_env is a RuleEnvironment instance
@@ -1879,7 +1545,8 @@ class MMPWriter(BaseWriter):
                             self.properties.get_property_values(pair.id2))
                     else:
                         # then the rule_env is an integer
-                        self.backend.add_rule_environment_pair(pair_idx, rule_env, compound1_idx, compound2_idx, constant_idx,pair)
+                        self.backend.add_rule_environment_pair(pair_idx, rule_env, compound1_idx, compound2_idx,
+                                                               constant_idx, pair)
         self.num_pairs += (pair_i + 1)
 
     def _get_rule_environments(self, rule_idx, constant_smiles, max_radius):
@@ -1888,6 +1555,7 @@ class MMPWriter(BaseWriter):
         rule_envs = []
         print("Environments:")
         for env_fp in env_fps:
+            print("/-----------------/\n")
             env_fp_idx = self._fingerprint_table[env_fp.fingerprint]
             # NOTE: "string-encoded-key"
             # Originally I stored the tuple directly. This ends up using a lot of space
@@ -1898,12 +1566,12 @@ class MMPWriter(BaseWriter):
             # On the other hand, an encoded-string takes only about 70 bytes total.
             # Across 10M objects, this saves about 10E6*(110-70)/1024/1024 = 380 GB.
             key = "%d,%d,%d" % (rule_idx, env_fp_idx, env_fp.radius)
-            print("\tRadius: "+ str(env_fp.radius))
+            print("\tRadius: " + str(env_fp.radius))
             print("\tFP: " + str(env_fp.fingerprint))
             rule_env = self._rule_environment_table[key]
-            rule_env_tuple = (rule_env,env_fp.radius,env_fp.fingerprint)
+            rule_env_tuple = (rule_env, env_fp.radius, env_fp.fingerprint)
             rule_envs.append(rule_env_tuple)
-
+            print("/-----------------/\n")
         return rule_envs
 
 
@@ -1959,6 +1627,7 @@ def open_mmpa_writer(destination, format, title, fragment_options,
 class Compound(object):
     """
     """
+
     def __init__(self, idx, compound_id, record, property_values):
         """
 

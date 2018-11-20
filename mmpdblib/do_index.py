@@ -49,15 +49,6 @@ except ImportError:
     psutil = None
 
 def get_fragment_filter_from_args(parser, args):
-    """
-
-    Args:
-        parser:
-        args:
-
-    Returns:
-
-    """
     min_variable_heavies = args.min_variable_heavies
     max_variable_heavies = args.max_variable_heavies
     min_variable_ratio = args.min_variable_ratio
@@ -95,32 +86,14 @@ def get_fragment_filter_from_args(parser, args):
 
 if psutil is None:
     def get_memory_use():
-        """
-
-        Returns:
-
-        """
         return 0
 else:
     _process = psutil.Process(os.getpid())
     def get_memory_use():
-        """
-
-        Returns:
-
-        """
         info = _process.memory_info()
         return info.rss #  or info.vms?
 
 def human_memory(n):
-    """
-
-    Args:
-        n:
-
-    Returns:
-
-    """
     if n < 1024:
         return "%d B" % (n,)
     for unit, denom in (("KB", 1024), ("MB", 1024**2),
@@ -140,13 +113,6 @@ def human_memory(n):
 ##     print(2**i+1, human_memory(2**i+1))
     
 def index_command(parser, args):
-    """
-
-    Args:
-        parser:
-        args:
-    """
-    load_fragments=True
     reporter = command_support.get_reporter(args.quiet)
 
     if args.title:

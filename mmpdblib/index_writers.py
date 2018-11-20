@@ -1,5 +1,3 @@
-
-
 # mmpdb - matched molecular pair database generation and analysis
 #
 # Copyright (c) 2015-2017, F. Hoffmann-La Roche Ltd.
@@ -70,179 +68,72 @@ from .fragment_algorithm import get_num_heavies_from_smiles
 nan = float("nan")
 
 class TableIndexWriter(object):
-    """
-    """
     def __init__(self, outfile):
-        """
-
-        Args:
-            outfile:
-        """
         self.outfile = outfile
         self._W = outfile.write
 
     def close(self):
-        """
-
-        """
         self.outfile.close()
         
     def rollback(self):
-        """
-
-        """
         self._W("ROLLBACK")
         self.close()
         
     def commit(self):
-        """
-
-        """
         self._W("COMMIT")
         self.close()
         
     def start(self, fragment_options, index_options):
-        """
-
-        Args:
-            fragment_options:
-            index_options:
-        """
         self._W("VERSION\tmmpa/3\n")
         self._W("FRAGMENT_OPTIONS\t%s\n" % (json.dumps(list(fragment_options.to_dict().items())),))
         self._W("INDEX_OPTIONS\t%s\n" % (json.dumps(list(index_options.to_dict().items())),))
 
     def add_property_name(self, property_name_idx, property_name):
-        """
-
-        Args:
-            property_name_idx:
-            property_name:
-        """
         self._W("PROPNAME\t%d\t%s\n" % (property_name_idx, property_name))
         
     def add_rule_smiles(self, smiles_idx, smiles):
-        """
-
-        Args:
-            smiles_idx:
-            smiles:
-        """
         self._W("RULE_SMILES\t%d\t%s\n" % (smiles_idx, smiles))
 
     def add_rule(self, rule_idx, from_smiles_idx, to_smiles_idx):
-        """
-
-        Args:
-            rule_idx:
-            from_smiles_idx:
-            to_smiles_idx:
-        """
         self._W("RULE\t%d\t%d\t%d\n" % (rule_idx, from_smiles_idx, to_smiles_idx))
 
     def add_environment_fingerprint(self, fp_idx, environment_fingerprint):
-        """
-
-        Args:
-            fp_idx:
-            environment_fingerprint:
-        """
         self._W("FINGERPRINT\t%d\t%s\n" % (fp_idx, environment_fingerprint))
 
     def add_rule_environment(self, rule_env_idx, rule_idx, env_fp_idx, radius):
-        """
-
-        Args:
-            rule_env_idx:
-            rule_idx:
-            env_fp_idx:
-            radius:
-        """
         self._W("RULEENV\t%d\t%d\t%d\t%d\n" % (rule_env_idx, rule_idx, env_fp_idx, radius))
 
     def add_compound(self, compound_idx, compound_id, input_smiles,
                      normalized_smiles, num_normalized_heavies):
-        """
-
-        Args:
-            compound_idx:
-            compound_id:
-            input_smiles:
-            normalized_smiles:
-            num_normalized_heavies:
-        """
         self._W("COMPOUND\t%d\t%s\t%s\t%s\t%d\n" % (
             compound_idx, compound_id, input_smiles,
             normalized_smiles, num_normalized_heavies))
         
     def add_constant_smiles(self, smiles_idx, constant_smiles):
-        """
-
-        Args:
-            smiles_idx:
-            constant_smiles:
-        """
         self._W("CONSTANT_SMILES\t%d\t%s\n" % (smiles_idx, constant_smiles))
 
     def add_rule_environment_pair(self, pair_idx, env_idx, compound1_idx, compound2_idx, constant_idx):
-        """
-
-        Args:
-            pair_idx:
-            env_idx:
-            compound1_idx:
-            compound2_idx:
-            constant_idx:
-        """
         self._W("PAIR%d\t\t%d\t%d\t%d\t%d\n" % (pair_idx, env_idx, compound1_idx, compound2_idx, constant_idx))
 
     def add_compound_property(self, compound_idx, property_name_idx, value):
-        """
 
-        Args:
-            compound_idx:
-            property_name_idx:
-            value:
-        """
         self._W("PROP\t%d\t%d\t%s\n" % (compound_idx, property_name_idx, value))
 
     def add_rule_environment_statistics(self, rule_env_idx, property_name_idx, values):
-        """
-
-        Args:
-            rule_env_idx:
-            property_name_idx:
-            values:
-        """
         self._W("RULEENV_STATS\t%d\t%d\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" %
                     ((rule_env_idx, property_name_idx) + tuple(values)))
 
     def end(self, reporter):
-        """
-
-        Args:
-            reporter:
-        """
         pass
 
 
 
 def open_table_index_writer(outfile):
-    """
-
-    Args:
-        outfile:
-
-    Returns:
-
-    """
     return TableIndexWriter(outfile)
     
         
 
 class BaseSqliteIndexWriter(object):
-    """
-    """
     def __init__(self, db, conn, title):
         self.db = db
         self.conn = conn
@@ -380,7 +271,7 @@ class BaseSqliteIndexWriter(object):
 
 
     def add_rule_environment_pair(self, pair_idx, env_idx, compound1_idx, compound2_idx, constant_idx,pair):
-        print("add_rule_environment_pair", str(pair_idx),str(env_idx), str(compound1_idx), str(compound2_idx),  str(constant_idx))
+        print("add_pair", str(pair_idx),str(env_idx), str(compound1_idx), str(compound2_idx),  str(constant_idx))
         self.conn.execute("INSERT INTO pair (id, rule_environment_id, compound1_id, compound2_id, constant_id) "
                           "  VALUES (?, ?, ?, ?, ?)",
                           (pair_idx, env_idx, compound1_idx, compound2_idx, constant_idx))
@@ -412,7 +303,7 @@ class BaseSqliteIndexWriter(object):
         
     def end(self, reporter):
         reporter.update("Building index ...")
-        #schema.create_index(self.conn)
+        schema.create_index(self.conn)
         
         # Improve SQLite query planning
         reporter.update("Analyzing database ...")
@@ -436,79 +327,42 @@ class BaseSqliteIndexWriter(object):
         self.filePair.close()
 
 class SQLiteIndexWriter(BaseSqliteIndexWriter):
-    """
-    """
     def close(self):
-        """
-
-        """
         self.conn.close()
         self.db.commit()
         self.db.close()
 
     def commit(self):
-        """
-
-        """
         self.conn.close()
         self.db.commit()
         self.db.close()
 
     def rollback(self):
-        """
-
-        """
         self.conn.close()
         self.db.close()
     
 class APSWIndexWriter(BaseSqliteIndexWriter):
-    """
-    """
     def start(self, fragment_options, index_options):
-        """
-
-        Args:
-            fragment_options:
-            index_options:
-        """
         self.conn.execute("BEGIN TRANSACTION")
         super(APSWIndexWriter, self).start(fragment_options, index_options)
     
     def close(self):
-        """
-
-        """
         self.conn.close()
         self.db.execute("COMMIT")
         self.db.close()
 
     def commit(self):
-        """
-
-        """
         self.conn.execute("COMMIT")
         self.conn.close()
         self.db.close()
 
     def rollback(self):
-        """
-
-        """
         #self.conn.execute("ROLLBACK")
         self.conn.close()
         self.db.close()
     
         
 def open_sqlite_index_writer(filename, title):
-    """
-
-    Args:
-        filename:
-        title:
-
-    Returns:
-
-    """
     if filename != ":memory:":
         if os.path.exists(filename):
             os.unlink(filename)
@@ -520,8 +374,7 @@ def open_sqlite_index_writer(filename, title):
         klass = APSWIndexWriter
     
     schema.create_schema_for_sqlite(db)
-
     conn = db.cursor()
-    schema.create_index(conn)
+    #schema.create_index(conn)
     return klass(db, conn, title)
 

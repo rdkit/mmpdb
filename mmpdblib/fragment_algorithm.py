@@ -299,8 +299,13 @@ def replace_wildcard_with_H(smiles):
         return _H_cache[smiles]
     except KeyError:
         pass
-    assert smiles.count("[*]") == 1, smiles
-    smiles_with_H = smiles.replace("[*]", "[H]")
+    if smiles.count("[*]") == 1:
+        smiles_with_H = smiles.replace("[*]", "[H]")
+    elif smiles.count("*") == 1:
+        smiles_with_H = smiles.replace("*", "[H]")
+    else:
+        raise AssertionError("Could not find the '*' atom")
+        
     new_smiles = Chem.CanonSmiles(smiles_with_H)
     if len(_H_cache) > 10000:
         _H_cache.clear()
@@ -728,7 +733,8 @@ def _fragment_mol(mol, fragment_filter, num_heavies=None):
 
 ### fragment on hydrogens
 
-# NOTE: this is hard-coded to match the string used in XXX indexing.py's load_fragment_index
+# NOTE: this is hard-coded to match the string used in
+# index_algorithm.py's load_fragment_index
 _hydrogen_cut_smiles = "[*][H]"
 
 
@@ -737,6 +743,7 @@ _hydrogen_cut_smiles = "[*][H]"
 def get_hydrogen_fragmentations(smiles, num_heavies):
     fragmentations = []
     mol = Chem.MolFromSmiles(smiles)
+    mol = Chem.RemoveHs(mol)
     seen = set()
     for atom in mol.GetAtoms():
         # All hydrogens are equivalent, so only need 1 h-fragment per atoms
@@ -756,12 +763,34 @@ def get_hydrogen_fragmentations(smiles, num_heavies):
                 "0",
                 num_heavies, "1", cut_smiles, smiles)
             fragmentations.append(new_fragmentation)
+
+        elif atom.GetNumExplicitHs() > 0:
+            emol = Chem.EditableMol(mol)
+            # Add the "*", single-bonded to the atom
+            wildcard_atom_idx = emol.AddAtom(Chem.Atom(0))
+            atom_idx = atom.GetIdx()
+            emol.AddBond(atom_idx, wildcard_atom_idx, Chem.BondType.SINGLE)
+            cut_mol = emol.GetMol()
+            cut_mol_atom = cut_mol.GetAtoms()[atom_idx]
+            num_explicit_Hs = cut_mol_atom.GetNumExplicitHs()
+            cut_mol_atom.SetNumExplicitHs(num_explicit_Hs-1)
+            cut_smiles = Chem.MolToSmiles(cut_mol, isomericSmiles=True)
+            if cut_smiles in seen:
+                continue
+            seen.add(cut_smiles)
+            new_fragmentation = Fragmentation(
+                1, EnumerationLabel.NO_ENUMERATION,
+                0, "1", _hydrogen_cut_smiles,
+                "0",
+                num_heavies, "1", cut_smiles, smiles)
+            fragmentations.append(new_fragmentation)
+
     return fragmentations
 
 
 ###
 
-# If there is an explicit '[H]' in the SMILES then fragment only on that.
+# If there is an explicit '[H]' in the SMILES then fragment only on that. (but not on [nH] explicit hydrogens since they are added by the drawer)
 
 _hydrogen_cut_pat = Chem.MolFromSmarts("[!#1]-[0#1v1!+!-]")
 
@@ -782,7 +811,7 @@ def fragment_molecule_on_explicit_hydrogens(smiles):
         left, mid, right = new_smiles.partition(".")
         assert mid == ".", new_smiles
 
-        if left == "[*][H]":
+        if left == "[*][H]":  # Hard-coded
             cut_smiles = right
         elif right == "[*][H]":
             cut_smiles = left
