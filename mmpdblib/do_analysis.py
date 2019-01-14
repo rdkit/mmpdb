@@ -50,8 +50,10 @@ def get_time_delta_formatter(max_dt):
     s = "%.1f" % (max_dt,)
     num_digits = len(s)
     fmt = "%" + str(num_digits) + ".1f"
+
     def format_dt(dt):
         return fmt % (dt,)
+
     return format_dt
 
 ########################
@@ -111,14 +113,14 @@ def transform_command(parser, args):
     try:
         result = transform_tool.transform(
             transform_record.fragments, property_names,
-            min_radius = min_radius,
-            min_pairs = min_pairs,
-            min_variable_size = min_variable_size,
-            max_variable_size = max_variable_size,
-            min_constant_size = min_constant_size,
-            substructure_pat = substructure_pat,
-            pool = pool,
-            explain = explain,
+            min_radius=min_radius,
+            min_pairs=min_pairs,
+            min_variable_size=min_variable_size,
+            max_variable_size=max_variable_size,
+            min_constant_size=min_constant_size,
+            substructure_pat=substructure_pat,
+            pool=pool,
+            explain=explain,
             )
     except analysis_algorithms.EvalError as err:
         sys.stderr.write("ERROR: %s\nExiting.\n" % (err,))
@@ -222,8 +224,7 @@ def predict_command(parser, args):
             print_args.append("(bidirectional)")
     
         print(*print_args)
-        
-    
+
     if args.save_details:
         try:
             property_rules_file = open(args.prefix+"_rules.txt", "w")

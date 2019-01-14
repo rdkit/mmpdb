@@ -1,6 +1,6 @@
 Metadata-Version: 1.1
 Name: mmpdb
-Version: 2.0
+Version: 2.2
 Summary: A package to identify matched molecular pairs and use them to predict property changes
 Home-page: file://README.md
 Author: Andrew Dalke

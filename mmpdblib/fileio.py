@@ -28,13 +28,14 @@ from __future__ import print_function, absolute_import
 
 import sys
 import gzip
-import io
+#import io
 
 from ._compat import basestring, open_universal, io_wrapper
 from ._compat import binary_stdin, binary_stdout
 
 class FileFormatError(ValueError):
     pass
+
 
 class Outfile(object):
     def __init__(self, name, outfile, close):
@@ -68,7 +69,8 @@ def open_input(filename):
     if filename.endswith(".gz"):
         return io_wrapper(gzip.open(filename))
     return open_universal(filename)
-        
+
+
 def open_output(filename, format_hint):
     if format_hint is None:
         if isinstance(filename, basestring):
@@ -220,7 +222,6 @@ class Location(object):
             return cls(destination)
         return cls(getattr(destination, "name", None))
 
-
     def clear_registry(self):
         """Part of the internal API, and subject to change."""
         self._get_recno = None
@@ -366,10 +367,13 @@ def _read_smiles_file(infile, close, first_lineno, delimiter_message,
                       split_delimiter, location):
     lineno = 0
     line = None
+
     def get_recno():
         return lineno + 1
+
     def get_lineno():
         return lineno + first_lineno
+
     def get_record():
         return line
 
@@ -396,8 +400,10 @@ def _read_smiles_file(infile, close, first_lineno, delimiter_message,
         if close is not None:
             close()
 
+
 def _split_whitespace(line):
     return line.split()
+
 
 def _read_whitespace(infile, close, first_lineno, location):
     return _read_smiles_file(
@@ -410,25 +416,30 @@ def _split_tab(line):
         line = line[:-1]
     return line.split("\t")
 
+
 def _read_tab(infile, close, first_lineno, location):
     return _read_smiles_file(
         infile, close, first_lineno,
         "must contain at least two tab-delimited fields", _split_tab, location)
+
 
 def _split_space(line):
     if line[-1:] == "\n":
         line = line[:-1]
     return line.split(" ")
 
+
 def _read_space(infile, close, first_lineno, location):
     return _read_smiles_file(
         infile, close, first_lineno,
         "must contain at least two space-delimited fields", _split_space, location)
 
+
 def _split_comma(line):
     if line[-1:] == "\n":
         line = line[:-1]
     return line.split(",")
+
 
 def _read_comma(infile, close, first_lineno, location):
     return _read_smiles_file(
@@ -440,6 +451,7 @@ def _split_to_eol(line):
     if line[-1:] == "\n":
         line = line[:-1]
     return line.split(None, 1)
+
 
 def _read_to_eol(infile, close, first_lineno, location):
     return _read_smiles_file(
@@ -456,6 +468,7 @@ _delimiter_readers = {
     None: _read_whitespace,
     "native": _read_whitespace,
     }
+
 
 def read_smiles_file(filename, format=None, delimiter="whitespace", has_header=False):
     if format is None:
@@ -506,6 +519,7 @@ def read_smiles_file(filename, format=None, delimiter="whitespace", has_header=F
     
     return SmilesReader(reader, location)
 
+
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description = "fileio test code")
@@ -519,4 +533,3 @@ if __name__ == "__main__":
     with read_smiles_file(args.filename, args.format, args.delimiter, args.has_header) as reader:
         for x in reader:
             print(reader.location.filename, reader.location.lineno, reader.location.recno, x)
-        

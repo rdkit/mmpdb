@@ -32,15 +32,16 @@
 
 from __future__ import absolute_import, print_function, division
 
-from collections import defaultdict, OrderedDict
+from collections import defaultdict
+# from collections import OrderedDict
 from scipy import stats
 import numpy as np
 import re
-import sys
-import os
+# import sys
+# import os
 import itertools
-import json
-import binascii
+# import json
+# import binascii
 import operator
 
 from . import fragment_io
@@ -50,9 +51,13 @@ from . import fragment_algorithm
 from . import index_writers
 from . import _compat
 
+from . import do_fragment            # new
+import rdkit
+from rdkit import Chem
+
 ###
 
-MAX_RADIUS = 5 # maximum allowed environment radius
+#MAX_RADIUS = 5 # maximum allowed environment radius
 
 def _positive_float(value):
     value = float(value)
@@ -60,17 +65,20 @@ def _positive_float(value):
         raise ValueError("must be a positive float")
     return value
 
+
 def _nonnegative_float(value):
     value = float(value)
     if value < 0.0:
         raise ValueError("must be a positive float or zero")
     return value
 
+
 def _nonnegative_int(value):
     value = int(value)
     if not (value >= 0):
         raise ValueError("must be a positive integer or zero")
     return value
+
 
 parse_min_variable_heavies_value = _nonnegative_int
 parse_max_variable_heavies_value = _nonnegative_int
@@ -79,10 +87,12 @@ parse_max_variable_ratio_value = _nonnegative_float
 parse_min_variable_ratio_value = _positive_float
 parse_max_heavies_transf = _nonnegative_int
 
+
 class IndexOptions(object):
     def __init__(self, min_variable_heavies=None, max_variable_heavies=None,
-                     min_variable_ratio=None, max_variable_ratio=None,
-                     symmetric=False, max_heavies_transf=None, max_frac_trans=None):
+                       min_variable_ratio=None, max_variable_ratio=None,
+                       symmetric=False, max_heavies_transf=None, max_frac_trans=None,
+                       smallest_transformation_only=False):
         self.min_variable_heavies = min_variable_heavies
         self.max_variable_heavies = max_variable_heavies
         self.min_variable_ratio = min_variable_ratio
@@ -91,6 +101,7 @@ class IndexOptions(object):
         self.symmetric = symmetric
         self.max_heavies_transf = max_heavies_transf
         self.max_frac_trans = max_frac_trans
+        self.smallest_transformation_only = smallest_transformation_only
     
     def to_dict(self):
         from collections import OrderedDict
@@ -101,7 +112,8 @@ class IndexOptions(object):
             ("max_variable_ratio", self.max_variable_ratio),
             ("symmetric", self.symmetric),
             ("max_heavies_transf", self.max_heavies_transf),
-            ("max_frac_trans", self.max_frac_trans)]
+            ("max_frac_trans", self.max_frac_trans),
+            ("smallest_transformation_only", self.smallest_transformation_only)]
         return OrderedDict([(key, value) for (key, value) in items if value is not None])
 
 ### Filter the fragments coming in
@@ -121,6 +133,7 @@ class MinVariableRatioFilter(object):
     def get_options(self):
         return {"min_variable_ratio": self.ratio}
 
+
 class MaxVariableRatioFilter(object):
     def __init__(self, ratio):
         self.ratio = ratio
@@ -135,6 +148,7 @@ class MaxVariableRatioFilter(object):
     def get_options(self):
         return {"max_variable_ratio": self.ratio}
 
+
 class MinVariableHeaviesFilter(object):
     def __init__(self, min_size):
         self.min_size = min_size
@@ -147,6 +161,7 @@ class MinVariableHeaviesFilter(object):
 
     def get_options(self):
         return {"min_variable_heavies": self.min_size}
+
 
 class MaxVariableHeaviesFilter(object):
     def __init__(self, max_size):
@@ -184,7 +199,8 @@ class MultipleFilters(object):
         for filter in self.filters:
             d.update(filter.get_options())
         return d
-    
+
+
 class _AllowAllFilter(object):
     def allow_fragment(self, num_variable_heavies, num_normalized_heavies):
         return True
@@ -199,8 +215,10 @@ class _AllowAllFilter(object):
 def sym11(p):
     return [(p[0], p[1]), (p[1], p[0])]
 
+
 def sym12(p):
     return [(p[0], p[1])]
+
 
 def sym111(p):
     return [(p[0], p[1], p[2]),
@@ -209,17 +227,26 @@ def sym111(p):
             (p[1], p[2], p[0]),
             (p[2], p[1], p[0]),
             (p[2], p[0], p[1])]
+
+
 def sym112(p):
     return [(p[0], p[1], p[2]),
             (p[1], p[0], p[2])]
+
+
 def sym121(p):
     return [(p[0], p[1], p[2]),
             (p[2], p[1], p[0])]
+
+
 def sym122(p):
     return [(p[0], p[1], p[2]),
             (p[0], p[2], p[1])]
+
+
 def sym123(p):
     return [(p[0], p[1], p[2])]
+
 
 _symm_funcs = {
     "11": sym11,
@@ -232,8 +259,6 @@ _symm_funcs = {
     }
 def _check_sym_funcs():
     seen_results = set()
-    
-
     for name, f in _symm_funcs.items():
         n = len(name)
         query = list(range(4, 4+n))
@@ -245,11 +270,13 @@ def _check_sym_funcs():
         
         seen_terms = set()
         for term in result:
-           assert len(term) == n, (query, term)
-           assert set(term) == set(query), (query, term)
-           assert term not in seen_terms
-           seen_terms.add(term)
-_check_sym_funcs()        
+            assert len(term) == n, (query, term)
+            assert set(term) == set(query), (query, term)
+            assert term not in seen_terms
+            seen_terms.add(term)
+
+_check_sym_funcs()
+
 
 def enumerate_symmetry(possibilities, symmetry_class):
     func = _symm_funcs[symmetry_class]
@@ -260,6 +287,7 @@ def enumerate_symmetry(possibilities, symmetry_class):
             result.append(new_p)
     return result
 
+
 def reorder(possibilities, order):
     result = []
     for p in possibilities:
@@ -268,10 +296,11 @@ def reorder(possibilities, order):
         result.append(new_p)
     return result
 
+
 def _invert_order(order):
     values = list(map(int, order))
     indices = list(range(len(values)))
-    indices.sort(key = lambda i: values[i])
+    indices.sort(key=lambda i: values[i])
     return "".join(str(i) for i in indices)
 
 
@@ -280,6 +309,7 @@ _order_table = dict((s, _invert_order(s))
 
 def invert_order(order):
     return _order_table[order]    
+
 
 def _get_smirks_order(
         symmetry_class1,
@@ -336,6 +366,7 @@ def _get_smirks_order(
     t = "".join(str(i) for i in best_possibility[1])
     return s, t
 
+
 def _init_cansmirks_table():
     # Enumerate all possibilities. Use brute-force to minimize errors.
 
@@ -366,6 +397,7 @@ def _init_cansmirks_table():
                                   attachment_order2] = smirks_order
     #print(len(table), "elements")
     return table
+
 
 # Using the pre-computed table is almost 3x faster, but it's
 # harder to debug failures in smirks canonicalization.
@@ -399,7 +431,9 @@ class RelabelCache(dict):
         self[key] = result
         return result
 
+
 _wildcard_regex = re.compile(re.escape("[*]") + "|" + re.escape("*"))
+
 
 def cansmirks(num_cuts,
               smiles1, symmetry_class1, attachment_order1,
@@ -462,10 +496,10 @@ class FragmentIndex(object):
     def get_input_record(self, id):
         return self._id_to_record[id]
 
-        
 
 class InputRecord(object):
     __slots__ = ("id", "input_smiles", "num_normalized_heavies", "normalized_smiles")
+
     def __init__(self, id, input_smiles, num_normalized_heavies, normalized_smiles):
         self.id = id
         self.input_smiles = input_smiles
@@ -532,12 +566,12 @@ def load_fragment_index(fragment_reader, fragment_filter=None, selected_ids=None
             # same string used in fragment_algorithm.py's _hydrogen_cut_smiles
             matches.append( (other_id, "1", "[*][H]", "0", "N") )
 
-
     return FragmentIndex(dict(index), id_to_record)
 
 
 class MatchedMolecularPair(object):
     __slots__ = ("id1", "id2", "smirks", "constant_smiles", "max_constant_radius")
+
     def __init__(self, id1, id2, smirks, constant_smiles, max_constant_radius):
         self.id1 = id1
         self.id2 = id2
@@ -579,16 +613,19 @@ def get_num_heavies(smiles):
 
 assert 1/2 != 0, "why did you disable future division?"
 
+
 # A different approach to caching
 class _NumHeaviesCache(dict):
     def __missing__(self, smiles):
         n = get_num_heavies(smiles)
         self[smiles] = n
         return n
+
 _num_heavies_cache = _NumHeaviesCache()
 
+
 def get_max_radius_for_fraction_transfer(
-        max_frac_trans, smirks, constant_smiles):
+        max_frac_trans, smirks, constant_smiles, max_radius, environment_cache):
     # Need to figure out the maximum radius to use
 
     # A pair has compounds C1 and C2. There are N1 and N2 atoms in each, respectively.
@@ -643,7 +680,8 @@ def get_max_radius_for_fraction_transfer(
     #    Only a few seconds longer. I think that's good enough.
     
     # If I just cache the center then my test case took 
-    radii = environment_cache.get_or_compute_center_radii(constant_smiles, MAX_RADIUS)
+#    radii = environment_cache.get_or_compute_center_radii(constant_smiles, MAX_RADIUS)
+    radii = environment_cache.get_or_compute_center_radii(constant_smiles, max_radius)
 
     ## print("get_max_radius_for_fraction_transfer()")
     ## print("n", n, "N1", N1, "V1", V1, "N2", N2, "V2", V2)
@@ -661,7 +699,6 @@ def get_max_radius_for_fraction_transfer(
 
     ## print("best", smirks, constant_smiles, best_radius)
     return best_radius
-
 
 
 class EnvironmentCache(object):
@@ -706,11 +743,64 @@ class EnvironmentCache(object):
             self._environment_cache[key] = env_fps
         return env_fps
 
+
+class VariableFragmentsReducer(object):
+    def __init__(self, fragment_filter):
+        self.fragment_filter = fragment_filter
+        self._variable_cache = {}
+        self._attachment_masks = ("Ne", "Ar", "Kr")
+        self._substitution_artefacts = ("*[Ar]", "*[Ne]", "*[Kr]", "[*][Ar]", "[*][Ne]", "[*][Kr]")
+        self._oneAtom_multipleCuts = ('*C([Ne])[Ar]', '*C([Ne])([Ar])[Kr]', '[*]C([Ne])[Ar]', '[*]C([Ne])([Ar])[Kr]')
+
+    def get_or_compute_variable_fragments(self, variable_smiles):
+        variable_smiles = variable_smiles.replace("*:1", "Ne").replace("*:2", "Ar").replace("*:3", "Kr")
+        fragments = self._variable_cache.get(variable_smiles, None)
+        if fragments is None:
+            pieces = do_fragment.make_fragment_record_from_smiles(variable_smiles, self.fragment_filter)
+            # Filter to relevant constant pieces
+            pieces = [fragment for fragment in pieces.fragments
+                      if fragment.num_cuts == 1]         # Only single-cuts indicate reducible fragmentations
+            pieces = [fragment for fragment in pieces
+                      if any(atm in fragment.constant_smiles for atm in self._attachment_masks)]  # Reductions always have to include at least one side, e.g. former attachment atom
+            pieces = [fragment for fragment in pieces
+                      if not any(fragment.constant_smiles == i for i in self._substitution_artefacts)]  # Fragmenting off the attachment atom only is not indicative of reducible transformations
+            pieces = [fragment for fragment in pieces
+                      if not any(fragment.variable_smiles == i for i in self._substitution_artefacts)]  # Same for the variable part
+            pieces = [fragment for fragment in pieces
+                      if not any(fragment.constant_smiles == i for i in self._oneAtom_multipleCuts)]  # If 2 or 3 cuts are on the same atom, chirality gets lost. This may lead to pairs not occuring any more at all for very special cases. Whether or not this should be kept is debatable.
+            pieces_with_H = [fragment.constant_with_H_smiles for fragment in pieces]  # needed to identify H >> X transformations
+            pieces = set([fragment.constant_smiles for fragment in pieces])
+            fragment_canonicalized = Chem.CanonSmiles(variable_smiles)
+            fragments = {'pieces': pieces, 'pieces_with_H': pieces_with_H, 'frag_canon': fragment_canonicalized}
+
+            self._variable_cache[variable_smiles] = fragments
+
+        return fragments
+
+    def transformation_is_reducible(self, smirks):
+        lhs_fragment, rhs_fragment = smirks.split(">>")
+        lhs_fragments = self.get_or_compute_variable_fragments(lhs_fragment)
+        rhs_fragments = self.get_or_compute_variable_fragments(rhs_fragment)
+
+        answer = False
+        # Identify transformations that can be reduced to smaller fragments
+        if len(lhs_fragments['pieces'].intersection(rhs_fragments['pieces'])) > 0:
+            answer = True
+        # Identify transformations that can be reduced to H>>X transformations
+        if lhs_fragments['frag_canon'] in rhs_fragments['pieces_with_H']:
+            answer = True
+        # Identify transformations that can be reduced to H>>X transformations
+        if rhs_fragments['frag_canon'] in lhs_fragments['pieces_with_H']:
+            answer = True
+
+        return answer
     
 
 def find_matched_molecular_pairs(
-        index, index_options=IndexOptions(), 
-        reporter=None):
+        index, fragment_reader, index_options=IndexOptions(), environment_cache=EnvironmentCache(),
+        max_radius=5, reporter=None):
+
+    from rdkit import Chem
 
     symmetric = index_options.symmetric
     max_heavies_transf = index_options.max_heavies_transf
@@ -722,16 +812,21 @@ def find_matched_molecular_pairs(
     relabel_cache = RelabelCache()
     NO_ENUMERATION = fragment_algorithm.EnumerationLabel.NO_ENUMERATION
 
+    fragment_filter = do_fragment.get_fragment_filter(fragment_reader.options)
+    Variable_Reducability_Filter = VariableFragmentsReducer(fragment_filter)
+
     with reporter.progress(
             index.iter_constant_matches(), "Constant fragment matches", len(index)) as it:
         # Go through the upper-diagonal matrix of the NxN matches
         for num_cuts, constant_smiles, constant_symmetry_class, matches in it:
+            # Iterate over pairs
             for offset, (id1, symmetry_class1, smiles1, attachment_order1, enumeration_label1) in enumerate(matches):
                 for (id2, symmetry_class2, smiles2, attachment_order2, enumeration_label2) in matches[offset+1:]:
                     ## print("QQQ")
                     ## print("1:", id1, symmetry_class1, smiles1, attachment_order1, enumeration_label1)
                     ## print("2:", id2, symmetry_class2, smiles2, attachment_order2, enumeration_label2)
                     # Eliminate duplicates based on id or matching variable fragment
+
                     if id1 == id2:
                         continue
 
@@ -812,21 +907,24 @@ def find_matched_molecular_pairs(
                                     print(" !!! FAILED CHI2 !!!", smi, expected_smi)
                                 #raise AssertionError(smi, expected_smi)
                             print("   Good!")
-                            
+
+                        if index_options.smallest_transformation_only:
+                            if Variable_Reducability_Filter.transformation_is_reducible(smirks):
+                                continue
 
                         # Figure out the max radius allowed for environment fingerprints
                         if max_frac_trans is None or max_frac_trans >= 1.0:
-                            max_radius = MAX_RADIUS
+                            pass
                         else:
                             max_radius = get_max_radius_for_fraction_transfer(
-                                max_frac_trans, smirks, tmp_constant_smiles)
+                                max_frac_trans, smirks, tmp_constant_smiles, max_radius, environment_cache)
                             if max_radius is None:
                                 # skip this pair
                                 continue
-                        
+ 
                         yield MatchedMolecularPair(tmp_id1, tmp_id2, smirks, tmp_constant_smiles, max_radius)
 
-###
+
 class BaseWriter(object):
     def __init__(self, backend, fragment_options, fragment_index, index_options, properties):
         self.backend = backend
@@ -881,6 +979,7 @@ class CSVPairWriter(BaseWriter):
     def __exit__(self, type, value, traceback):
         self.backend.close()
 
+
 class RuleSmilesTable(dict):
     def __init__(self, backend):
         self.backend = backend
@@ -890,7 +989,8 @@ class RuleSmilesTable(dict):
         self.backend.add_rule_smiles(idx, smiles)
         self[smiles] = idx
         return idx
-    
+
+
 class ConstantSmilesTable(dict): # XXX Merge with SmilesTable?
     def __init__(self, backend):
         self.backend = backend
@@ -900,7 +1000,8 @@ class ConstantSmilesTable(dict): # XXX Merge with SmilesTable?
         self.backend.add_constant_smiles(idx, smiles)
         self[smiles] = idx
         return idx
-        
+
+
 class RuleTable(dict):
     def __init__(self, rule_smiles_table, backend):
         self.rule_smiles_table = rule_smiles_table
@@ -917,7 +1018,6 @@ class RuleTable(dict):
         self.backend.add_rule(rule_idx, from_smiles_idx, to_smiles_idx)
         self[smirks] = rule_idx
         return rule_idx
-        
         
         
 class RuleEnvironmentTable(dict):
@@ -970,7 +1070,8 @@ class EnvironmentFingerprintTable(dict):
         self.backend.add_environment_fingerprint(idx, env_fp)
         self[env_fp] = idx
         return idx
-    
+
+
 class CompoundTable(dict):
     def __init__(self, fragment_index, property_name_idxs, properties, backend):
         self.fragment_index = fragment_index
@@ -996,6 +1097,7 @@ class CompoundTable(dict):
             
         return compound_idx
 
+
 ## _heap = None    
 class MMPWriter(BaseWriter):
     def start(self):
@@ -1019,7 +1121,6 @@ class MMPWriter(BaseWriter):
 
         self.backend.start(self.fragment_options, self.index_options)
         self.num_pairs = 0
-            
                 
     def end(self, reporter=None):
         reporter = reporters.get_reporter(reporter)
@@ -1029,7 +1130,7 @@ class MMPWriter(BaseWriter):
             for property_i, property_name_idx in enumerate(self.property_name_idxs):
                 property_name = self.properties.property_names[property_i]
                 with reporter.progress(self._rule_environment_table.iter_sorted_rule_environments(),
-                                       "Writing rule statistics for property %s:"  % (property_name,),
+                                       "Writing rule statistics for property %s:" % (property_name,),
                                        len(self._rule_environment_table)) as rule_env_iter:
                     for rule_env in rule_env_iter:
                         value_list = rule_env.property_value_lists[property_i]
@@ -1037,7 +1138,6 @@ class MMPWriter(BaseWriter):
                             add_rule_environment_statistics(
                                 rule_env.idx, property_name_idx,
                                 compute_aggregate_values(value_list))
-
 
         self.backend.end(reporter)
 
@@ -1110,7 +1210,7 @@ def open_mmpa_writer(destination, format, title, fragment_options,
                     (".mmpa", "mmpa"),
                     (".mmpa.gz", "mmpa.gz"),
                     (".mmpdb", "mmpdb"),
-                    (".mmpz", "mmpz"), # XXX REMOVE
+                    (".mmpz", "mmpz"),  # XXX REMOVE
                     ):
                 if s.endswith(suffix):
                     format = format_name
@@ -1150,7 +1250,6 @@ class Compound(object):
         self.compound_id = compound_id
         self.record = record
         self.property_values = property_values
-        
 
 
 # From https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Online_algorithm
@@ -1170,6 +1269,7 @@ def online_variance(values):
         return None
     else:
         return M2 / (n - 1)
+
 
 def online_kurtosis(data):
     n = 0
@@ -1195,6 +1295,7 @@ def online_kurtosis(data):
     kurtosis = (n*M4) / (M2*M2) - 3
     return kurtosis    
 
+
 def get_median(values):
     n = len(values)
     if n == 0:
@@ -1211,6 +1312,7 @@ def get_median(values):
         # 4//2 = 2, which is the index just above the middle
         median = (values[half-1] + values[half]) / 2
     return median
+
 
 # Compute interpolated quartiles according to "Method 3" of
 # https://en.wikipedia.org/wiki/Quartile#Method_3
@@ -1236,6 +1338,7 @@ def compute_quartiles(values):
         q1 = 0.75*values[m] + 0.25 * values[m+1]
         q3 = 0.25*values[3*m+1] + 0.75 * values[3*m+2]
     return q1, median, q3
+
 
 if __debug__:
     for test_data, expected in (
@@ -1263,7 +1366,8 @@ aggregate_value_names = (
     "paired_t",
     "p_value",
     )
-    
+
+
 def compute_aggregate_values(value_list):
     value_list = sorted(value_list)
     
@@ -1303,7 +1407,6 @@ def compute_aggregate_values(value_list):
     else:
         skewness = None
     results.append(skewness)
-    
 
     # "min", "q1", "median", "q3", "max",
     if n > 0:
@@ -1315,7 +1418,6 @@ def compute_aggregate_values(value_list):
     else:
         results.extend((None, None, None, None, None))
 
-    
     # "paired_t",
     if n > 1:
         if std == 0.0:
@@ -1344,8 +1446,8 @@ def compute_aggregate_values(value_list):
         p = None
     results.append(p)
 
-
     return results
+
 
 def test_aggregate_values():
     values = compute_aggregate_values([2., 1., 3., 6.])
@@ -1362,11 +1464,13 @@ def test_aggregate_values():
     assert max_ == 6.0, max_
     assert round(paired_t, 3) == 2.777, paired_t
     assert round(p_value, 3) == 0.069, p_value
+
 test_aggregate_values()
 
 
 class RuleEnvironment(object):
     __slots__ = ("idx", "property_value_lists")
+
     def __init__(self, idx, property_value_lists):
         self.idx = idx
         self.property_value_lists = property_value_lists
@@ -1378,8 +1482,8 @@ class RuleEnvironment(object):
             self.property_value_lists = [[] for _ in property_values1]
             
         for property_list, value1, value2 in zip(self.property_value_lists,
-                                                property_values1,
-                                                property_values2):
+                                                 property_values1,
+                                                 property_values2):
             if value1 is None:
                 continue
             if value2 is None:

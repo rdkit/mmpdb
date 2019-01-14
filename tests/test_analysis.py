@@ -42,11 +42,11 @@ from support import get_filename, create_test_filename
 from rdkit import Chem
 wildcard_atom = Chem.CanonSmiles("*")
 if wildcard_atom == "[*]":
-    TEST_DATA_MMPDB = get_filename("test_data.mmpdb")
+    TEST_DATA_MMPDB = get_filename("test_data_2019.mmpdb")
 elif wildcard_atom == "*":
     # The dataset was generated with:
     #   python -m mmpdblib.commandline index test_data.fragments --properties test_data.csv -o test_data_2018.mmpdb
-    TEST_DATA_MMPDB = get_filename("test_data_2018.mmpdb")
+    TEST_DATA_MMPDB = get_filename("test_data_2019.mmpdb")
 else:
     raise AssertionError(wildcard_atom)
     

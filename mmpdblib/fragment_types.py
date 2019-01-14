@@ -34,6 +34,7 @@
 class FragmentRecord(object):
     __slots__ = ("id", "input_smiles", "num_normalized_heavies", "normalized_smiles", "fragments")
     errmsg = None
+
     def __init__(self, id, input_smiles, num_normalized_heavies, normalized_smiles, fragments):
         self.id = id
         self.input_smiles = input_smiles
@@ -45,7 +46,8 @@ class FragmentRecord(object):
         return "FragmentRecord(%r, %r, %d, %r, %r)" % (
             self.id, self.input_smiles, self.num_normalized_heavies, self.normalized_smiles,
             self.fragments)
-    
+
+
 class FragmentErrorRecord(object):
     __slots__ = ("id", "input_smiles", "errmsg", "fragments")
     num_normalized_heavies = normalized_mol = None
@@ -59,9 +61,11 @@ class FragmentErrorRecord(object):
     def __repr__(self):
         return "FragmentErrorRecord(%r, %r, %r)" % (self.id, self.input_smiles, self.errmsg)
 
+
 class Fragment(object):
     __slots__ = ("num_cuts", "variable_symmetry_class", "num_variable_heavies", "variable_smiles",
                  "num_constant_heavies", "constant_smiles", "constant_with_H_smiles")
+
     def __init__(self, num_cuts,
                  variable_symmetry_class, num_variable_heavies, variable_smiles,
                  num_constant_heavies, constant_smiles, constant_with_H_smiles):
@@ -104,6 +108,7 @@ class FragmentValueError(ValueError):
     def __repr__(self):
         return "FragmentValueError(%r, %r, %r)" % (
             self.name, self.value, self.reason)
+
 
 class FragmentFormatError(ValueError):
     def __init__(self, reason, location):

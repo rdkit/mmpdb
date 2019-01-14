@@ -47,13 +47,14 @@ try:
 except ImportError:
     psutil = None
 
+
 def get_fragment_filter_from_args(parser, args):
     min_variable_heavies = args.min_variable_heavies
     max_variable_heavies = args.max_variable_heavies
     min_variable_ratio = args.min_variable_ratio
     max_variable_ratio = args.max_variable_ratio
 
-    if max_variable_heavies == "none": # Push this into the argument parser?
+    if max_variable_heavies == "none":  # Push this into the argument parser?
         max_variable_heavies = None
 
     if min_variable_ratio is not None and max_variable_ratio is not None:
@@ -63,8 +64,7 @@ def get_fragment_filter_from_args(parser, args):
     if min_variable_heavies is not None and max_variable_heavies is not None:
         if min_variable_heavies > max_variable_heavies:
             parser.error("--min-variable-heavies must not be larger than --max-variable-heavies")
-        
-        
+
     filters = []
     if min_variable_heavies is not None:
         filters.append(index_algorithm.MinVariableHeaviesFilter(min_variable_heavies))
@@ -83,20 +83,23 @@ def get_fragment_filter_from_args(parser, args):
     else:
         return index_algorithm.MultipleFilters(filters)
 
+
 if psutil is None:
     def get_memory_use():
         return 0
 else:
     _process = psutil.Process(os.getpid())
+
     def get_memory_use():
         info = _process.memory_info()
-        return info.rss #  or info.vms?
+        return info.rss  # or info.vms?
+
 
 def human_memory(n):
     if n < 1024:
         return "%d B" % (n,)
     for unit, denom in (("KB", 1024), ("MB", 1024**2),
-                         ("GB", 1024**3), ("PB", 1024**4)):
+                        ("GB", 1024**3), ("PB", 1024**4)):
         f = n/denom
         if f < 10.0:
             return "%.2f %s" % (f, unit)
@@ -110,14 +113,15 @@ def human_memory(n):
 ##     print(2**i-1, human_memory(2**i-1))
 ##     print(2**i, human_memory(2**i))
 ##     print(2**i+1, human_memory(2**i+1))
-    
+
+
 def index_command(parser, args):
     reporter = command_support.get_reporter(args.quiet)
 
     if args.title:
         title = args.title
     else:
-        title="MMPs from %r" % (args.fragment_filename,)
+        title = "MMPs from %r" % (args.fragment_filename,)
 
     fragment_filter = get_fragment_filter_from_args(parser, args)
 
@@ -146,9 +150,8 @@ def index_command(parser, args):
             
         selected_ids = set(properties.get_ids())
     end_properties_memory = get_memory_use()
-    
 
-    if ((args.out is None or args.out == "mmpdb") and args.output is None):
+    if (args.out is None or args.out == "mmpdb") and args.output is None:
         # Use the filename based on the fragments filename
         fragment_filename = args.fragment_filename
         if fragment_filename is None:
@@ -174,27 +177,28 @@ def index_command(parser, args):
 
     index_options = fragment_filter.get_options()
     index_options.update(
-        symmetric = args.symmetric,
-        max_heavies_transf = args.max_heavies_transf,
-        max_frac_trans = args.max_frac_trans,
+        symmetric=args.symmetric,
+        max_heavies_transf=args.max_heavies_transf,
+        max_frac_trans=args.max_frac_trans,
+        smallest_transformation_only=args.smallest_transformation_only
         )
     index_options = index_algorithm.IndexOptions(**index_options)
                            
     start_mmp_memory = get_memory_use()
     environment_cache = index_algorithm.EnvironmentCache()
-    pairs = index_algorithm.find_matched_molecular_pairs(
-        fragment_index, index_options,
-        reporter=reporter)
 
+    pairs = index_algorithm.find_matched_molecular_pairs(
+        fragment_index, fragment_reader, index_options, environment_cache,
+        max_radius=args.max_radius, reporter=reporter)
 
     with index_algorithm.open_mmpa_writer(args.output, format=args.out,
-                                   title=title,
-                                   fragment_options=fragment_reader.options,
-                                   fragment_index=fragment_index,
-                                   index_options=index_options,
-                                   properties=properties,
-                                   environment_cache=environment_cache,
-                                   ) as pair_writer:
+                                          title=title,
+                                          fragment_options=fragment_reader.options,
+                                          fragment_index=fragment_index,
+                                          index_options=index_options,
+                                          properties=properties,
+                                          environment_cache=environment_cache,
+                                          ) as pair_writer:
         pair_writer.start()
         pair_writer.write_matched_molecule_pairs(pairs)
         end_mmp_memory = get_memory_use()

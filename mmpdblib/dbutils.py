@@ -43,7 +43,7 @@ import sys
 try:
     from urlparse import urlparse  # Python 2
 except ImportError:
-    from urllib.parse import urlparse # Python 3
+    from urllib.parse import urlparse  # Python 3
 
 from .playhouse import db_url as playhouse_db_url
 
@@ -55,6 +55,7 @@ def get_default_sqlite_adapter(quiet):
     if _sqlite_adapter is None:
         _sqlite_adapter = _get_default_sqlite_adapter(quiet)
     return _sqlite_adapter
+
 
 def _get_default_sqlite_adapter(quiet):
     try:
@@ -80,8 +81,8 @@ def open_as_schema_database(playhouse_db):
     id, mmpdb_version = values[0]
     if id != 1:
         raise DBError("The dataset has the wrong id")
-    if mmpdb_version != 1:
-        raise DBError("Expecting dataset version 1, not %d" % (mmpdb_version,))
+    if mmpdb_version != 2:
+        raise DBError("Expecting mmpdb version 2, not %d" % (mmpdb_version,))
     
     return schema.MMPDatabase(playhouse_db)
     
@@ -89,10 +90,13 @@ def open_as_schema_database(playhouse_db):
 class DBError(Exception):
     def __init__(self, text):
         self.text = text
+
     def __str__(self):
         return self.text
+
     def __repr__(self):
         return "DBError(%r)" % (self.text,)
+
 
 def _apsw_copy_to_memory(db, quiet):
     try:
@@ -107,7 +111,7 @@ def _apsw_copy_to_memory(db, quiet):
                          % (db.__class__,))
         return db
 
-    disk_conn = db.get_conn() # the low-level APSW connection
+    disk_conn = db.get_conn()  # the low-level APSW connection
     
     memory_db = APSWDatabase(":memory:", **db.connect_kwargs)
     memory_conn = memory_db.get_conn()  # the low-level APSW connection
@@ -137,6 +141,7 @@ class DBInfo(object):
     def open_database(self):
         raise NotImplementedError
 
+
 class DBFile(DBInfo):
     def __repr__(self):
         return "DBFile(%r)" % (self.name,)
@@ -149,7 +154,7 @@ class DBFile(DBInfo):
             raise DBError("File does not exist")
         database_class = playhouse_db_url.schemes[get_default_sqlite_adapter(quiet)]
         try:
-            db = database_class(database = self.name)
+            db = database_class(database=self.name)
         except Exception as err:
             raise DBError(str(err))
         if copy_to_memory:
@@ -172,6 +177,7 @@ class DBUrl(DBInfo):
         if copy_to_memory:
             db = _apsw_copy_to_memory(db)
         return open_as_schema_database(db)
+
 
 def is_valid_dburl(url):
     parsed = urlparse(url)
@@ -226,8 +232,10 @@ def iter_dbinfo(databases, reporter):
             reporter.report("Not a file, directory, or supported database URL: %r"
                             % (database,))
 
+
 def open_database(dburl, copy_to_memory=False, quiet=False):
     return get_dbinfo(dburl).open_database(copy_to_memory=copy_to_memory, quiet=quiet)
+
 
 def open_database_from_args_or_exit(args):
     dburl = args.databases[0]
@@ -240,6 +248,7 @@ def open_database_from_args_or_exit(args):
         sys.stderr.write("Cannot connect to %s: %s\n"
                          % (dbinfo.get_human_name(), err))
         raise SystemExit(1)
+
 
 def open_dataset_from_args_or_exit(args):
     db = open_database_from_args_or_exit(args)

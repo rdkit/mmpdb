@@ -37,7 +37,7 @@ from __future__ import print_function, absolute_import
 import sys
 import json
 import itertools
-import time
+#import time
 
 from . import schema
 from . import command_support
@@ -70,7 +70,7 @@ def list_command(parser, args):
 
     all_fragment_options = []
     all_index_options = []
-    for dbinfo in dbutils.iter_dbinfo(args.databases, reporter):
+    for dbinfo in dbutils.iter_dbinfo(databases, reporter):
         reporter.update("Opening %r ... " % (dbinfo.get_human_name(),))
         database = None
         try:
@@ -124,8 +124,7 @@ def list_command(parser, args):
 
         all_fragment_options.append(dataset.fragment_options_str)
         all_index_options.append(dataset.index_options_str)
-        
-        
+
     fmt = "%-{}s %-{}s %-{}s %-{}s %-{}s %-{}s  %-{}s Properties".format(
         name_width, num_compounds_width, num_rules_width, num_pairs_width,
         num_envs_width, num_stats_width, title_width)
@@ -149,7 +148,7 @@ def list_command(parser, args):
             creation_date_str = creation_date.isoformat(" ")
             print(prefix + "Created:", creation_date_str)
             
-            s = " " # Always have a trailing space
+            s = " "  # Always have a trailing space
             for property_name, count in dataset.get_property_names_and_counts():
                 s += "%s/%s " % (count, property_name)
             if s == " ":
@@ -204,7 +203,7 @@ def reaggregate_properties(dataset, property_name_ids, compound_values_for_prope
             all_pairs, (lambda pair: pair.rule_environment_id)):
 
         seen_rule_environment_ids.add(rule_environment_id)
-        rule_environment_pairs = list(rule_environment_pairs) # now a list, not iterator
+        rule_environment_pairs = list(rule_environment_pairs)  # now a list, not iterator
         
         for property_name_id in property_name_ids:
             deltas = []
@@ -256,7 +255,6 @@ def reaggregate_properties(dataset, property_name_ids, compound_values_for_prope
 
     reporter.report("Number of rule statistics added: %d updated: %d deleted: %d"
                     % (num_added, num_updated, num_deleted))
-            
         
         
 # mmpdb loadprops <filename> -p <properties_filename>
@@ -365,14 +363,13 @@ def loadprops_command(parser, args):
         # Remove existing compound properties where the property name was in the
         # properties file but the where the file did not specify a value.
         properties_to_delete = [key for key, was_updated in seen_properties.items()
-                                      if not was_updated and key[1] in property_name_ids]
+                                if not was_updated and key[1] in property_name_ids]
         if properties_to_delete:
             dataset.delete_compound_properties(properties_to_delete)
         
         reaggregate_properties(dataset, property_name_ids, compound_values_for_property_name_id,
                                cursor=c, reporter=reporter)
 
-        
         # Check if any of the properties are completely gone
         if properties_to_delete:
             for property_name_id in property_name_ids:
@@ -380,12 +377,10 @@ def loadprops_command(parser, args):
                 if n == 0:
                     dataset.delete_property_name_id(property_name_id, cursor=c)
 
-        
         # Update the environment statistics
         reporter.update("Updating environment statistics count ...")
         num = schema._get_one(c.execute("SELECT count(*) from rule_environment_statistics"))
         c.execute("UPDATE dataset SET num_rule_environment_stats=?", (num,))
-        
         
         reporter.update("Commiting changed ...")
                 
@@ -410,7 +405,7 @@ def reaggregate_command(parser, args):
         # Get their values
         compound_values_for_property_name_id = dict(
             (property_name_id, dataset.get_property_values(property_name_id))
-                   for property_name_id in property_name_ids)
+             for property_name_id in property_name_ids)
 
         # Reaggregate
         reaggregate_properties(dataset, property_name_ids, compound_values_for_property_name_id,
@@ -447,13 +442,11 @@ def propcat_command(parser, args):
 
     property_names = command_support.get_property_names_or_error(parser, args, dataset)
 
-    property_name_ids = []
     property_values_list = []
     for property_name in property_names:
         property_name_id = dataset.get_property_name_id(property_name)
         property_values_list.append(dataset.get_property_values(property_name_id))
 
-        
     output_filename = args.output
     with fileio.open_output(output_filename, output_filename) as outfile:
         print("ID", *property_names, sep="\t", file=outfile)

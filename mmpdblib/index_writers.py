@@ -67,6 +67,7 @@ from .fragment_algorithm import get_num_heavies_from_smiles
 
 nan = float("nan")
 
+
 class TableIndexWriter(object):
     def __init__(self, outfile):
         self.outfile = outfile
@@ -126,11 +127,9 @@ class TableIndexWriter(object):
         pass
 
 
-
 def open_table_index_writer(outfile):
     return TableIndexWriter(outfile)
-    
-        
+
 
 class BaseSqliteIndexWriter(object):
     def __init__(self, db, conn, title):
@@ -145,7 +144,7 @@ class BaseSqliteIndexWriter(object):
     
         self.conn.execute("INSERT INTO dataset (id, mmpdb_version, title, creation_date, "
                           "    fragment_options, index_options, is_symmetric) "
-                          "    VALUES (1, 1, ?, ?, ?, ?, ?)",
+                          "    VALUES (1, 2, ?, ?, ?, ?, ?)",
                         (self.title, creation_date, fragment_options_str,
                          index_options_str, index_options.symmetric))
 
@@ -231,6 +230,7 @@ class BaseSqliteIndexWriter(object):
         
         reporter.update("")
 
+
 class SQLiteIndexWriter(BaseSqliteIndexWriter):
     def close(self):
         self.conn.close()
@@ -245,7 +245,8 @@ class SQLiteIndexWriter(BaseSqliteIndexWriter):
     def rollback(self):
         self.conn.close()
         self.db.close()
-    
+
+
 class APSWIndexWriter(BaseSqliteIndexWriter):
     def start(self, fragment_options, index_options):
         self.conn.execute("BEGIN TRANSACTION")

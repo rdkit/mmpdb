@@ -60,9 +60,8 @@ class TestIndexCommandline(unittest.TestCase):
     def test_default_filters(self):
         dataset, options = self._get_options()
         self.assertEqual(options,
-                         {u'max_variable_heavies': 10,
-                          u'smallest_transformation_only': False,
-                          u'symmetric': False})
+                         {u'symmetric': False,
+                          u'max_variable_heavies': 10})
         self.assertEqual(dataset.get_num_rules(), 47)
         self.assertEqual(dataset.get_num_pairs(), 342)
         self.assertEqual(dataset.get_property_names(), [])
@@ -83,8 +82,7 @@ class TestIndexCommandline(unittest.TestCase):
             u'max_variable_heavies': 29,
             u'max_variable_ratio': 0.99,
             u'min_variable_heavies': 1,
-            u'min_variable_ratio': 0.1,
-            u'smallest_transformation_only': False})
+            u'min_variable_ratio': 0.1})
         self.assertEqual(dataset.get_num_rules(), 2*47) # because --symmetric
         self.assertEqual(dataset.get_num_pairs(), 2*342) 
         self.assertEqual(dataset.get_property_names(), [])
@@ -93,7 +91,6 @@ class TestIndexCommandline(unittest.TestCase):
         dataset, options = self._get_options("--max-variable-heavies", "none")
         self.assertEqual(options, {
             u'symmetric': False,
-            u'smallest_transformation_only': False,
             })
         
     def test_with_properties(self):

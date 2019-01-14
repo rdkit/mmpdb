@@ -30,6 +30,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+
 class Properties(object):
     def __init__(self, id_header, id_column, property_names, property_columns,
                  property_table):
@@ -49,6 +50,7 @@ class Properties(object):
         for name, column in zip(self.property_names, self.property_columns):
             yield name, column
 
+
 # If a line contains a tab then it's tab-delimited.  Otherwise it's
 # whitespace delimited.  (Originally it was whitespace delimited. Then
 # I decided to support identifiers which contained a space in
@@ -57,7 +59,8 @@ def _split(line):
     if "\t" in line:
         return line.rstrip("\n").split("\t")
     return line.split()
-            
+
+
 def load_properties(properties_file, reporter):
     try:
         header_line = next(properties_file)

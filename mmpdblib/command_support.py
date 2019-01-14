@@ -35,7 +35,8 @@ from __future__ import print_function
 import sys
 
 from . import reporters
-from . import fileio
+#from . import fileio
+
 
 def get_reporter(is_quiet):
     if is_quiet:
@@ -43,12 +44,15 @@ def get_reporter(is_quiet):
     else:
         return reporters.get_reporter("verbose")
 
+
 def explain(msg, *args):
     full_msg = (msg % args) + "\n"
     sys.stderr.write(full_msg)
 
+
 def no_explain(msg, *args):
     pass
+
 
 def get_explain(use_explain, reporter=None):
     if use_explain:
@@ -88,11 +92,10 @@ def get_property_names_or_error(parser, args, dataset):
                          % (name,))
         property_names.append(name)
     return property_names
-        
 
 
 def get_property_name_or_error(parser, args, db, dataset):
-    assert args.property is not None # the --property must be 'required'
+    assert args.property is not None  # the --property must be 'required'
     property_name = dataset.get_property_name_with_name(args.property)
     if property_name is not None:
         return property_name
