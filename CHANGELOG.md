@@ -33,7 +33,7 @@
   because the single cut transfers too many atoms. If you use this option, you 
   may want to adjust the --max-variable-heavies option during indexing.
 
-  The last '--smalles-transformation-only' and '--min-heavies-per-const 3' 
+  The last '--smallest-transformation-only' and '--min-heavies-per-const 3' 
   options together typically reduce the database size by ~ 70%.
 
 
