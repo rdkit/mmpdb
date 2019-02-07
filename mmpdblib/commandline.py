@@ -44,17 +44,21 @@ from . import do_help
 
 from .config import nonnegative_int, cutoff_list
 
+
 def add_single_dataset_arguments(parser):
     parser.add_argument("databases", nargs=1, metavar="DATABASE",
                         help="location of the database (eg, 'csd.mmpdb')")
-    
+
+
 def add_multiple_dataset_arguments(parser):
     parser.add_argument("databases", nargs="*", metavar="DATABASE",
                         help="zero or more database locations (eg, 'csd.mmpdb')")
 
+
 def add_single_property_arguments(parser):
     parser.add_argument("--property", "-p", metavar="NAME", required=True,
                         help="property to use")
+
 
 def add_multiple_properties_default_all(parser):
     parser.add_argument("--property", "-p", metavar="NAME", action="append",
@@ -63,9 +67,10 @@ def add_multiple_properties_default_all(parser):
                         help="don't use any properties")
     parser.set_defaults(all_properties=False)
 
+
 def add_in_memory(parser):
     p.add_argument("--in-memory", action="store_true",
-                    help="load the SQLite database into memory before use (requires APSW)")
+                   help="load the SQLite database into memory before use (requires APSW)")
 
 ####
 
@@ -118,9 +123,10 @@ p = fragment_parser = subparsers.add_parser(
 Fragment molecules in a SMILES file by breaking on 'cut bonds',
 as matched by --cut-smarts. Cut up to --num-cuts bonds. Don't
 fragment molecules with more than --max-rotatable-bonds bonds or
---max-heavies heavy atoms.
+--max-heavies heavy atoms. Don't create multiple cuts if the fragments
+in the constant part have less than --min-heavies-per-const-frag atoms. 
 
-The input structures comes from a SMILES file. By default the fields
+The input structures come from a SMILES file. By default the fields
 are whitespace delimited, where the first column contains the SMILES
 and the second contains the identifier. Use --delimiter to change
 the delimiter type, and --has-header to skip the first line. See
@@ -167,7 +173,6 @@ computing the fragments from scratch each time. Save the results to
 )
 
 
-
 def fragment_command(parser, args):
     from . import do_fragment
     do_fragment.fragment_command(parser, args)
@@ -178,7 +183,6 @@ p.add_argument("--cache", metavar="SOURCE",
                help="get fragment parameters and previous fragment information from SOURCE")
 p.add_argument("--num-jobs", "-j", metavar="N", type=config.positive_int, default=4,
                help="number of jobs to process in parallel (default: 4)")
-
 p.add_argument("-i", "--in", metavar="FORMAT", dest="format",
                choices=("smi", "smi.gz"),
                help="input structuture format (one of 'smi', 'smi.gz')")
@@ -214,6 +218,7 @@ fragment and how they are connected.
 """ + smarts_aliases.get_epilog("--cut-smarts", smarts_aliases.cut_smarts_aliases)
 )
 
+
 def smifrag_command(parser, args):
     from . import do_fragment
     do_fragment.smifrag_command(parser, args)
@@ -242,7 +247,7 @@ transformation V1>>V2. The following uses |X| to mean the number of
 heavy (non-isotopic hydrogen) atoms in X.
 
 There are several ways to restrict which fragmentations or pairings
-will to allow. The --min-variable-heavies and --max-variable-heavies
+to allow. The --min-variable-heavies and --max-variable-heavies
 options set limits to |V1| and |V2|. The --min-variable-ratio and
 --max-variable-ratio set limits on |V1|/|V1+C| and |V2|/|V2+C|. The
 --max-heavies-transf option sets a maximum bound on abs(|V1|-|V2|).
@@ -253,6 +258,14 @@ the number of atoms in the circular environment of the constant part
 for a given radius r. C(0) is 0. The goal is to be able to exchange
 transforms and environment fingerprints but minimize the relative
 amount of information revealed about the constant part.
+
+The --max-radius option's default is set to 5 and can be changed to 
+numbers less than 5, if you want to save DB space.
+
+By default, mmpdb indexes all transformations per pair. To only index one
+minimal transformation per pair, use "--smallest-transformation-only". Note
+that this option is independent of --max-radius, e.g. environment fingerprints
+will still be created for the smallest transformation.  
 
 The filter --max-variable-heavies is always used, with a default value
 of 10. Specify "none" if you want no limit.
@@ -323,6 +336,7 @@ entire structure, and save the transformation in both A>>B and B>>A
       --title "CHEMBL ratio 40%" --output CHEMBL_ratio_40.mmpdb
 """)
 
+
 def index_command(parser, args):
     from . import do_index
     do_index.index_command(parser, args)
@@ -331,6 +345,8 @@ config.add_index_options(p)
 p.add_argument("--symmetric", "-s", action="store_true",
                help="Output symmetrically equivalent MMPs, i.e output both cmpd1,cmpd2, "
                       "SMIRKS:A>>B and cmpd2,cmpd1, SMIRKS:B>>A")
+p.add_argument("--smallest-transformation-only", action="store_true",
+               help="Ignore all transformations that can be reduced to smaller fragments")
 p.add_argument("--properties", metavar="FILENAME",
                help="File containing the identifiers to use and optional physical properties")
 p.add_argument("--output", "-o", metavar="FILENAME",
@@ -419,6 +435,7 @@ from the database contents.
 
 """)
 
+
 def list_command(parser, args):
     from . import do_database
     do_database.list_command(parser, args)
@@ -433,8 +450,6 @@ p.add_argument("--recount", action="store_true",
 add_multiple_dataset_arguments(p)
 p.set_defaults(command=list_command,
                subparser=p)
-
-
 
 
 #### mmpdb loadprops
@@ -670,7 +685,6 @@ normal cutoffs. The --score here matches the default scoring function.
       --score '((ninf if std is None else -std), radius, from_num_heavies, from_smiles)' \\
       --property MP
 
-
 """)
 
 def transform_command(parser, args):
@@ -682,6 +696,8 @@ p.add_argument("--smiles", "-s", required=True,
                help="the base structure to transform")
 p.add_argument("--min-variable-size", type=nonnegative_int, metavar="N", default=0,
                help="require at least N atoms in the variable fragment (default: 0)")
+p.add_argument("--max-variable-size", type=nonnegative_int, metavar="N", default=9999,
+               help="allow at most N atoms in the variable fragment (default: 9999)")
 p.add_argument("--min-constant-size", type=nonnegative_int, metavar="N", default=0,
                help="require at least N atoms in the constant fragment (default: 0)")
 p.add_argument("--min-radius", "-r", choices=("0", "1", "2", "3", "4", "5"), default="0",
@@ -704,7 +720,7 @@ p.add_argument("--times", action="store_true",
 p.set_defaults(command=transform_command,
                subparser=p)
 
-    
+
 #### mmpdb predict
 
 p = predict_parser = subparsers.add_parser(
@@ -787,6 +803,7 @@ to O_to_S_rules.txt and O_to_S_pairs.txt:
 # tool will be the reference structure, the prediction structure, and
 # the properties to predict. There will also be an option to report
 # pairs with the same transformations and their properties.
+
 
 def predict_command(parser, args):
     from . import do_analysis
@@ -956,8 +973,6 @@ def create_index_command(parser, args):
 add_single_dataset_arguments(p)
 p.set_defaults(command=create_index_command,
                subparser=p)
-
-
 
 ##### Help
 

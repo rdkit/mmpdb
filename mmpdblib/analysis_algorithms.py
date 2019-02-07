@@ -34,6 +34,7 @@ from __future__ import print_function, absolute_import
 
 from collections import defaultdict
 import re
+import copy
 
 from rdkit import Chem
 
@@ -49,8 +50,10 @@ from . import _compat
 
 ####
 
+
 class EvalError(Exception):
     pass
+
 
 ## Some helper object which are always ranked at the top or the bottom
 class SmallestScore(object):
@@ -58,41 +61,60 @@ class SmallestScore(object):
         if isinstance(other, SmallestScore):
             return False
         return True
+
     def __gt__(self, other):
         return False
+
     def __eq__(self, other):
         return isinstance(other, SmallestScore)
+
+
 _smallest_score = SmallestScore()
+
 
 class NInfinity(object):
     def __lt__(self, other):
         if isinstance(other, NInfinity):
             return False
         return True
+
     def __gt__(self, other):
         return False
+
     def __eq__(self, other):
         return isinstance(other, NInfinity)
+
     def __neg__(self):
         return infinity
+
     def __pos__(self):
         return self
+
+
 ninfinity = NInfinity()  # represent negative infinity score
+
 
 class Infinity(object):
     def __lt__(self, other):
         return False
+
     def __gt__(self, other):
         if isinstance(other, Infinity):
             return False
         return True
+
     def __eq__(self, other):
         return isinstance(other, Infinity)
+
     def __neg__(self):
         return ninfinity
+
     def __pos__(self):
         return self
+
+
 infinity = Infinity()  # represent positive infinity score
+
 
 ##
 
@@ -141,11 +163,12 @@ def get_where_function(where_expr=None):
     
     return where_function
 
+
 def default_score_function(property_rule):
     
     # Break ties on the minimum standard deviation
     std = property_rule.std
-    if std is None: # only one element, so effectively infinite stddev
+    if std is None:  # only one element, so effectively infinite stddev
         std = ninfinity
     else:
         std = -std  # smallest std is best, so invert
@@ -198,6 +221,7 @@ def get_score_function(score_expr=None):
 
     return score_function
 
+
 class ComputeRuleKey(object):
     def __init__(self, score_function, cutoffs):
         self.score_function = score_function
@@ -248,7 +272,6 @@ class RuleSelectionFunction(object):
         _explain_choice(property_rule, property_rules, explain)
         
         return property_rule
-        
 
     def apply_where_function(self, property_rules, explain):
         new_list = []
@@ -271,7 +294,7 @@ class RuleSelectionFunction(object):
     def select_max_rule(self, property_rules, explain):
         # Select the best option
         property_rules = sorted(property_rules,
-                                          key=self.rule_key_function, reverse=True)
+                                key=self.rule_key_function, reverse=True)
         property_rule = property_rules[0]
 
         # Make sure it's actually usable. Otherwise it could be that
@@ -284,6 +307,7 @@ class RuleSelectionFunction(object):
         # No rules meet any of the cutoffs. Ignore.
         explain("    No rule environment statistics meets the minimum cutoff")
         return None
+
 
 def _explain_choice(property_rule, property_rules, explain):
     if len(property_rules) == 1:
@@ -311,6 +335,7 @@ def get_rule_selection_function(where_expr, score_expr, cutoffs):
     # wrap it together into a selection function
     return RuleSelectionFunction(where_function, rule_key_function)
 
+
 def get_rule_selection_function_from_args(parser, args):
     try:
         where_function = get_where_function(args.where)
@@ -333,11 +358,6 @@ default_rule_selection_function = get_rule_selection_function(
     cutoffs=DEFAULT_RULE_SELECTION_OPTIONS.cutoff_list)
 
 
-
-        
-
-
-
 ###### Predict
 
 def _get_tool(klass, dataset, rule_selection_function):
@@ -346,12 +366,13 @@ def _get_tool(klass, dataset, rule_selection_function):
     fragment_options = dataset.get_fragment_options(cursor)
     fragment_filter = do_fragment.get_fragment_filter(fragment_options)
     return klass(
-        dataset = dataset,
-        property_name_to_id = property_name_to_id,
-        fragment_options = fragment_options,
-        fragment_filter = fragment_filter,
-        rule_selection_function = rule_selection_function,
+        dataset=dataset,
+        property_name_to_id=property_name_to_id,
+        fragment_options=fragment_options,
+        fragment_filter=fragment_filter,
+        rule_selection_function=rule_selection_function,
         )
+
 
 class Tool(object):
     def __init__(self,
@@ -372,7 +393,7 @@ class Tool(object):
     
 def get_predict_tool(
         dataset,
-        rule_selection_function = default_rule_selection_function
+        rule_selection_function=default_rule_selection_function
         ):
     return _get_tool(PredictTool, dataset, rule_selection_function)
 
@@ -417,13 +438,14 @@ class PredictTool(Tool):
             property_name, property_name_id,
             rule_selection_function=self.rule_selection_function,
             relabel_cache=relabel_cache, cursor=cursor, explain=explain)
-    
-#####
 
+
+#####
 # Get the attachment numbers from a SMILES string.
 # For example: "C[*:1]N([*:3])P[*:2]" returns "132".
 # XXX or should this return inverse?
-_attachment_pattern = re.compile(":([123])")  
+
+_attachment_pattern = re.compile(":([123])")
 def get_attachment_order(smiles):
     order = "".join(_attachment_pattern.findall(smiles))
     return order
@@ -468,7 +490,6 @@ def make_prediction(
     # Which constants are common to both --reference and --smiles?
     common_constants = set(constant_to_reference_fragments) & set(constant_to_smiles_fragments)
 
-        
     # Figure out which rules to consider for each constant
     unique_property_rules = {}
     for constant_smiles in common_constants:
@@ -524,7 +545,7 @@ def make_prediction(
                 
                 # Select only those with the right environment fingerprints.
                 property_rules = [rule for rule in property_rules
-                                    if rule.fingerprint_id in allowed_fingerprint_ids]
+                                        if rule.fingerprint_id in allowed_fingerprint_ids]
                     
                 if using_explain:
                     # Give a more in-depth description of the selected rules.
@@ -540,7 +561,7 @@ def make_prediction(
                 # De-duplicate the rules. This can happen if the same rule can be
                 # used multiple times in a structure.
                 for rule in property_rules:
-                    unique_property_rules[ (rule.rule_environment_id, rule.is_reversed) ] = rule
+                    unique_property_rules[(rule.rule_environment_id, rule.is_reversed)] = rule
 
     # Get all of the unique environments (includes all of the radii)
     property_rules = list(unique_property_rules.values())
@@ -548,7 +569,7 @@ def make_prediction(
     # Sort them so output is human-understandable
     def get_sort_key(rule):
         return (rule.rule_id, rule.radius, -rule.from_num_heavies)
-    property_rules.sort(key = get_sort_key)
+    property_rules.sort(key=get_sort_key)
 
     # Figure out which ones are used in both directions
     directions = defaultdict(set)
@@ -569,6 +590,7 @@ def _get_column_names(field_names, column_aliases):
     if not column_aliases:
         return field_names
     return [column_aliases.get(field_name, field_name) for field_name in field_names]
+
 
 _global_column_formatters = {
     "rule_id": "%d",
@@ -601,6 +623,7 @@ _global_column_formatters = {
     "delta": "%.5g",
     }
 
+
 def _format_object_attributes(obj, field_names, missing_value, formatters):
     value_strs = []
     for field_name in field_names:
@@ -613,9 +636,11 @@ def _format_object_attributes(obj, field_names, missing_value, formatters):
         value_strs.append(value_str)
     return value_strs
 
+
 def _format_object_attributes_to_string(obj, field_name, missing_value, formatters):
     return "\t".join(_format_object_attributes(
         obj, field_name, missing_value, formatters))
+
 
 # Store the results of the transform prediction, and provide ways to get/save the data.
 class PredictResult(object):
@@ -633,10 +658,10 @@ class PredictResult(object):
     column_formatters = _global_column_formatters.copy()
     
     def __init__(self, dataset, property_rule, property_rules,
-                     property_name, property_name_id):
+                       property_name, property_name_id):
         self.dataset = dataset
         self.property_rule = property_rule  # the selected rule
-        self.property_rules = property_rules # all of the rules
+        self.property_rules = property_rules  # all of the rules
         self.property_name = property_name
         self.property_name_id = property_name_id
 
@@ -681,7 +706,7 @@ class PredictResult(object):
             
     def format_property_rule_pair(self, rule_pair, field_names):
         if field_names is None:
-            field_names = PredictResult.pair_field_names
+            field_names = PredictResult.property_rule_pair_field_names
         return _format_object_attributes_to_string(
             rule_pair, field_names, self.missing_value, self.column_formatters)
             
@@ -720,11 +745,12 @@ def test_predict():
     predict_results.write_property_rules(sys.stdout)
     predict_results.write_property_rule_pairs(sys.stdout)
 
+
 ###### Transform
 
 def get_transform_tool(
         dataset,
-        rule_selection_function = default_rule_selection_function
+        rule_selection_function=default_rule_selection_function
         ):
     return _get_tool(TransformTool, dataset, rule_selection_function)
     
@@ -740,7 +766,7 @@ class TransformTool(Tool):
         return record
     
     def transform(self, transform_fragments, property_names,
-                  min_radius=0, min_pairs=0, min_variable_size=0, min_constant_size=0,
+                  min_radius=0, min_pairs=0, min_variable_size=0, max_variable_size=9999, min_constant_size=0,
                   substructure_pat=None,
                   pool=None,
                   explain=None):
@@ -759,9 +785,83 @@ class TransformTool(Tool):
                 rule_selection_function=self.rule_selection_function,
                 substructure_pat=substructure_pat,
                 min_radius=min_radius, min_pairs=min_pairs,
-                min_variable_size=min_variable_size, min_constant_size=min_constant_size,
+                min_variable_size=min_variable_size, max_variable_size=max_variable_size,
+                min_constant_size=min_constant_size,
                 pool=pool,
                 cursor=cursor, explain=explain)
+
+    def expand_variable_symmetry(self, transform_record):
+        # Expand fragmentations of transform where the variable part is symmetric
+        symmetry_fragments = []
+        for fragment in transform_record.fragments:
+            if fragment.num_cuts == 1: 
+                continue         # No symmetry here
+            elif fragment.num_cuts == 2 and fragment.variable_symmetry_class == "11":
+                if fragment.constant_symmetry_class == "11":
+                    continue     # Both variable and constant are symmetric
+                new_fragment = copy.copy(fragment)
+                frag1, frag2 = new_fragment.constant_smiles.split(".")
+                new_fragment.constant_smiles = frag2 + "." + frag1
+                symmetry_fragments.append(new_fragment)
+        
+            elif fragment.num_cuts == 3 and fragment.variable_symmetry_class == '111':
+                new_fragment = copy.copy(fragment)
+                frag1, frag2, frag3 = new_fragment.constant_smiles.split(".")
+                new_fragment.constant_smiles = frag1 + "." + frag3 + "." + frag2
+                symmetry_fragments.append(new_fragment)
+                new_fragment = copy.copy(fragment)
+                new_fragment.constant_smiles = frag2 + "." + frag1 + "." + frag3
+                symmetry_fragments.append(new_fragment)
+                new_fragment = copy.copy(fragment)
+                new_fragment.constant_smiles = frag2 + "." + frag3 + "." + frag1
+                symmetry_fragments.append(new_fragment)
+                new_fragment = copy.copy(fragment)
+                new_fragment.constant_smiles = frag3 + "." + frag1 + "." + frag2
+                symmetry_fragments.append(new_fragment)
+                new_fragment = copy.copy(fragment)
+                new_fragment.constant_smiles = frag3 + "." + frag2 + "." + frag1
+                symmetry_fragments.append(new_fragment)
+
+            elif fragment.num_cuts == 3 and fragment.variable_symmetry_class == '112':
+                change_idx1, change_idx2 = int(fragment.attachment_order[0]), int(fragment.attachment_order[1])
+                keep_idx = int(fragment.attachment_order[2])
+                new_fragment = copy.copy(fragment)
+                frags = new_fragment.constant_smiles.split(".")
+                new_frags = ['', '', '']
+                new_frags[keep_idx] = frags[keep_idx]
+                new_frags[change_idx1] = frags[change_idx2]
+                new_frags[change_idx2] = frags[change_idx1]
+                new_fragment.constant_smiles = new_frags[0] + "." + new_frags[1] + "." + new_frags[2]
+                symmetry_fragments.append(new_fragment)
+
+            elif fragment.num_cuts == 3 and fragment.variable_symmetry_class == '121':
+                change_idx1, change_idx2 = int(fragment.attachment_order[0]), int(fragment.attachment_order[2])
+                keep_idx = int(fragment.attachment_order[1])
+                new_fragment = copy.copy(fragment)
+                frags = new_fragment.constant_smiles.split(".")
+                new_frags = ['', '', '']
+                new_frags[keep_idx] = frags[keep_idx]
+                new_frags[change_idx1] = frags[change_idx2]
+                new_frags[change_idx2] = frags[change_idx1]
+                new_fragment.constant_smiles = new_frags[0] + "." + new_frags[1] + "." + new_frags[2]
+                symmetry_fragments.append(new_fragment)
+
+            elif fragment.num_cuts == 3 and fragment.variable_symmetry_class == '122':
+                change_idx1, change_idx2 = int(fragment.attachment_order[1]), int(fragment.attachment_order[2])
+                keep_idx = int(fragment.attachment_order[0])
+                new_fragment = copy.copy(fragment)
+                frags = new_fragment.constant_smiles.split(".")
+                new_frags = ['', '', '']
+                new_frags[keep_idx] = frags[keep_idx]
+                new_frags[change_idx1] = frags[change_idx2]
+                new_frags[change_idx2] = frags[change_idx1]
+                new_fragment.constant_smiles = new_frags[0] + "." + new_frags[1] + "." + new_frags[2]
+                symmetry_fragments.append(new_fragment)
+
+        for frag in symmetry_fragments:
+            transform_record.fragments.append(frag)
+
+        return transform_record
 
 
 # Enumerate all of the ways that the canonical unlabeled SMILES
@@ -769,7 +869,6 @@ class TransformTool(Tool):
 
 _bracket_wildcard_pat = re.compile(re.escape("[*]"))
 _organic_wildcard_pat = re.compile(re.escape("*"))
-
 def enumerate_permutations(dataset, smiles):
     # RDKit pre-2018 used "[*]"; this changed to using a bare "*".
     if "[*]" in smiles:
@@ -819,6 +918,7 @@ def enumerate_permutations(dataset, smiles):
     raise AssertionError(smiles)
 
 # The LHS only has "*", the RHS has "*:1", "*:2", ...
+
 
 _weld_cache = {}
 def weld_fragments(frag1, frag2):
@@ -875,6 +975,7 @@ def make_transform(
         rule_selection_function,
         substructure_pat=None,
         min_radius=0, min_pairs=0, min_variable_size=0, min_constant_size=0,
+        max_variable_size=9999,
         pool=None,
         cursor=None, explain=None):
     if explain is None:
@@ -906,13 +1007,19 @@ def make_transform(
         explain("Processing fragment %r", frag)
 
         # Check if the fragmentation is allowed
-        if min_variable_size and frag.num_variable_heavies < min_variable_size:
-            explain("  The %d heavy atoms of constant %r is below the --min-constant-size of %d. Skipping fragment.",
-                    frag.num_variable_heavies, frag.variable_smiles, min_variable_size)
+        if min_variable_size and frag.variable_num_heavies < min_variable_size:
+            explain("  The %d heavy atoms of variable %r is below the --min-variable-size of %d. Skipping fragment.",
+                    frag.variable_num_heavies, frag.variable_smiles, min_variable_size)
             continue
-        if min_constant_size and frag.num_constant_heavies < min_constant_size:
+
+        if frag.variable_num_heavies > max_variable_size:
+            explain("  The %d heavy atoms of variable %r is above the --max-variable-size of %d. Skipping fragment.",
+                    frag.variable_num_heavies, frag.variable_smiles, max_variable_size)
+            continue
+        
+        if min_constant_size and frag.constant_num_heavies < min_constant_size:
             explain("  The %d heavy atoms of constant %r is below the --min-constant-size of %d. Skipping fragment.",
-                    frag.num_constant_heavies, frag.constant_smiles, min_constant_size)
+                    frag.constant_num_heavies, frag.constant_smiles, min_constant_size)
             continue
             
         # XXX TODO: handle 'constant_with_H_smiles'?
@@ -951,7 +1058,7 @@ def make_transform(
         #   (The pairs are ordered so the matching SMILES is the 'from' side of the transform)
         #   The transformed SMILES goes from variable+constant -> dest_smiles+constant
         #   so weld the destinition SMILES (smi2) with the constant
-        
+       
         for permutation, permuted_variable_smiles, permuted_variable_smiles_id in query_possibilities:
             explain(" Evaluate constant %r with permutation %r against rules using SMILES %s (%d)",
                     frag.constant_smiles, permutation, permuted_variable_smiles, permuted_variable_smiles_id)
@@ -960,10 +1067,10 @@ def make_transform(
                 all_center_fps, frag.variable_symmetry_class, permutation)
             
             rows = dataset.find_rule_environments_for_transform(
-                permuted_variable_smiles_id, sorted(possible_envs), cursor=cursor)
+                permuted_variable_smiles_id, sorted(possible_envs), max_variable_size=max_variable_size, cursor=cursor)
 
             to_weld.extend( (frag.constant_smiles, frag.variable_smiles, substructure_pat, row) for row in rows )
-        
+    
     if pool is None:
         results = _compat.imap(_weld_and_filter, to_weld)
     else:
@@ -984,7 +1091,6 @@ def make_transform(
             (rule_id, frag_variable_smiles, rule_environment_id, is_reversed))
         explain("     Rule %d:  %r + %r -> %r",
                 rule_id, frag_constant_smiles, str(other_constant_smiles), product_smiles)
-                
 
     explain("== Product SMILES in database: %d ==" % (len(product_rule_environment_table),))
 
@@ -995,10 +1101,12 @@ def make_transform(
     
     return TransformResult(property_info_list, transform_products)
 
+
 class TransformProduct(object):
     def __init__(self, smiles, property_rules):
         self.smiles = smiles
         self.property_rules = property_rules
+
 
 def iter_transform_products(
         dataset, product_rule_environment_table, property_info_list,
@@ -1042,6 +1150,7 @@ def iter_transform_products(
             product_property_rules.append(property_rule)
 
         yield TransformProduct(product_smiles, product_property_rules)
+
 
 class TransformResult(object):
     missing_value = ""
@@ -1088,6 +1197,7 @@ class TransformResult(object):
                 values[0] = str(product_id)
                 product_id += 1
                 product_file.write("\t".join(values) + "\n")
+
 
 def test_transform():
     import sys

@@ -56,11 +56,13 @@ class EnvironmentCenters(object):
     def __init__(self, mol, atom_ids):
         self.mol = mol
         self.atom_ids = atom_ids
+
     def __repr__(self):
         return "EnvironmentCenters(%r, %r)" % (self.mol, self.atom_ids)
 
 class EnvironmentFingerprint(object):
     __slots__ = ("radius", "fingerprint")
+
     def __init__(self, radius, fingerprint):
         self.radius = radius
         self.fingerprint = fingerprint
@@ -103,7 +105,7 @@ def find_centers(smiles):
             raise ValueError("Expecting attachment points *:1 and *:2 in context SMILES %r" % (smiles,))
     elif n == 1:
         try:
-            ordered_centers = centers[1], # this is a one element tuple 
+            ordered_centers = centers[1],  # this is a one element tuple
         except KeyError:
             raise ValueError("Expecting attachment point *:1 in context SMILES %r" % (smiles,))
 
@@ -149,6 +151,7 @@ def is_heavy_atom(atom_obj):
         return False
     return True
 
+
 def find_center_fingerprints(centers, radius):
     center_fps = []
     for atom_idx in centers.atom_ids:
@@ -158,6 +161,7 @@ def find_center_fingerprints(centers, radius):
         center_fps.append(center_fp)
     return center_fps
 
+
 def _make_fp(*center_fps):
     concat_fp = hashlib.new("sha256")
     for center_fp in center_fps:
@@ -166,7 +170,7 @@ def _make_fp(*center_fps):
     sha2_digest = concat_fp.digest()
     env_fp = binascii.b2a_base64(sha2_digest)
     assert env_fp[-2:] == b"=\n", env_fp
-    return fingerprint_to_text(env_fp[:-2]) # trim the "=\n"
+    return fingerprint_to_text(env_fp[:-2])  # trim the "=\n"
 
 
 def find_environment_fingerprint(centers, radius):
@@ -196,7 +200,6 @@ def find_environment_fingerprint(centers, radius):
 # The centers are the attachment points 1, 2, and 3.
 # 
 
-
 def compute_constant_environment_from_centers(centers, max_radius=5):
     env_fps = []
     for radius in range(max_radius+1):
@@ -206,6 +209,7 @@ def compute_constant_environment_from_centers(centers, max_radius=5):
             )
 
     return env_fps
+
 
 def compute_constant_center_fingerprints(constant_smiles, min_radius=0, max_radius=5):
     # If the constant is unlabeled, get the labeled version.
@@ -240,7 +244,6 @@ def compute_constant_center_fingerprints(constant_smiles, min_radius=0, max_radi
         all_center_fps.append(find_center_fingerprints(env_centers, radius))
 
     return all_center_fps
-
 
 ######
 

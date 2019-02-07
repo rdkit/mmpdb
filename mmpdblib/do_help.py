@@ -672,7 +672,7 @@ file format version. It must be the following:
 The second line is a "SOFTWARE" record, containing the name and
 version of the program used to generate the fragments:
 
-  ["SOFTWARE", "mmpdb-2.1"]
+  ["SOFTWARE", "mmpdb-2.2"]
 
 The "OPTION" records come next. These store the key/value pairs which
 describe the fragmentation options. Each record is a 3-element
@@ -683,6 +683,7 @@ following are the default mmpdb options:
   ["OPTION", "max_heavies", "100"]
   ["OPTION", "max_rotatable_bonds", "10"]
   ["OPTION", "method", "chiral"]
+  ["OPTION", "min_heavies_per_const_frag", "0"]
   ["OPTION", "num_cuts", "3"]
   ["OPTION", "rotatable_smarts", "[!$([NH]!@C(=O))&!D1&!$(*#*)]-&!@[!$([NH]!@C(=O))&!D1&!$(*#*)]"]
   ["OPTION", "salt_remover", "<default>"]

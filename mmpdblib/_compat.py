@@ -71,4 +71,3 @@ else:
     
     # Lazy map is the default
     imap = map
-    

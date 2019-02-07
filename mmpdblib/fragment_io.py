@@ -52,11 +52,14 @@ SOFTWARE = "mmpdb-" + mmpdblib_version
 
 parse_max_heavies_value = config.positive_int_or_none
 parse_max_rotatable_bonds_value = config.positive_int_or_none
+parse_min_heavies_per_const_frag = config.nonnegative_int
+
 
 def parse_num_cuts_value(value):
     if value not in ("1", "2", "3"):
         raise ValueError("must be '1', '2', or '3'")
     return int(value)
+
 
 def parse_method_value(value):
     if value not in ("chiral",):
@@ -129,8 +132,11 @@ def read_fragment_records(source):
 
     return FragmentReader(metadata, options, reader, location)
 
+
 _json_loads = None
 _json_module_name = None
+
+
 def get_json_loads():
     global _json_loads, _json_module_name
     if _json_loads is None:
@@ -154,6 +160,7 @@ def get_json_loads():
 
     return _json_loads
 
+
 _option_parser = {
     "cut_smarts": str,
     "max_heavies": parse_max_heavies_value,
@@ -162,8 +169,10 @@ _option_parser = {
     "num_cuts": parse_num_cuts_value,
     "rotatable_smarts": str,
     "salt_remover": str,
+    "min_heavies_per_const_frag": parse_min_heavies_per_const_frag
     }
-    
+
+
 def _get_options(line_reader, location):
     options_dict = {}
     options = config.FragmentOptions(**config.DEFAULT_FRAGMENT_OPTIONS.to_dict())
@@ -220,7 +229,6 @@ def _get_options(line_reader, location):
             raise FragmentFormatError("Cannot understand option %s (%r): %s"
                                        % (name, value_str, err), location)
 
-            
         setattr(options, name, value)
         options_dict[name] = (lineno, value_str)
         
@@ -239,8 +247,10 @@ def _read_fragment_records(line_reader, close, location, options_dict):
 
     def get_recno():
         return recno
+
     def get_lineno():
         return lineno
+
     def get_record():
         return line
 
@@ -280,7 +290,7 @@ def _read_fragment_records(line_reader, close, location, options_dict):
                             raise FragmentFormatError("Expected fragment[%d] with 10 fields, not %d (%r)"
                                                            % (fragment_i, len(fragment_fields), fragment_fields),
                                                            location)
-                    raise AssertionError # I don't know what caused this error
+                    raise AssertionError  # I don't know what caused this error
 
                 yield FragmentRecord(
                     id, input_smiles, num_normalized_heavies, normalized_smiles, fragmentations)
@@ -312,8 +322,7 @@ def _read_fragment_records(line_reader, close, location, options_dict):
             ##     continue
 
             raise FragmentFormatError("Unknown label %r" % (label,), location)
-            
-                
+
     finally:
         location.save(recno=get_recno(),
                       lineno=get_lineno(),
@@ -321,11 +330,11 @@ def _read_fragment_records(line_reader, close, location, options_dict):
         if close is not None:
             close()
 
+
 class FileCache(object):
     def __init__(self, table, options):
         self.table = table
         self.options = options
-
 
     def get(self, name):
         return self.table.get(name)
@@ -335,7 +344,8 @@ def suggest_faster_json(reporter):
     loads = get_json_loads()
     if _json_module_name == "json":
         reporter.warning("Neither ujson nor cjson installed. Falling back to Python's slower built-in json decoder.")
-    
+
+
 def load_cache(filename, reporter):
     reporter = reporters.get_reporter(reporter)
 
@@ -346,7 +356,8 @@ def load_cache(filename, reporter):
             table[record.id] = record
         
     return FileCache(table, reader.options)
-            
+
+
 ##### Write
 
 def get_fragment_sort_key(frag):
@@ -355,7 +366,6 @@ def get_fragment_sort_key(frag):
             frag.constant_num_heavies, frag.constant_smiles, frag.constant_with_H_smiles,
             frag.attachment_order
             )
-            
 
 
 class FragmentWriter(object):
@@ -378,8 +388,7 @@ class FragmentWriter(object):
         self._outfile.write("\n")
         json.dump(("SOFTWARE", SOFTWARE), self._outfile)
         self._outfile.write("\n")
-        
-        
+
     def write_options(self, options):
         for k, v in sorted(options.to_text_settings()):
             if "\n" in k or "\r" in k or "\t" in k or " " in k:
@@ -389,7 +398,6 @@ class FragmentWriter(object):
             json.dump(("OPTION", k, v), self._outfile)
             self._outfile.write("\n")
 
-        
     def write_records(self, fragment_records):
         outfile = self._outfile
         
@@ -407,8 +415,8 @@ class FragmentWriter(object):
                     fragment_fields.append((
                         frag.num_cuts, frag.enumeration_label,
                         frag.variable_num_heavies, frag.variable_symmetry_class, frag.variable_smiles,
-                        frag.attachment_order,
-                        frag.constant_num_heavies, frag.constant_symmetry_class, frag.constant_smiles, frag.constant_with_H_smiles,
+                        frag.attachment_order, frag.constant_num_heavies, frag.constant_symmetry_class,
+                        frag.constant_smiles, frag.constant_with_H_smiles,
                         ))
                 json.dump(record, outfile)
                 outfile.write("\n")
@@ -432,8 +440,7 @@ def relabel(smiles, order=None):
         return "[*:%d]" % (order.pop(0)+1,)
     
     return _wildcard_pat.sub(add_isotope_tag_to_wildcard, smiles)
-    
-        
+
             
 class FragInfoWriter(object):
     def __init__(self, filename, outfile, options):
@@ -453,8 +460,7 @@ class FragInfoWriter(object):
     def write_version(self):
         self._outfile.write("FORMAT mmpdb-fraginfo/2\n")
         self._outfile.write("SOFTWARE " + SOFTWARE + "\n")
-        
-        
+
     def write_options(self, options):
         for k, v in sorted(options.to_text_settings()):
             if "\n" in k or "\r" in k or "\t" in k or " " in k:
@@ -489,6 +495,7 @@ class FragInfoWriter(object):
                                      frag.constant_num_heavies, frag.constant_symmetry_class,
                                      frag.constant_smiles, frag.constant_with_H_smiles
                                      ))
+
 
 def open_fragment_writer(filename, options, format_hint=None):
     if format_hint is not None and format_hint not in ("fragments", "fragments.gz", "fraginfo", "fraginfo.gz"):

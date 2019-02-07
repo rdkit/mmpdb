@@ -65,6 +65,7 @@ def parse_rotatable_smarts(smarts):
     
     return pattern
 
+
 def parse_cut_smarts(smarts):
     if smarts in smarts_aliases.cut_smarts_aliases_by_name:
         smarts = smarts_aliases.cut_smarts_aliases_by_name[smarts].smarts
@@ -96,21 +97,23 @@ def parse_salt_remover(salt_remover_filename):
             raise ValueError("SMARTS pattern #%d is invalid" % (i,))
     return remover
 
+
 def parse_num_cuts(num_cuts):
     if num_cuts in (1, 2, 3):
         return num_cuts
     raise ValueError("must be 1, 2, or 3")
+
 
 def parse_method(method):
     if method in ("", None, "chiral"):
         return fragment_algorithm.fragment_mol
     raise ValueError("must be 'chiral'")
 
-
 ###
 
 def get_fragment_options_from_args(parser, args):
     specified_args = set()
+
     def get(name):
         value = getattr(args, name)
         if value is None:
@@ -141,6 +144,10 @@ def get_fragment_options_from_args(parser, args):
     #method = get("method")
     method = "chiral"
 
+    min_heavies_per_const_frag = get("min_heavies_per_const_frag")
+    if min_heavies_per_const_frag == "none":
+        min_heavies_per_const_frag = 0
+
     return specified_args, config.FragmentOptions(
         max_heavies = max_heavies,
         max_rotatable_bonds = max_rotatable_bonds,
@@ -149,6 +156,7 @@ def get_fragment_options_from_args(parser, args):
         num_cuts = num_cuts,
         salt_remover = salt_remover,
         method = method,
+        min_heavies_per_const_frag = min_heavies_per_const_frag,
         )
 ###
 
@@ -156,7 +164,7 @@ class FragmentFilter(object):
     def __init__(self, max_heavies, max_rotatable_bonds,
                  rotatable_pattern, salt_remover,
                  cut_pattern, num_cuts, method,
-                 options
+                 options, min_heavies_per_const_frag
                  ):
         if rotatable_pattern is None:
             max_rotatable_bonds = None
@@ -169,6 +177,7 @@ class FragmentFilter(object):
         self.num_cuts = num_cuts
         self.method = method
         self.options = options
+        self.min_heavies_per_const_frag = min_heavies_per_const_frag
 
     def normalize(self, mol):
         # XXX Remove existing isotope labels?
@@ -235,6 +244,7 @@ class FragmentFilter(object):
                             cut_lists.append( [first_pair, second_pair, third_pair] )
         return cut_lists
 
+
 class FragmentValueError(ValueError):
     def __init__(self, name, value, reason):
         self.name = name
@@ -265,6 +275,7 @@ def get_fragment_filter(fragment_options):
     cut_pattern = call(parse_cut_smarts, "cut_smarts")
     num_cuts = call(parse_num_cuts, "num_cuts")
     method = call(parse_method, "method")
+    min_heavies_per_const_frag = options.min_heavies_per_const_frag
     try:
         salt_remover = call(parse_salt_remover, "salt_remover")
     except IOError as err:
@@ -280,9 +291,8 @@ def get_fragment_filter(fragment_options):
         num_cuts = num_cuts,
         method = method,
         options = fragment_options,
+        min_heavies_per_const_frag = min_heavies_per_const_frag,
         )
-    
-
 ###
 
 
@@ -318,8 +328,6 @@ def parse_record(id, smiles, fragment_filter):
         return errmsg, record
 
     return None, record
-
-
 ###
 
 
@@ -327,12 +335,16 @@ def parse_record(id, smiles, fragment_filter):
 class SingleProcessPool(object):
     def apply_async(self, f, args):
         return SyncResult(f, args)
+
     def terminate(self):
         pass
+
     def join(self):
         pass
+
     def close(self):
         pass
+
 
 class SyncResult(object):
     def __init__(self, f, args):
@@ -345,9 +357,11 @@ class SyncResult(object):
         # this code needs.
         return self.f(*self.args)
 
+
 # Make it so that ^C works
 def init_worker():
     signal.signal(signal.SIGINT, signal.SIG_IGN)
+
 
 def create_pool(num_jobs):
     if num_jobs > 1:
@@ -362,6 +376,7 @@ def create_pool(num_jobs):
 def _as_list(method, normalized_mol, fragment_filter, num_normalized_heavies):
     return list(method(normalized_mol, fragment_filter, num_normalized_heavies))
 
+
 def make_hydrogen_fragment_record(id, input_smiles, fragment_filter):
     errmsg, record = parse_record(id, input_smiles, fragment_filter)
     if errmsg:
@@ -372,7 +387,6 @@ def make_hydrogen_fragment_record(id, input_smiles, fragment_filter):
         id, input_smiles,
         record.num_normalized_heavies, record.normalized_smiles,
         fragments)
-    
 
 
 def make_fragment_records(smiles_reader, fragment_filter, cache=None, pool=None, reporter=None):
@@ -381,7 +395,6 @@ def make_fragment_records(smiles_reader, fragment_filter, cache=None, pool=None,
 
     if pool is None:
         pool = SingleProcessPool()
-
 
     # There are two phases:
     #   1) establish what needs to be fragmented vs. what is available from
@@ -411,7 +424,7 @@ def make_fragment_records(smiles_reader, fragment_filter, cache=None, pool=None,
         # Submit it as something to work on
         args = (fragment_filter.method, record.normalized_mol, fragment_filter,
                 record.num_normalized_heavies)
-        result = pool.apply_async(_as_list, args)
+        result = pool.apply_async(_as_list, args)   # fragment_filter.method calls the actual fragmentation algorithm
 
         jobs.append( (id, input_smiles, where, record, result) )
 
@@ -421,6 +434,7 @@ def make_fragment_records(smiles_reader, fragment_filter, cache=None, pool=None,
     def pop_iter(jobs):
         while jobs:
             yield jobs.pop(0)
+
     with reporter.progress(pop_iter(jobs),
                            "Fragmented record", len(jobs)) as job_iter:
         for (id, input_smiles, where, record, result) in job_iter:
@@ -454,9 +468,12 @@ class SingleSmilesReader(object):
     def __init__(self, smiles, id="query"):
         self.id = id
         self.smiles = smiles
+
     def __iter__(self):
         yield (self.smiles, self.id)
+
     location = fileio.Location.from_source("<string>")
+
 
 def make_fragment_record_from_smiles(smiles, fragment_filter):
     reader = SingleSmilesReader(smiles)
@@ -469,6 +486,7 @@ def make_fragment_record_from_smiles(smiles, fragment_filter):
 ###
 def _name_to_command_line(s):
     return "--" + s.replace("_", "-")
+
 
 def cannot_combine_cache_and_fragment_args(parser, specified_args):
     names = sorted(_name_to_command_line(name) for name in specified_args)
@@ -498,9 +516,9 @@ def fragment_command(parser, args):
         try:
             cache = fragment_io.load_cache(args.cache, reporter)
         except IOError as err:
-             parser.error("Cannot open cache: %s" % (err,))
+            parser.error("Cannot open cache: %s" % (err,))
         except ValueError as err:
-             parser.error("Problem loading cache: %s" % (err,))
+            parser.error("Problem loading cache: %s" % (err,))
 
         try:
             fragment_filter = get_fragment_filter(cache.options)
@@ -622,4 +640,3 @@ def smifrag_command(parser, args):
         print(*fields, sep=" | ")
         if lineno == 0:
             print(*["-"*len(s) for s in fields], sep = "-+-")
-        

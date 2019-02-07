@@ -39,6 +39,7 @@ import time
 
 from ._compat import basestring
 
+
 def get_reporter(reporter):
     if reporter is None:
         return Quiet()
@@ -49,6 +50,7 @@ def get_reporter(reporter):
             return Verbose()
         raise ValueError("Unsupported reporter %r" % (reporter,))
     return reporter
+
 
 class BaseReporter(object):
     def warning(self, msg):
@@ -93,6 +95,7 @@ class StatusContext(object):
     def __exit__(self, *args):
         pass
 
+
 class Verbose(BaseReporter):
     "This reporter sends report and status information to stderr."
     def __init__(self):
@@ -110,7 +113,6 @@ class Verbose(BaseReporter):
             self.update("")
         sys.stderr.write(msg + "\n")
         sys.stderr.flush()
-        
         
     def progress(self, it, text, n=None):
         # Used in iterators
@@ -158,6 +160,7 @@ class Verbose(BaseReporter):
 # show the overall progress as a percentage, and give some feedback
 # about the progress of each stage.
 
+
 class MultiStageReporter(object):
     def __init__(self, reporter, num_rows):
         self.reporter = reporter
@@ -173,7 +176,7 @@ class MultiStageReporter(object):
         self.template = template
         self._it = enumerate(container)  # enumerate() so I can track progress for the stage
         self._n = len(container)
-        msg = self.template  % (100.0*self._row_count/self.num_rows, 0, self._n)
+        msg = self.template % (100.0*self._row_count/self.num_rows, 0, self._n)
         self.reporter.update(msg)
         self._prev_time = time.time()
                  
@@ -184,7 +187,7 @@ class MultiStageReporter(object):
         try:
             i, value = next(self._it)
         except StopIteration:
-            self.reporter.update("") # Reset at the end of the stage.
+            self.reporter.update("")  # Reset at the end of the stage.
             raise
         self._row_count = row_count = self._row_count + 1  # Global count
 
@@ -196,7 +199,5 @@ class MultiStageReporter(object):
             self._prev_time = now
         
         return value
-        
 
     next = __next__
-        

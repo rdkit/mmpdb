@@ -147,6 +147,7 @@ def convert_wildcards_to_closures(smiles, offsets=None):
 
     return new_smiles
 
+
 ##### Same thing, for labeled wildcards
 
 _labeled_wildcard_pattern = re.compile(r"\*:([123])")
@@ -154,9 +155,11 @@ _labeled_wildcard_pattern = re.compile(r"\*:([123])")
 
 def convert_labeled_wildcards_to_closures(smiles):
     offsets = []
+
     def sub_function(m):
         offsets.append(int(m.group(1)))
         return "*"
+
     new_smiles = _labeled_wildcard_pattern.sub(sub_function, smiles)
     #print("convert_labeled_wildcards_to_closures:", smiles, new_smiles, offsets)
     return convert_wildcards_to_closures(new_smiles, offsets)

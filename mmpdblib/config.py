@@ -51,6 +51,7 @@ def positive_int(value):
         raise argparse.ArgumentTypeError("must be a positive integer")
     return value
 
+
 def positive_int_or_none(value):
     if value == "none":
         return "none"
@@ -62,6 +63,7 @@ def positive_int_or_none(value):
         raise argparse.ArgumentTypeError("must be a positive integer or 'none'")
     return value
 
+
 def positive_float(value):
     try:
         value = float(value)
@@ -70,6 +72,7 @@ def positive_float(value):
     if not (value > 0.0):
         raise argparse.ArgumentTypeError("must be a positive float")
     return value
+
 
 def nonnegative_float(value):
     try:
@@ -80,6 +83,7 @@ def nonnegative_float(value):
         raise argparse.ArgumentTypeError("must be a positive float or zero")
     return value
 
+
 def nonnegative_int(value):
     try:
         value = int(value)
@@ -88,6 +92,7 @@ def nonnegative_int(value):
     if not (value >= 0):
         raise argparse.ArgumentTypeError("must be a positive integer or zero")
     return value
+
 
 def cutoff_list(value_s):
     prev = None
@@ -118,6 +123,7 @@ def cutoff_list(value_s):
 
 parse_max_heavies_value = positive_int_or_none
 parse_max_rotatable_bonds_value = positive_int_or_none
+parse_min_heavies_per_const_frag_value = nonnegative_int
 
 def parse_num_cuts_value(value):
     if value not in ("1", "2", "3"):
@@ -130,10 +136,11 @@ def parse_method_value(value):
         raise argparse.ArgumentTypeError("must be 'chiral'")
     return value
 
+
 class FragmentOptions(object):
     def __init__(self, max_heavies, max_rotatable_bonds,
                  rotatable_smarts, cut_smarts, num_cuts,
-                 method, salt_remover):
+                 method, salt_remover, min_heavies_per_const_frag):
         assert isinstance(max_heavies, int) or max_heavies is None, max_heavies
         self.max_heavies = max_heavies
 
@@ -155,10 +162,14 @@ class FragmentOptions(object):
         assert isinstance(salt_remover, basestring), salt_remover
         self.salt_remover = salt_remover
 
+        assert isinstance(min_heavies_per_const_frag, int), min_heavies_per_const_frag
+        self.min_heavies_per_const_frag = min_heavies_per_const_frag
+
     def to_dict(self):
         d = OrderedDict()
         for name in ("max_heavies", "max_rotatable_bonds", "rotatable_smarts",
-                     "cut_smarts", "num_cuts", "method", "salt_remover"):
+                     "cut_smarts", "num_cuts", "method", "salt_remover",
+                     "min_heavies_per_const_frag"):
             d[name] = getattr(self, name)
         return d
     
@@ -173,16 +184,20 @@ class FragmentOptions(object):
             ("num_cuts", str(self.num_cuts)),
             ("method", self.method),
             ("salt_remover", self.salt_remover),
+            ("min_heavies_per_const_frag", str(self.min_heavies_per_const_frag))
+
             )
 
+
 DEFAULT_FRAGMENT_OPTIONS = FragmentOptions(
-    max_heavies = 100,
-    max_rotatable_bonds = 10,
-    rotatable_smarts = "[!$([NH]!@C(=O))&!D1&!$(*#*)]-&!@[!$([NH]!@C(=O))&!D1&!$(*#*)]",
-    cut_smarts = smarts_aliases.cut_smarts_aliases_by_name["default"].smarts,
-    num_cuts = 3,
-    method = "chiral",
-    salt_remover = "<default>",
+    max_heavies=100,
+    max_rotatable_bonds=10,
+    rotatable_smarts="[!$([NH]!@C(=O))&!D1&!$(*#*)]-&!@[!$([NH]!@C(=O))&!D1&!$(*#*)]",
+    cut_smarts=smarts_aliases.cut_smarts_aliases_by_name["default"].smarts,
+    num_cuts=3,
+    method="chiral",
+    salt_remover="<default>",
+    min_heavies_per_const_frag=0,
     )
 
 def add_fragment_arguments(parser):
@@ -214,6 +229,11 @@ def add_fragment_arguments(parser):
     p.add_argument("--num-cuts", choices=(1, 2, 3), type=parse_num_cuts_value,
                    help="number of cuts to use (default: %d)"
                    % (OPTS.num_cuts,))
+
+    p.add_argument("--min-heavies-per-const-frag", type=parse_min_heavies_per_const_frag_value,
+                   metavar="N", default=None,
+                   help="Ignore fragmentations where one or more constant fragments are very small (default: %r)"
+                         % (OPTS.min_heavies_per_const_frag,))
     
     ## p.add_argument("--method", choices=("dalke", "hussain"), type=fragment_io.parse_method_value,
     ##                help="fragment canonicalization method to use (default: %s)"
@@ -228,13 +248,14 @@ parse_max_variable_ratio_value = nonnegative_float
 parse_min_variable_ratio_value = positive_float
 parse_max_heavies_transf = nonnegative_int
 parse_max_frac_trans = nonnegative_float
+parse_max_radius = nonnegative_int
 
 class IndexingOptions(object):
     def __init__(self,
                  min_variable_heavies, max_variable_heavies,
                  min_variable_ratio, max_variable_ratio,
-                 max_heavies_transf, max_frac_trans
-                 ):
+                 max_heavies_transf, max_frac_trans,
+                 max_radius):
         assert min_variable_heavies is None or min_variable_heavies >= 0, min_variable_heavies
         self.min_variable_heavies = min_variable_heavies
 
@@ -257,6 +278,9 @@ class IndexingOptions(object):
         assert max_frac_trans is None or max_frac_trans >= 0, max_heavies_transf
         self.max_frac_trans = max_frac_trans
 
+        assert max_radius >= 0, max_radius
+        self.max_radius = max_radius
+
         
 DEFAULT_INDEX_OPTIONS = IndexingOptions(
     min_variable_heavies = None, # XXX can this be 0?
@@ -264,7 +288,8 @@ DEFAULT_INDEX_OPTIONS = IndexingOptions(
     min_variable_ratio = None,   # XXX can this be 0.0?
     max_variable_ratio = None,
     max_heavies_transf = None,
-    max_frac_trans = None,  # XXX can this be 1.0?
+    max_frac_trans = None,  # XXX can this be 1.0?,
+    max_radius = 5
     )
 
 def add_index_options(parser):
@@ -290,12 +315,17 @@ def add_index_options(parser):
     p.add_argument("--max-frac-trans", type=parse_max_frac_trans, default=None,
                    metavar="FLT",
                    help="Maximum fraction of atoms taking part in a transformation")
+    p.add_argument("--max-radius", type=parse_max_radius, 
+                   default=DEFAULT_INDEX_OPTIONS.max_radius,
+                   metavar="N",
+                   help="Maximum Environment Radius to be indexed in the MMPDB database")
 
 
 class DEFAULT_RULE_SELECTION_OPTIONS:
     where = None
     score = None
     cutoff_list = (10, 5, 0)
+
 
 def add_rule_selection_arguments(parser):
     OPTS = DEFAULT_RULE_SELECTION_OPTIONS
@@ -308,4 +338,3 @@ def add_rule_selection_arguments(parser):
                         help="evaluate rule environments with the given minimum pair count. If multiple "
                              "counts are given, consider them in turn until there is a selected environment. "
                              "(default: '10,5,0')")
-    

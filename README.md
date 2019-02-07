@@ -1,4 +1,4 @@
-# mmpdb 2.1 - matched molecular pair database generation and analysis
+# mmpdb 2.2 - matched molecular pair database generation and analysis
 
 
 ## Synopsis
@@ -63,6 +63,21 @@ about a given topic. The next few sections are the output from
 If you wish to experiment with a simple test set, use
 tests/test_data.smi, with molecular weight and melting point
 properties in tests/test_data.csv.
+
+
+------------------
+
+
+## Publication
+
+
+An open-access publication describing this package has been 
+published in the Journal of Chemical Information and Modeling:
+
+A. Dalke, J. Hert, C. Kramer. mmpdb: An Open-Source Matched 
+Molecular Pair Platform for Large Multiproperty Data Sets. *J. Chem. 
+Inf. Model.*, **2018**, *58 (5)*, pp 902–910. 
+https://pubs.acs.org/doi/10.1021/acs.jcim.8b00173
 
 
 ------------------

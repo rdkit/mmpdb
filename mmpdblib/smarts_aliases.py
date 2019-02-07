@@ -30,11 +30,13 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+
 class CutSmarts(object):
     def __init__(self, name, smarts, description):
         self.name = name
         self.smarts = smarts
         self.description = description
+
 
 cut_smarts_aliases_by_name = {}
 
@@ -70,9 +72,11 @@ cut_smarts_aliases = [
             "[R]!@!=!#[!#0;!#1;!$([CH3])]",
             "Cuts all exocyclic single bonds apart from those connecting to CH3 groups"),
     ]
-    
+
+
 for alias in cut_smarts_aliases:
     cut_smarts_aliases_by_name[alias.name] = alias
+
 
 def get_epilog(option_name, aliases):
     lines = ["The " + option_name + " argument supports the following short-hand aliases:"]

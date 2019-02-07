@@ -33,13 +33,13 @@
 from setuptools import setup
 
 setup(
-    name = "mmpdb",
-    version = "2.1",
-    description = "A package to identify matched molecular pairs and use them to predict property changes",
-    author = "Andrew Dalke",
-    author_email = "dalke@dalkescientific.com",
-    url = "https://github.com/rdkit/mmpdb",
-    classifiers = [
+    name="mmpdb",
+    version="2.2",
+    description="A package to identify matched molecular pairs and use them to predict property changes",
+    author="Andrew Dalke",
+    author_email="dalke@dalkescientific.com",
+    url="https://github.com/rdkit/mmpdb",
+    classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Environment :: Console",
         "Intended Audience :: Science/Research",
@@ -48,9 +48,9 @@ setup(
         "Programming Language :: Python :: 3",
         "Topic :: Scientific/Engineering :: Chemistry",
         ],
-    keywords = "matched molecular pair, MMP, cheminformatics",
+    keywords="matched molecular pair, MMP, cheminformatics",
     
-    packages = ["mmpdblib", "mmpdblib.playhouse"],
-    package_data = {"mmpdblib": ["schema.sql", "create_index.sql", "drop_index.sql"]},
-    scripts = ["mmpdb"]
+    packages=["mmpdblib", "mmpdblib.playhouse"],
+    package_data={"mmpdblib": ["schema.sql", "create_index.sql", "drop_index.sql"]},
+    scripts=["mmpdb"]
     )

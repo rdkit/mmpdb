@@ -47,6 +47,7 @@ SCHEMA_FILENAME = os.path.join(os.path.dirname(__file__), "schema.sql")
 CREATE_INDEX_FILENAME = os.path.join(os.path.dirname(__file__), "create_index.sql")
 DROP_INDEX_FILENAME = os.path.join(os.path.dirname(__file__), "drop_index.sql")
 
+
 _schema_template = None    
 def get_schema_template():
     global _schema_template
@@ -54,6 +55,7 @@ def get_schema_template():
         with open(SCHEMA_FILENAME) as infile:
             _schema_template = infile.read()
     return _schema_template
+
 
 _create_index_sql = None    
 def get_create_index_sql():
@@ -63,6 +65,7 @@ def get_create_index_sql():
             _create_index_sql = infile.read()
     return _create_index_sql
 
+
 _drop_index_sql = None    
 def get_drop_index_sql():
     global _drop_index_sql
@@ -71,13 +74,15 @@ def get_drop_index_sql():
             _drop_index_sql = infile.read()
     return _drop_index_sql
 
+
 class SQLiteConfig:
     PRIMARY_KEY = "INTEGER PRIMARY KEY"
     COLLATE = ""     # default collation is binary so this isn't needed
 
+
 class MySQLConfig:
     PRIMARY_KEY = "INTEGER AUTO_INCREMENT"
-    COLLATE = "COLLATE latin_bin" # default is case-insensitive; force binary
+    COLLATE = "COLLATE latin_bin"  # default is case-insensitive; force binary
         
 
 def get_schema_for_database(db_config):
@@ -88,7 +93,6 @@ def get_schema_for_database(db_config):
     schema = text.replace("$COLLATE$", db_config.COLLATE)
     
     return schema
-
 
 
 def _get_sql_statements(bulk_sql):
@@ -108,6 +112,7 @@ def _get_sql_statements(bulk_sql):
         #print("execute", repr(statement))
         yield statement
 
+
 def _execute_sql(c, bulk_sql):
     for statement in _get_sql_statements(bulk_sql):
         try:            
@@ -116,17 +121,21 @@ def _execute_sql(c, bulk_sql):
             sys.stderr.write("Failed to execute the following SQL:\n")
             sys.stderr.write(statement)
             raise
-        
+
+
 def create_schema_for_sqlite(sqlite_db):
     c = sqlite_db.cursor()
     _execute_sql(c,
                  get_schema_for_database(SQLiteConfig))
 
+
 def create_index(c):
     _execute_sql(c, get_create_index_sql())
-    
+
+
 def drop_index(c):
     _execute_sql(c, get_drop_index_sql())
+
 
 INSERT_RULE_PROPERTY_SQL = (
     "insert into rule_property (rule_id, property_name_id, count, avg, std, kurtosis, "
@@ -135,7 +144,6 @@ INSERT_RULE_PROPERTY_SQL = (
 UPDATE_RULE_PROPERTY_SQL = (
     "update rule_property set count=?, avg=?, std=?, kurtosis=?, "
     " skewness=?, min=?, q1=?, median=?, q3=?, max=?, paired_t=?, p_value=? where id=?")
-
 
 ########## Work with an existing dataset via an ORM-like API
 
@@ -156,6 +164,7 @@ class PropertyNameRow(object):
     def __init__(self, id, name):
         self.id = id
         self.name = name
+
 
 class TableSizes(object):
     def __init__(self, num_compounds, num_rules, num_pairs,
@@ -232,7 +241,8 @@ class MMPDatabase(object):
             else:
                 raise AssertionError("Database missing dataset with id 1")
         return self._dataset
-        
+
+
 class Pair(object):
     def __init__(self, pair_id, rule_environment_id, compound1_id, compound2_id, constant_id):
         self.pair_id = pair_id
@@ -240,17 +250,20 @@ class Pair(object):
         self.compound1_id = compound1_id
         self.compound2_id = compound2_id
         self.constant_id = constant_id
-        
+
+
 def _get_one(cursor):
     for row in cursor:
         return row[0]
     raise AssertionError("missing result")
 
+
 def _get_one_or_none(cursor):
     for row in cursor:
         return row[0]
     return None
-        
+
+
 class MMPDataset(object):
     def __init__(self, mmpa_db, title, creation_date,
                  fragment_options_str, index_options_str,
@@ -280,8 +293,7 @@ class MMPDataset(object):
             num_rule_environments = self.get_num_rule_environments(cursor),
             num_rule_environment_stats = self.get_num_rule_environment_stats(cursor),
             )
-    
-    
+
     def get_property_name_rows(self, cursor=None):
         c = self.mmpa_db.execute("SELECT id, name from property_name ORDER BY id",
                                  cursor=cursor)
@@ -381,27 +393,25 @@ SELECT property_name.name, count(property_name_id)
                 cut_smarts = str(d["cut_smarts"]),   # otherwise it's unicode
                 num_cuts = d["num_cuts"],
                 salt_remover = d["salt_remover"],
-                method = d["method"]
+                method = d["method"],
+                min_heavies_per_const_frag = d["min_heavies_per_const_frag"]
                 )
         raise AssertionError("dataset 1 is supposed to exist")
 
-        
     def get_rule_smiles_id(self, smiles, cursor=None):
         c = self.mmpa_db.execute(
             "SELECT id FROM rule_smiles WHERE smiles = ?",
             (smiles,), cursor)
         return _get_one_or_none(c)
 
-
-
-    def find_rule_environments_for_transform(self, smiles_id, possible_env_fps,
+    def find_rule_environments_for_transform(self, smiles_id, possible_env_fps, max_variable_size=9999,
                                              cursor=None):
         assert len(possible_env_fps) > 0, possible_env_fps
         cursor = self.mmpa_db.get_cursor(cursor)
 
         test_fp_in = " OR ".join(("environment_fingerprint.fingerprint = ?",)*len(possible_env_fps))
         
-        execute_args = (smiles_id, ) + tuple(possible_env_fps)
+        execute_args = (smiles_id, ) + tuple(possible_env_fps) + (max_variable_size,)
 
         # Find the rule environments which use this SMILES on the LHS
         sql = ("SELECT rule_environment.rule_id, rule_environment.id, rule_smiles.smiles, 0\n"  # 0 = forward
@@ -410,7 +420,8 @@ SELECT property_name.name, count(property_name_id)
                "   AND rule.from_smiles_id = ?\n"  # NOTE: *from*_smiles_id
                "   AND rule_environment.environment_fingerprint_id = environment_fingerprint.id\n"
                "   AND (" + test_fp_in + ")\n"
-               "   AND rule.to_smiles_id = rule_smiles.id\n" # NOTE: *to*_smiles_id
+               "   AND rule.to_smiles_id = rule_smiles.id"  # NOTE: *to*_smiles_id
+               "   AND rule_smiles.num_heavies <= ?\n"
                )
         if not self.is_symmetric:
             sql += (
@@ -421,14 +432,14 @@ SELECT property_name.name, count(property_name_id)
                "   AND rule.to_smiles_id = ?\n"   # NOTE: *to*_smiles_id
                "   AND rule_environment.environment_fingerprint_id = environment_fingerprint.id\n"
                "   AND (" + test_fp_in + ")\n"
-               "   AND rule.from_smiles_id = rule_smiles.id\n" # NOTE: *from*_smiles_id
+               "   AND rule.from_smiles_id = rule_smiles.id\n"  # NOTE: *from*_smiles_id
+               "   AND rule_smiles.num_heavies <= ?"
                )
-            execute_args = execute_args + execute_args # Double the args, one for each direction
+            execute_args = execute_args + execute_args  # Double the args, one for each direction
 
         #print("SQL", sql, execute_args)
         for x in self.mmpa_db.execute(sql, execute_args, cursor):
             yield x
-
         
     def get_fingerprint_ids(self, fingerprints, cursor=None):
         fpids = set()
@@ -440,7 +451,6 @@ SELECT property_name.name, count(property_name_id)
             fpids.update(fpid for (fpid,) in c)
             
         return fpids
-        
             
     def iter_selected_property_rules(self, from_smiles, to_smiles, property_id, cursor=None):
         assert from_smiles is not None
@@ -482,6 +492,7 @@ SELECT rule.id, 1, to_smiles.smiles, to_smiles.num_heavies, from_smiles.smiles, 
    AND rule_environment_statistics.property_name_id = ?
 """
             args = args + (to_smiles, from_smiles, property_id)
+
         ## print(sql)
         ## print((from_smiles, to_smiles, property_id,
         ##                                to_smiles, from_smiles, property_id))
@@ -495,7 +506,6 @@ SELECT rule.id, 1, to_smiles.smiles, to_smiles.num_heavies, from_smiles.smiles, 
                 rule_id, is_reversed, from_smiles, from_num_heavies, to_smiles, to_num_heavies,
                 rule_environment_id, radius, fingerprint_id, fingerprint,
                 rule_environment_statistics_id, count, avg, std, kurtosis, skewness, min, q1, median, q3, max, paired_t, p_value)
-        
         
     def get_property_values(self, property_name_id, cursor=None):
         c = self.mmpa_db.execute(
@@ -575,6 +585,7 @@ SELECT rule.id, 1, to_smiles.smiles, to_smiles.num_heavies, from_smiles.smiles, 
             (rule_environment_id, property_name_id, count, avg, std, kurtosis,
              skewness, min, q1, median, q3, max, paired_t, p_value),
             cursor=cursor)
+
     def update_rule_environment_statistics(
             self, rule_environment_statistics_id, statistics, cursor=None):
         count, avg, std, kurtosis, skewness, min, q1, median, q3, max, paired_t, p_value = statistics
@@ -600,7 +611,6 @@ SELECT rule.id, 1, to_smiles.smiles, to_smiles.num_heavies, from_smiles.smiles, 
                              " WHERE property_name_id = ?",
                              (property_name_id,), cursor=c)
         
-        
     def delete_compound_properties(self, compound_properties_to_delete, cursor=None):
         to_delete = sorted(compound_properties_to_delete)
         cursor = self.mmpa_db.get_cursor(cursor)
@@ -618,8 +628,7 @@ SELECT rule.id, 1, to_smiles.smiles, to_smiles.num_heavies, from_smiles.smiles, 
                                " WHERE id = ?",
                                ids_to_delete[:10000])
             del ids_to_delete[:10000]
-            
-    
+
     def iter_pairs(self, cursor=None):
         c = self.mmpa_db.execute("""
 SELECT id, rule_environment_id, compound1_id, compound2_id, constant_id
@@ -674,7 +683,7 @@ SELECT pair.id,
 class PropertyRulePair(object):
     def __init__(self, rule, pair_id, lhs_smiles, rhs_smiles, lhs_public_id, rhs_public_id,
                  lhs_value, rhs_value, delta):
-        self.__dict__.update(rule.to_dict()) # Incorporate all of the rule fields
+        self.__dict__.update(rule.to_dict())  # Incorporate all of the rule fields
         self.rule = rule
         
         self.pair_id = pair_id
@@ -760,8 +769,10 @@ class PropertyRule(object):
             "is_bidirectional": self.is_bidirectional,
             }
 
+
 class CompoundRow(object):
     __slots__ = ("id", "public_id", "input_smiles", "clean_smiles", "clean_num_heavies")
+
     def __init__(self, id, public_id, input_smiles, clean_smiles, clean_num_heavies):
         self.id = id
         self.public_id = public_id
