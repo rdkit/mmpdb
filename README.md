@@ -408,7 +408,7 @@ in version 2 were:
 ## Copyright
 
 
-The mmpdb package is copyright 2015-2017 by F. Hoffmann-La
+The mmpdb package is copyright 2015-2018 by F. Hoffmann-La
 Roche Ltd and distributed under the 3-clause BSD license. See [LICENSE](LICENSE)
 for details.
 
