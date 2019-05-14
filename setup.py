@@ -1,6 +1,6 @@
 # mmpdb - matched molecular pair database generation and analysis
 #
-# Copyright (c) 2015-2017, F. Hoffmann-La Roche Ltd.
+# Copyright (c) 2015-2019, F. Hoffmann-La Roche Ltd.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
@@ -32,12 +32,19 @@
 
 from setuptools import setup
 
+with open("README.md") as f:
+    long_description = f.read()
+
 setup(
     name="mmpdb",
     version="2.2",
     description="A package to identify matched molecular pairs and use them to predict property changes",
     author="Andrew Dalke",
     author_email="dalke@dalkescientific.com",
+    maintainer="Christian Kramer",
+    maintainer_email="rdkit-discuss@lists.sourceforge.net",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     url="https://github.com/rdkit/mmpdb",
     classifiers=[
         "Development Status :: 5 - Production/Stable",
