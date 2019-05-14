@@ -272,12 +272,12 @@ def compute_possible_environments(center_fps, symmetry_class, reorder=None):
 
     # The attachment orders of the core SMILES is arbitrary. Not only
     # might the (semi-)canonical SMILES be  [*:2]C([*:3])N[*:1],
-    # but the attachments might be reorderd into one of the n! forms,
+    # but the attachments might be reordered into one of the n! forms,
     # like [*:1]C([*:3])N[*:2] or [*:2]C([*:1])N[*:3]. I need to
-    # unorder the permtuations to work with the 'true' numbering.
+    # unorder the permutations to work with the 'true' numbering.
 
-    # One I have that, I need to find all the ways to match the
-    # core attachents the context. Consider:
+    # Once I have that, I need to find all the ways to match the
+    # core attachments the context. Consider:
     #   [*:2]CN([*:3])N[*:1]
     # This has a symmetry class of "122" because the *:1 is in its
     # own symmetry group and the *:2 and *:3 are in the same group.

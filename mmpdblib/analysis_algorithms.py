@@ -997,12 +997,12 @@ def make_transform(
     # environments with radius >= the radius given as input argument.
 
     to_weld = []
-    
+
     # This includes the possible fragments of hydrogens
     for frag in transform_fragments:
         ## Note on terminology:
-        # constant = [*:1]Br.[*:2]c1ccccc1
-        # variable = c1ccc(-c2sc(-c3ccc([*:1])cc3)pc2[*:2])cc1
+        # constant = [*]Br.[*]c1ccccc1
+        # variable = c1ccc(-c2sc(-c3ccc([*])cc3)pc2[*])cc1
 
         explain("Processing fragment %r", frag)
 
@@ -1023,6 +1023,15 @@ def make_transform(
             continue
             
         # XXX TODO: handle 'constant_with_H_smiles'?
+
+        # In case of multiple cuts, permute the constant smiles to match the attachment order
+        if frag.num_cuts > 1:
+            constant_fragments = frag.constant_smiles.split(".")
+            new_constant_smiles = constant_fragments[int(frag.attachment_order[0])]
+            new_constant_smiles += "." + constant_fragments[int(frag.attachment_order[1])]
+            if frag.num_cuts == 3:
+                new_constant_smiles += "." + constant_fragments[int(frag.attachment_order[2])]
+            frag.constant_smiles = new_constant_smiles
 
         # The variable SMILES contains unlabeled attachment points, while the
         # rule_smiles in the database contains labeled attachment points.
@@ -1048,7 +1057,7 @@ def make_transform(
                 len(query_possibilities), sorted(x[0] for x in query_possibilities))
 
         # We now have a canonical variable part, and the assignment to the constant part.
-        # Get its fingerprints.
+        # Get the constant fingerprints.
         
         all_center_fps = environment.compute_constant_center_fingerprints(
             frag.constant_smiles, min_radius=min_radius)
@@ -1057,7 +1066,7 @@ def make_transform(
         #   Find all of the pairs which use the same SMILES id as the variable
         #   (The pairs are ordered so the matching SMILES is the 'from' side of the transform)
         #   The transformed SMILES goes from variable+constant -> dest_smiles+constant
-        #   so weld the destinition SMILES (smi2) with the constant
+        #   so weld the destination SMILES (smi2) with the constant
        
         for permutation, permuted_variable_smiles, permuted_variable_smiles_id in query_possibilities:
             explain(" Evaluate constant %r with permutation %r against rules using SMILES %s (%d)",
