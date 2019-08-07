@@ -36,6 +36,8 @@ import re
 
 from rdkit import Chem
 import itertools
+from functools import lru_cache
+
 from . import smiles_syntax  # for validation
 
 #####
@@ -301,13 +303,28 @@ def get_chiral_flags(mol, atom_ranks):
 _H_cache = {}
 
 
+# def replace_wildcard_with_H(smiles):
+#     # The cache gives about 2% overall performance improvement.
+#     # My tests suggest there's about a 50% cache hit.
+#     try:
+#         return _H_cache[smiles]
+#     except KeyError:
+#         pass
+#     if smiles.count("[*]") == 1:
+#         smiles_with_H = smiles.replace("[*]", "[H]")
+#     elif smiles.count("*") == 1:
+#         smiles_with_H = smiles.replace("*", "[H]")
+#     else:
+#         raise AssertionError("Could not find the '*' atom")
+        
+#     new_smiles = Chem.CanonSmiles(smiles_with_H)
+#     if len(_H_cache) > 10000:
+#         _H_cache.clear()
+#     _H_cache[smiles] = new_smiles
+#     return new_smiles
+
+@lru_cache(maxsize=2 * 8192). # powers of two preferred
 def replace_wildcard_with_H(smiles):
-    # The cache gives about 2% overall performance improvement.
-    # My tests suggest there's about a 50% cache hit.
-    try:
-        return _H_cache[smiles]
-    except KeyError:
-        pass
     if smiles.count("[*]") == 1:
         smiles_with_H = smiles.replace("[*]", "[H]")
     elif smiles.count("*") == 1:
@@ -315,11 +332,7 @@ def replace_wildcard_with_H(smiles):
     else:
         raise AssertionError("Could not find the '*' atom")
         
-    new_smiles = Chem.CanonSmiles(smiles_with_H)
-    if len(_H_cache) > 10000:
-        _H_cache.clear()
-    _H_cache[smiles] = new_smiles
-    return new_smiles
+    return Chem.CanonSmiles(smiles_with_H)
 
 
 def make_single_cut(mol, atom_pair, chiral_flags):
