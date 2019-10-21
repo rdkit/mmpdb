@@ -322,7 +322,7 @@ def replace_wildcard_with_H(smiles):
     return new_smiles
 
 
-def make_single_cut(mol, atom_pair, chiral_flags):
+def make_single_cut(mol, atom_pair, chiral_flags, fragment_filter):
     fragmented_mol, other_atom_table = fragment_on_atom_pairs(mol, [atom_pair])
     frag1_indices, frag2_indices = Chem.GetMolFrags(fragmented_mol)
 
@@ -381,6 +381,9 @@ def make_single_cut(mol, atom_pair, chiral_flags):
               (frag2_num_atoms, frag2_smiles, frag2_up_enumerations, frag1_num_atoms, frag1_smiles, frag1_up_enumerations),
         ):
 
+        if constant_num_atoms < fragment_filter.min_heavies_per_const_frag:
+            continue
+        
         constant_smiles_with_H = replace_wildcard_with_H(constant_smiles)
         yield Fragmentation(1, EnumerationLabel.NO_ENUMERATION,
                             variable_num_atoms, "1", variable_smiles,
@@ -750,7 +753,7 @@ def _fragment_mol(mol, fragment_filter, num_heavies=None):
         num_cuts = len(cut_list)
         #print("num_cuts", num_cuts)
         if num_cuts == 1:
-            fragmentations = make_single_cut(mol, cut_list[0], chiral_flags)
+            fragmentations = make_single_cut(mol, cut_list[0], chiral_flags, fragment_filter)
         else:
             fragmentations = make_multiple_cuts(mol, cut_list, chiral_flags, fragment_filter)
             if fragmentations == None:                       # Fragmentation has been filtered out
