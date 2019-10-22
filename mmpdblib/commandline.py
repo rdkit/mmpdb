@@ -1,6 +1,7 @@
 # mmpdb - matched molecular pair database generation and analysis
 #
 # Copyright (c) 2015-2017, F. Hoffmann-La Roche Ltd.
+# Copyright (c) 2019, Andrew Dalke Scientific, AB
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
@@ -229,6 +230,55 @@ p.set_defaults(command=smifrag_command,
                subparser=p)
 p.add_argument("smiles", metavar="SMILES",
                help="SMILES string to fragment")
+
+#### mmpdb frag2smarts
+
+p = frag2smarts_parser = subparsers.add_parser(
+    "frag2smarts",
+    help="convert a fragment file into a SMARTS which matches all of the SMILES",
+    formatter_class=argparse.RawDescriptionHelpFormatter,
+    epilog="""
+
+Use this command to see how the `--cut-fragment-file` option of
+`mmpdb fragment` works.
+
+A fragment file contains one fragment SMILES per line. Each fragment
+SMILES must contain one and only one wildcard atom ("*"), which marks
+the attachment point.
+
+Blank lines and leading whitespace are not supported. The SMILES ends
+at the first whitespace. Additional text on a line is ignored.
+
+Each fragment is turned into a SMARTS pattern which matches that
+fragment. By default the SMARTS patterns are converted into a
+recursive SMARTS with all of the fragments. Use --single to output the
+SMARTS for each SMILES.
+
+Use --check to verify that the final SMARTS matches the input
+fragments.
+
+"""
+)
+
+
+def frag2smarts_command(parser, args):
+    from . import fragment2smarts
+    fragment2smarts.frag2smarts_command(parser, args)
+
+p.add_argument("--smiles", metavar="SMILES", action="append",
+                   help="fragment SMILES to use, instead of from a file")
+p.add_argument("--single", "-s", action="store_true",
+                   help="generate a SMARTS for each pattern (default: generate a single recursive SMARTS)")
+p.add_argument("--check", "-c", action="store_true",
+                   help="check that the SMARTS are valid (default: assume they are valid)")
+p.add_argument("--explain", action="store_true",
+                   help="explain the conversion process to stderr")
+
+p.add_argument("fragment_filename", metavar="FILENAME", nargs="?",
+                help="file containing fragment SMILES")
+
+p.set_defaults(command=frag2smarts_command,
+               subparser=p)
 
 #### mmpdb index
 
