@@ -251,21 +251,20 @@ at the first whitespace. Additional text on a line is ignored.
 
 Each fragment is turned into a SMARTS pattern which matches that
 fragment. By default the SMARTS patterns are converted into a
-recursive SMARTS with all of the fragments. Use --single to output the
-SMARTS for each SMILES.
+recursive SMARTS with all of the fragments. Use `--single` to output
+the non-recursive SMARTS for each input SMILES.
 
-Use --check to verify that the final SMARTS matches the input
-fragments.
-
-"""
-)
+Use `--check` to verify that the final SMARTS matches the input
+fragments. Use `--cut-fragment` to specify the SMILES fragments on the
+command-line instead of from a file.
+""" )
 
 
 def frag2smarts_command(parser, args):
     from . import fragment2smarts
     fragment2smarts.frag2smarts_command(parser, args)
 
-p.add_argument("--smiles", metavar="SMILES", action="append",
+p.add_argument("--cut-fragment", metavar="SMILES", action="append",
                    help="fragment SMILES to use, instead of from a file")
 p.add_argument("--single", "-s", action="store_true",
                    help="generate a SMARTS for each pattern (default: generate a single recursive SMARTS)")

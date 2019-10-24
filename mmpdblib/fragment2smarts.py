@@ -39,9 +39,8 @@ def fragment_mol_to_smarts(mol):
     for idx, atom in enumerate(mol.GetAtoms()):
         if atom.HasProp("molAtomMapNumber"):
             atom_map = atom.GetProp("molAtomMapNumber")
-            if atom_map != "1":
-                raise ValueError("atom maps are not supported (atom %d has atommap %r)" % (
-                    idx, atom_map))
+            raise ValueError("atom maps are not supported (atom %d has atom map %r)" % (
+                idx, atom_map))
         
         # Figure out which atom is the wildcard
         atomno = atom.GetAtomicNum()
@@ -123,7 +122,8 @@ def fragment_mol_to_smarts(mol):
 
 class ParseError(ValueError):
     def __init__(self, msg, location):
-        super(ParseError, self).__init__(msg)
+        super(ParseError, self).__init__(msg, location)
+        self.msg = msg
         self.location = location
         self._where = location.where()
     def __str__(self):
@@ -131,9 +131,10 @@ class ParseError(ValueError):
 
 class ConversionError(ValueError):
     def __init__(self, msg, location, extra=None):
-        super(ConversionError, self).__init__(msg)
+        super(ConversionError, self).__init__(msg, location, extra)
+        self.msg = msg
         self.location = location
-        self.extra = None
+        self.extra = extra
         self._where = location.where()
     def __str__(self):
         if self.extra is None:
@@ -188,14 +189,14 @@ class Location(object):
 
 class FileLocation(Location):
     def __init__(self, source):
-        super(Location, self).__init__(source)
+        super(FileLocation, self).__init__(source)
         self.lineno = 0
 
     def where(self):
         if self.record_id is None:
-            return "%s, line %d" % (self.source, self.lineno)
+            return "%r, line %d" % (self.source, self.lineno)
         else:
-            return "%s, line %d, record %r" % (self.source, self.lineno, self.record_id)
+            return "%r, line %d, record %r" % (self.source, self.lineno, self.record_id)
 
     def __repr__(self):
         return "FileLocation(%r, record_id=%r, lineno=%d)" % (
@@ -241,7 +242,7 @@ def iter_smiles_as_smarts(record_reader, location, explain=None, all_mols=None):
         except ValueError as err:
             raise ConversionError(
                 "Cannot convert SMILES (%r)" % (smiles,),
-                location_error,
+                location,
                 str(err))
         
         explain("#%d: converted SMILES %r to SMARTS %r" % (location.recno, smiles, smarts))
@@ -260,11 +261,33 @@ def iter_smiles_as_smarts(record_reader, location, explain=None, all_mols=None):
             
         yield smarts
 
+def make_recursive_smarts(smarts_list):
+    terms = []
+    for smarts in smarts_list:
+        if not smarts.startswith("*-!@"):
+            raise ValueError("invalid prefix: %r" % (smarts,))
         
+        terms.append("$(" + smarts[4:] + ")")
+    return "*-!@[" + ",".join(terms) + "]"
+
+def get_recursive_smarts_from_cut_fragments(fragments, source="fragment", offset=0):
+    location = ListLocation(source, offset)
+    record_reader = iter_smiles_list(fragments, location)
+    iter_smarts = iter_smiles_as_smarts(record_reader, location)
+    return make_recursive_smarts(iter_smarts)
+
+def get_recursive_smarts_from_cut_filename(filename):
+    location = FileLocation(filename)
+    with open(filename) as infile:
+        record_reader = parse_fragment_file(infile, location)
+        iter_smarts = iter_smiles_as_smarts(record_reader, location)
+        return make_recursive_smarts(iter_smarts)
+
+    
 ###### Command-line code
 
 def die(msg):
-    sys.stdout.write(msg + "\n")
+    sys.stderr.write(msg + "\n")
     raise SystemExit(1)
 
 def frag2smarts_command(parser, args):
@@ -274,19 +297,19 @@ def frag2smarts_command(parser, args):
     filename = "<unknown>"
     close = None
     
-    if args.smiles is not None:
+    if args.cut_fragment is not None:
         if args.fragment_filename is not None:
-            parser.error("Cannot specify both a fragment filename and a fragment --smiles")
-        location = ListLocation("command-line SMILES", 1)
-        explain("Using SMILES from the command-line")
-        record_reader = iter_smiles_list(args.smiles, location)
+            parser.error("Cannot specify both a fragment filename and a --cut-fragment")
+        location = ListLocation("--cut-fragment SMILES", 1)
+        explain("Using --cut-fragment SMILES from the command-line")
+        record_reader = iter_smiles_list(args.cut_fragment, location)
         
     elif args.fragment_filename is not None:
         filename = args.fragment_filename
         explain("Reading SMILES from %r" % (filename,))
-        location = FileLocation(args.input)
+        location = FileLocation(args.fragment_filename)
         try:
-            f = open(args.input)
+            f = open(args.fragment_filename)
         except OSError as err:
             die("Cannot open input file: %s" % (err,))
         close = f.close
@@ -316,9 +339,9 @@ def frag2smarts_command(parser, args):
             all_smarts = []
             for smarts in iter_smarts:
                 assert smarts.startswith("*-!@"), (smarts, location)
-                all_smarts.append(smarts[4:])
+                all_smarts.append(smarts)
             if not all_smarts:
-                die("Cannot make a SMARTS: no SMILES strings found in %s" % (location.source,))
+                die("Cannot make a SMARTS: no SMILES strings found in %r" % (location.source,))
                 
     except ParseError as err:
         die("Cannot parse input file: %s" % (err,))
@@ -330,9 +353,7 @@ def frag2smarts_command(parser, args):
 
 
     if not args.single:
-        # Create the recursive SMILES
-        rest = "[" + ",".join("$(%s)" % smarts for smarts in all_smarts) + "]"
-        smarts = "*-!@" + rest
+        smarts = make_recursive_smarts(all_smarts)
         
         try:
             if check:
