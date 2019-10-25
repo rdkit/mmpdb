@@ -1,9 +1,9 @@
 # CHANGELOG
 
-## mmpdb 2.2 - 2019-11-01
+## mmpdb 2.2 - 2019-01-11
 
   This minor release contains improvements that help reducing the 
-  database size. MAny transformations and associated statistics inside
+  database size. Many transformations and associated statistics inside
   the database are unlikely to ever be used, since there are other 
   transformations that will yield the same compounds. To accomplish this, 
   three new options have been introduced:
