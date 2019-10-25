@@ -258,7 +258,7 @@ def make_recursive_smarts(smarts_list):
 
 def get_recursive_smarts_from_cut_rgroups(rgroups, source="rgroup", offset=0):
     location = ListLocation(source)
-    location.save(recno=1)
+    location.save(recno=offset)
     record_reader = iter_smiles_list(rgroups, location)
     iter_smarts = iter_smiles_as_smarts(record_reader, location)
     return make_recursive_smarts(iter_smarts)
