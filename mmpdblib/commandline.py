@@ -121,11 +121,13 @@ p = fragment_parser = subparsers.add_parser(
     help="fragment structures in a SMILES file based on its rotatable bonds",
     formatter_class=argparse.RawDescriptionHelpFormatter,
     epilog="""
-Fragment molecules in a SMILES file by breaking on 'cut bonds',
-as matched by --cut-smarts. Cut up to --num-cuts bonds. Don't
-fragment molecules with more than --max-rotatable-bonds bonds or
---max-heavies heavy atoms. Don't create multiple cuts if the fragments
-in the constant part have less than --min-heavies-per-const-frag atoms. 
+Fragment molecules in a SMILES file by breaking on 'cut bonds', as
+matched by --cut-smarts or the R-group SMILES of --cut-rgroup or
+--cut-rgroup-file. Cut up to --num-cuts bonds. Don't fragment
+molecules with more than --max-rotatable-bonds bonds or --max-heavies
+heavy atoms. Don't create multiple cuts if the fragments in the
+constant part have less than --min-heavies-per-const-frag atoms.  See
+'mmpdb rgroup2smarts' for details about cutting with R-group SMILES.
 
 The input structures come from a SMILES file. By default the fields
 are whitespace delimited, where the first column contains the SMILES
