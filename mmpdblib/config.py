@@ -221,10 +221,18 @@ def add_fragment_arguments(parser):
                    help="File containing RDKit SaltRemover definitions. The default ('<default>') "
                         "uses RDKit's standard salt remover. Use '<none>' to not remove salts.")
 
+    g = p.add_mutually_exclusive_group()
     alias_names = ", ".join(repr(alias.name) for alias in smarts_aliases.cut_smarts_aliases)
-    p.add_argument("--cut-smarts", metavar="SMARTS",
+    
+    g.add_argument("--cut-smarts", metavar="SMARTS",
                    help="alternate SMARTS pattern to use for cutting (default: %r), or use one of: %s"
                    % (OPTS.cut_smarts, alias_names))
+    
+    g.add_argument("--cut-rgroup", metavar="SMILES", action="append",
+                   help="cut on the attachment point for the given R-group SMILES")
+    
+    g.add_argument("--cut-rgroup-file", metavar="FILENAME",
+                   help="read R-group SMILES from the named file")
     
     p.add_argument("--num-cuts", choices=(1, 2, 3), type=parse_num_cuts_value,
                    help="number of cuts to use (default: %d)"

@@ -1,6 +1,7 @@
 # mmpdb - matched molecular pair database generation and analysis
 #
 # Copyright (c) 2015-2017, F. Hoffmann-La Roche Ltd.
+# Copyright (c) 2019, Andrew Dalke Scientific, AB
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
@@ -131,10 +132,36 @@ def get_fragment_options_from_args(parser, args):
 
     rotatable_smarts = get("rotatable_smarts")
 
-    cut_smarts = get("cut_smarts")
-    # Resolve any alias
-    if cut_smarts in smarts_aliases.cut_smarts_aliases_by_name:
-        cut_smarts = smarts_aliases.cut_smarts_aliases_by_name[cut_smarts].smarts
+    if args.cut_rgroup_file is not None:
+        assert not args.cut_rgroup, "should have been excluded"
+        assert args.cut_smarts is None, "should have been excluded"
+        from . import rgroup2smarts
+        try:
+            cut_smarts = rgroup2smarts.get_recursive_smarts_from_cut_filename(
+                args.cut_rgroup_file)
+        except OSError as err:
+            raise ValueError("Cannot use --cut-rgroup-file: %s" % (err,))
+        
+        except rgroup2smarts.ParseError as err:
+            raise ValueError("Cannot parse --cut-rgroup-file: %s" % (err,))
+            
+        except rgroup2smarts.ConversionError as err:
+            raise ValueError("Error in --cut-rgroup-file: %s" % (err,))
+
+    elif args.cut_rgroup:
+        assert args.cut_smarts is None, "should have been excluded"
+        from . import rgroup2smarts
+        try:
+            cut_smarts = rgroup2smarts.get_recursive_smarts_from_cut_rgroups(
+                args.cut_rgroup, source="--cut-rgroup", offset=1)
+        except rgroup2smarts.ConversionError as err:
+            raise ValueError(str(err))
+
+    else:
+        cut_smarts = get("cut_smarts")
+        # Resolve any alias
+        if cut_smarts in smarts_aliases.cut_smarts_aliases_by_name:
+            cut_smarts = smarts_aliases.cut_smarts_aliases_by_name[cut_smarts].smarts
     
     num_cuts = get("num_cuts")
     assert num_cuts in (1, 2, 3)
@@ -273,6 +300,7 @@ def get_fragment_filter(fragment_options):
     max_rotatable_bonds = options.max_rotatable_bonds
     rotatable_pattern = call(parse_rotatable_smarts, "rotatable_smarts")
     cut_pattern = call(parse_cut_smarts, "cut_smarts")
+        
     num_cuts = call(parse_num_cuts, "num_cuts")
     method = call(parse_method, "method")
     min_heavies_per_const_frag = options.min_heavies_per_const_frag
@@ -502,7 +530,11 @@ def fragment_command(parser, args):
     reporter = command_support.get_reporter(args.quiet)
     
     # Get the command-line fragment arguments
-    specified_args, options = get_fragment_options_from_args(parser, args)
+    try:
+        specified_args, fragment_options = get_fragment_options_from_args(parser, args)
+    except ValueError as err:
+        sys.stderr.write(str(err) + "\n")
+        raise SystemExit(1)
     
     # Use a cache?
     cache = None
@@ -527,7 +559,7 @@ def fragment_command(parser, args):
                 err.name, err.value, args.cache, err.reason))
     else:
         try:
-            fragment_filter = get_fragment_filter(options)
+            fragment_filter = get_fragment_filter(fragment_options)
         except FragmentValueError as err:
             parser.error("Error in command-line option %r (%r): %s" % (
                 _name_to_command_line(err.name), err.value, err.reason))
@@ -569,7 +601,11 @@ def fragment_command(parser, args):
 
 def smifrag_command(parser, args):
     reporter = command_support.get_reporter(args.quiet)
-    specified, fragment_options = get_fragment_options_from_args(parser, args)
+    try:
+        specified_args, fragment_options = get_fragment_options_from_args(parser, args)
+    except ValueError as err:
+        sys.stderr.write(str(err) + "\n")
+        raise SystemExit(1)
     fragment_filter = get_fragment_filter(fragment_options)
     record = make_fragment_record_from_smiles(args.smiles, fragment_filter)
     if record.errmsg:
