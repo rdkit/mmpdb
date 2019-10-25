@@ -231,16 +231,16 @@ p.set_defaults(command=smifrag_command,
 p.add_argument("smiles", metavar="SMILES",
                help="SMILES string to fragment")
 
-#### mmpdb frag2smarts
+#### mmpdb rgroup2smarts
 
-p = frag2smarts_parser = subparsers.add_parser(
-    "frag2smarts",
-    help="convert a fragment file into a SMARTS which matches all of the SMILES",
+p = rgroup2smarts_parser = subparsers.add_parser(
+    "rgroup2smarts",
+    help="convert an R-group file into a SMARTS which matches all of the SMILES",
     formatter_class=argparse.RawDescriptionHelpFormatter,
     epilog="""
 
-Use this command to see how the `--cut-fragment-file` option of
-`mmpdb fragment` works.
+This command is primarily meant for users to see how the `mmpdb
+fragment` parameters `--cut-rgroup` and `--cut-rgroup-file` work.
 
 A fragment file contains one fragment SMILES per line. Each fragment
 SMILES must contain one and only one wildcard atom ("*"), which marks
@@ -255,28 +255,28 @@ recursive SMARTS with all of the fragments. Use `--single` to output
 the non-recursive SMARTS for each input SMILES.
 
 Use `--check` to verify that the final SMARTS matches the input
-fragments. Use `--cut-fragment` to specify the SMILES fragments on the
+fragments. Use `--cut-rgroup` to specify the SMILES fragments on the
 command-line instead of from a file.
 """ )
 
 
-def frag2smarts_command(parser, args):
+def rgroup2smarts_command(parser, args):
     from . import fragment2smarts
-    fragment2smarts.frag2smarts_command(parser, args)
+    fragment2smarts.rgroup2smarts_command(parser, args)
 
-p.add_argument("--cut-fragment", metavar="SMILES", action="append",
-                   help="fragment SMILES to use, instead of from a file")
+p.add_argument("--cut-rgroup", metavar="SMILES", action="append",
+                   help="R-group SMILES to use")
 p.add_argument("--single", "-s", action="store_true",
-                   help="generate a SMARTS for each pattern (default: generate a single recursive SMARTS)")
+                   help="generate a SMARTS for each R-group SMILES (default: generate a single recursive SMARTS)")
 p.add_argument("--check", "-c", action="store_true",
-                   help="check that the SMARTS are valid (default: assume they are valid)")
+                   help="check that the SMARTS strings are valid (default: assume they are valid)")
 p.add_argument("--explain", action="store_true",
-                   help="explain the conversion process to stderr")
+                   help="write conversion and check details to stderr")
 
-p.add_argument("fragment_filename", metavar="FILENAME", nargs="?",
-                help="file containing fragment SMILES")
+p.add_argument("rgroup_filename", metavar="FILENAME", nargs="?",
+                help="file containing one or more R-group SMILES")
 
-p.set_defaults(command=frag2smarts_command,
+p.set_defaults(command=rgroup2smarts_command,
                subparser=p)
 
 #### mmpdb index

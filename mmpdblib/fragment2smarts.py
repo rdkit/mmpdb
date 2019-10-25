@@ -1,4 +1,4 @@
-# Convert a molecule fragment into a SMARTS pattern.
+# Convert a R-group SMILES into a SMARTS pattern.
 # Must be rooted at "*", with one single bond.
 
 # The algorithm is:
@@ -23,8 +23,8 @@ from . import command_support
 # Match the atom terms. These are all in brackets.
 _atom_term = re.compile(r"\[([^]]+)\]")
 
-def fragment_mol_to_smarts(mol):
-    """mol -> SMARTS matching the fragment R-group
+def rgroup_mol_to_smarts(mol):
+    """mol -> SMARTS matching the R-group
 
     'mol' contain a single wildcard atom ("*") with one
     single bond to the rest of the R-group.
@@ -149,7 +149,7 @@ class Record(object):
     def __repr__(self):
         return "Record(%r, id=%r)" % (self.smiles, self.id)
         
-def parse_fragment_file(infile, location=None):
+def parse_rgroup_file(infile, location=None):
     if location is None:
         location = FileLocation(getattr(infile, "name", "<unknown>"))
 
@@ -238,7 +238,7 @@ def iter_smiles_as_smarts(record_reader, location, explain=None, all_mols=None):
                 location
                 )
         try:
-            smarts = fragment_mol_to_smarts(mol)
+            smarts = rgroup_mol_to_smarts(mol)
         except ValueError as err:
             raise ConversionError(
                 "Cannot convert SMILES (%r)" % (smiles,),
@@ -270,16 +270,16 @@ def make_recursive_smarts(smarts_list):
         terms.append("$(" + smarts[4:] + ")")
     return "*-!@[" + ",".join(terms) + "]"
 
-def get_recursive_smarts_from_cut_fragments(fragments, source="fragment", offset=0):
+def get_recursive_smarts_from_cut_rgroups(rgroups, source="rgroup", offset=0):
     location = ListLocation(source, offset)
-    record_reader = iter_smiles_list(fragments, location)
+    record_reader = iter_smiles_list(rgroups, location)
     iter_smarts = iter_smiles_as_smarts(record_reader, location)
     return make_recursive_smarts(iter_smarts)
 
 def get_recursive_smarts_from_cut_filename(filename):
     location = FileLocation(filename)
     with open(filename) as infile:
-        record_reader = parse_fragment_file(infile, location)
+        record_reader = parse_rgroup_file(infile, location)
         iter_smarts = iter_smiles_as_smarts(record_reader, location)
         return make_recursive_smarts(iter_smarts)
 
@@ -290,35 +290,35 @@ def die(msg):
     sys.stderr.write(msg + "\n")
     raise SystemExit(1)
 
-def frag2smarts_command(parser, args):
+def rgroup2smarts_command(parser, args):
     check = args.check
     explain = command_support.get_explain(args.explain)
     
     filename = "<unknown>"
     close = None
     
-    if args.cut_fragment is not None:
-        if args.fragment_filename is not None:
-            parser.error("Cannot specify both a fragment filename and a --cut-fragment")
-        location = ListLocation("--cut-fragment SMILES", 1)
-        explain("Using --cut-fragment SMILES from the command-line")
-        record_reader = iter_smiles_list(args.cut_fragment, location)
+    if args.cut_rgroup is not None:
+        if args.rgroup_filename is not None:
+            parser.error("Cannot specify both an R-group filename and a --cut-rgroup")
+        location = ListLocation("--cut-rgroup SMILES", 1)
+        explain("Using --cut-rgroup SMILES from the command-line")
+        record_reader = iter_smiles_list(args.cut_rgroup, location)
         
-    elif args.fragment_filename is not None:
-        filename = args.fragment_filename
-        explain("Reading SMILES from %r" % (filename,))
-        location = FileLocation(args.fragment_filename)
+    elif args.rgroup_filename is not None:
+        filename = args.rgroup_filename
+        explain("Reading R-group SMILES from %r" % (filename,))
+        location = FileLocation(args.rgroup_filename)
         try:
-            f = open(args.fragment_filename)
+            f = open(args.rgroup_filename)
         except OSError as err:
             die("Cannot open input file: %s" % (err,))
         close = f.close
-        record_reader = parse_fragment_file(f, location)
+        record_reader = parse_rgroup_file(f, location)
         
     else:
-        explain("Reading SMILES from <stdin>")
+        explain("Reading R-group SMILES from <stdin>")
         location = FileLocation("<stdin>")
-        record_reader = parse_fragment_file(sys.stdin, location)
+        record_reader = parse_rgroup_file(sys.stdin, location)
 
     if check:
         all_mols = []
