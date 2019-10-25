@@ -2,7 +2,7 @@ import sys
 import unittest
 
 from mmpdblib import commandline
-from mmpdblib import fragment2smarts
+from mmpdblib import rgroup2smarts
 
 import support
 

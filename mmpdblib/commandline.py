@@ -261,8 +261,8 @@ command-line instead of from a file.
 
 
 def rgroup2smarts_command(parser, args):
-    from . import fragment2smarts
-    fragment2smarts.rgroup2smarts_command(parser, args)
+    from . import rgroup2smarts
+    rgroup2smarts.rgroup2smarts_command(parser, args)
 
 p.add_argument("--cut-rgroup", metavar="SMILES", action="append",
                    help="R-group SMILES to use")
