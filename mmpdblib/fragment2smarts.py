@@ -19,6 +19,7 @@ from rdkit import Chem
 import argparse
 
 from . import command_support
+from . import fileio
 
 # Match the atom terms. These are all in brackets.
 _atom_term = re.compile(r"\[([^]]+)\]")
@@ -152,75 +153,60 @@ class Record(object):
 def parse_rgroup_file(infile, location=None):
     if location is None:
         location = FileLocation(getattr(infile, "name", "<unknown>"))
-
     recno = 0
-    for lineno, line in enumerate(infile, 1):
-        location.lineno = lineno
-        if line == "\n":
-            raise ParseError("no SMILES found", location)
-            
-        if line[:1] in "\r\v\t ":
-            raise ParseError("expected SMILES at start of line", location)
-            
-        terms = line.split(None, 1)
-        if not terms:
-            raise ParseError("no SMILES found", location)
-        elif len(terms) == 1:
-            rec = Record(terms[0], None)
-        else:
-            rec = Record(terms[0], terms[1].rstrip("\n\r"))
-        recno += 1
-        location.recno = recno
-        yield rec
+    lineno = 0
+    def get_recno():
+        return lineno
+    def get_lineno():
+        return lineno
+    location.register(get_recno=get_recno, get_lineno=get_lineno)
+
+    try:
+        for lineno, line in enumerate(infile, 1):
+            if line == "\n":
+                raise ParseError("no SMILES found", location)
+
+            if line[:1] in "\r\v\t ":
+                raise ParseError("expected SMILES at start of line", location)
+
+            terms = line.split(None, 1)
+            if not terms:
+                raise ParseError("no SMILES found", location)
+            elif len(terms) == 1:
+                rec = Record(terms[0], None)
+            else:
+                rec = Record(terms[0], terms[1].rstrip("\n\r"))
+            yield rec
+    finally:
+        location.save(recno=recno, lineno=lineno)
             
 ######
 
-class Location(object):
-    def __init__(self, source, record_id=None):
-        self.source = source
-        self.record_id = record_id
-        self.recno = 0
-        
-    def where(self):
-        if self.record_id is None:
-            return "%s" % (self.source,)
-        else:
-            return "%s, record %r" % (self.source, self.record_id)
-
-class FileLocation(Location):
-    def __init__(self, source):
-        super(FileLocation, self).__init__(source)
-        self.lineno = 0
+class FileLocation(fileio.Location):
 
     def where(self):
         if self.record_id is None:
-            return "%r, line %d" % (self.source, self.lineno)
+            return "%r, line %d" % (self.filename, self.lineno)
         else:
-            return "%r, line %d, record %r" % (self.source, self.lineno, self.record_id)
+            return "%r, line %d, record %r" % (self.filename, self.lineno, self.record_id)
 
-    def __repr__(self):
-        return "FileLocation(%r, record_id=%r, lineno=%d)" % (
-            self.source, self.record_id, self.lineno)
-
-class ListLocation(Location):
-    def __init__(self, source, initial_index=0):
-        super(ListLocation, self).__init__(source)
-        self.index = initial_index
-        
+class ListLocation(fileio.Location):
     def where(self):
         if self.record_id is None:
-            return "%s #%s" % (self.source, self.index)
+            return "%s #%s" % (self.filename, self.recno)
         else:
-            return "%s #%s, record %r" % (self.source, self.index, self.record_id)
-
-    def __repr__(self):
-        return "ListLocation(%r, record_id=%r, index=%d)" % (
-            self.source, self.record_id, self.index)
+            return "%s #%s, record %r" % (self.source, self.recno, self.record_id)
 
 def iter_smiles_list(smiles_iter, location):
-    for i, smiles in enumerate(smiles_iter, location.index):
-        location.index = location.recno = i
-        yield Record(smiles, None)
+    recno = location.recno
+    def get_recno():
+        return recno
+    location.register(get_recno=get_recno)
+    try:
+        for recno, smiles in enumerate(smiles_iter, recno):
+            yield Record(smiles, None)
+    finally:
+        location.save(recno=recno)
 
 
         
@@ -271,12 +257,14 @@ def make_recursive_smarts(smarts_list):
     return "*-!@[" + ",".join(terms) + "]"
 
 def get_recursive_smarts_from_cut_rgroups(rgroups, source="rgroup", offset=0):
-    location = ListLocation(source, offset)
+    location = ListLocation(source)
+    location.save(recno=1)
     record_reader = iter_smiles_list(rgroups, location)
     iter_smarts = iter_smiles_as_smarts(record_reader, location)
     return make_recursive_smarts(iter_smarts)
 
 def get_recursive_smarts_from_cut_filename(filename):
+    
     location = FileLocation(filename)
     with open(filename) as infile:
         record_reader = parse_rgroup_file(infile, location)
@@ -300,7 +288,8 @@ def rgroup2smarts_command(parser, args):
     if args.cut_rgroup is not None:
         if args.rgroup_filename is not None:
             parser.error("Cannot specify both an R-group filename and a --cut-rgroup")
-        location = ListLocation("--cut-rgroup SMILES", 1)
+        location = ListLocation("--cut-rgroup SMILES")
+        location.save(recno=1)
         explain("Using --cut-rgroup SMILES from the command-line")
         record_reader = iter_smiles_list(args.cut_rgroup, location)
         
@@ -341,7 +330,7 @@ def rgroup2smarts_command(parser, args):
                 assert smarts.startswith("*-!@"), (smarts, location)
                 all_smarts.append(smarts)
             if not all_smarts:
-                die("Cannot make a SMARTS: no SMILES strings found in %r" % (location.source,))
+                die("Cannot make a SMARTS: no SMILES strings found in %r" % (location.filename,))
                 
     except ParseError as err:
         die("Cannot parse input file: %s" % (err,))
