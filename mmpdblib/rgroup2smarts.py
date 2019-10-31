@@ -69,6 +69,12 @@ def rgroup_mol_to_smarts(mol):
     wildcard_idx = -1
     suffixes = []
 
+    n = len(Chem.GetMolFrags(mol))
+    if n > 1:
+        raise ValueError("more than one fragment found")
+    # Could also check for n == 0. Decided to leave that
+    # for the check for no wildcard atom.
+    
     for idx, atom in enumerate(mol.GetAtoms()):
         if atom.HasProp("molAtomMapNumber"):
             atom_map = atom.GetProp("molAtomMapNumber")

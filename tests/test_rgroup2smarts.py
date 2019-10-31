@@ -303,12 +303,13 @@ _bad_smiles_inputs = [
     ("c1ccccc1", "Cannot convert SMILES ('c1ccccc1') at --cut-rgroup SMILES #1: no wildcard atom found\n"),
     ("*CN*", "Cannot convert SMILES ('*CN*') at --cut-rgroup SMILES #1: more than one wildcard atom\n"),
     ("*N[CH3:1]", "Cannot convert SMILES ('*N[CH3:1]') at --cut-rgroup SMILES #1: atom maps are not supported (atom 2 has atom map '1')\n"),
-    ("*.Cl", "Cannot convert SMILES ('*.Cl') at --cut-rgroup SMILES #1: wildcard atom not bonded to anything\n"),
+    ("*", "Cannot convert SMILES ('*') at --cut-rgroup SMILES #1: wildcard atom not bonded to anything\n"),
     ("*N *=O", "Cannot convert SMILES ('*=O') at --cut-rgroup SMILES #2: wildcard atom not bonded via a single bond\n"),
     ("[*H]F", "Cannot convert SMILES ('[*H]F') at --cut-rgroup SMILES #1: wildcard atom must not have implicit hydrogens\n"),
     ("[*-]F", "Cannot convert SMILES ('[*-]F') at --cut-rgroup SMILES #1: wildcard atom must be uncharged\n"),
     ("[*+2]F", "Cannot convert SMILES ('[*+2]F') at --cut-rgroup SMILES #1: wildcard atom must be uncharged\n"),
     ("Cl*F", "Cannot convert SMILES ('Cl*F') at --cut-rgroup SMILES #1: wildcard atom must only have one bond\n"),
+    ("*Cl.F", "Cannot convert SMILES ('*Cl.F') at --cut-rgroup SMILES #1: more than one fragment found\n"),
     ]
 
 class TestCommandlineFailures(unittest.TestCase):
