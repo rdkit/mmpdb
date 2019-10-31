@@ -1,6 +1,7 @@
 # mmpdb - matched molecular pair database generation and analysis
 #
 # Copyright (c) 2015-2017, F. Hoffmann-La Roche Ltd.
+# Copyright (c) 2019, Andrew Dalke Scientific, AB
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
@@ -40,7 +41,7 @@ from mmpdblib.config import DEFAULT_FRAGMENT_OPTIONS
 
 from support import (
     redirect_stdin, capture_stdout, capture_stderr,
-    get_filename, create_testdir_and_filename, StringIO)
+    get_filename, create_testdir_and_filename, create_test_filename, StringIO)
 
 TAB_SMI = get_filename("tab.smi")
 TWO_TABS_SMI = get_filename("two_tabs.smi")
@@ -600,7 +601,136 @@ class TestSmiFrag(unittest.TestCase):
             ['1', 'N', '1', '1', FIX('[*]C'), '0', '3', '1', FIX('[*]CCC'), 'CCC'],
             ['1', 'N', '2', '1', FIX('[*]CC'), '0', '2', '1', FIX('[*]CC'), 'CC']
             ])
+
+
+class TestFragmentCutRGroups(unittest.TestCase):
+    def test_one_cut_rgroup(self):
+        reader, records = fragment(SPACE_SMI, "--cut-rgroup", "Oc1ccccc1*")
+        self.assertEqual(len(records), 3)
+
+        record = records[0]
+        self.assertEqual(record.normalized_smiles, "Oc1ccccc1O")
+        self.assertEqual(len(record.fragments), 3)
+        variable_smiles_set = set(frag.variable_smiles for frag in record.fragments)
+        self.assertEqual(variable_smiles_set, set(
+            ("*O", "*c1ccccc1O", "*c1ccccc1*")))
+
+        record = records[1]
+        self.assertEqual(record.normalized_smiles, "Cc1ccccc1N")
+        self.assertEqual(len(record.fragments), 0)
+
+        record = records[2]
+        self.assertEqual(record.normalized_smiles, "Cc1ccc(S)cc1N")
+        self.assertEqual(len(record.fragments), 0)
+
+    def test_two_cut_rgroups(self):
+        reader, records = fragment(SPACE_SMI, "--cut-rgroup", "Oc1ccccc1*", "--cut-rgroup", "*c1ccccc1N")
+        self.assertEqual(len(records), 3)
+
+        record = records[0]
+        self.assertEqual(record.normalized_smiles, "Oc1ccccc1O")
+        self.assertEqual(len(record.fragments), 3)
+        variable_smiles_set = set(frag.variable_smiles for frag in record.fragments)
+        self.assertEqual(variable_smiles_set, set(
+            ("*O", "*c1ccccc1O", "*c1ccccc1*")))
+
+        record = records[1]
+        self.assertEqual(record.normalized_smiles, "Cc1ccccc1N")
+        self.assertEqual(len(record.fragments), 2)
+        variable_smiles_set = set(frag.variable_smiles for frag in record.fragments)
+        self.assertEqual(variable_smiles_set, set(
+            ("*C", "*c1ccccc1N")))
+
+        record = records[2]
+        self.assertEqual(record.normalized_smiles, "Cc1ccc(S)cc1N")
+        self.assertEqual(len(record.fragments), 0)
+
+    def test_invalid_cut_rgroup(self):
+        stderr = fragment_fail(SPACE_SMI, "--cut-rgroup", "Oc1ccccc1*", "--cut-rgroup", "c1ccccc1N")
+        self.assertEqual(stderr, "Cannot convert SMILES ('c1ccccc1N') at --cut-rgroup #2: no wildcard atom found\n")
+
+    ### R-groups from file
+
+    def test_cut_rgroup_filename(self):
+        filename = create_test_filename(self, "rgroups.txt")
+        with open(filename, "w") as f:
+            f.write("*O\n"
+                    "*N\n")
+            
+        reader, records = fragment(SPACE_SMI, "--cut-rgroup-file", filename)
         
+        record = records[0]
+        self.assertEqual(record.normalized_smiles, "Oc1ccccc1O")
+        self.assertEqual(len(record.fragments), 3)
+        variable_smiles_set = set(frag.variable_smiles for frag in record.fragments)
+        self.assertEqual(variable_smiles_set, set(
+            ("*O", "*c1ccccc1O", "*c1ccccc1*")))
+
+        record = records[1]
+        self.assertEqual(record.normalized_smiles, "Cc1ccccc1N")
+        self.assertEqual(len(record.fragments), 2)
+        variable_smiles_set = set(frag.variable_smiles for frag in record.fragments)
+        self.assertEqual(variable_smiles_set, set(
+            ("*N", "*c1ccccc1C")))
+
+        record = records[2]
+        self.assertEqual(record.normalized_smiles, "Cc1ccc(S)cc1N")
+        self.assertEqual(len(record.fragments), 2)
+        variable_smiles_set = set(frag.variable_smiles for frag in record.fragments)
+        self.assertEqual(variable_smiles_set, set(
+            ("*N", "*c1cc(S)ccc1C")))
+        
+    def test_missing_rgroup_filename(self):
+        filename = create_test_filename(self, "rgroups.txt")
+        stderr = fragment_fail(SPACE_SMI, "--cut-rgroup-file", filename)
+        self.assertIn("Cannot use --cut-rgroup-file", stderr)
+        self.assertIn(repr(filename), stderr)
+        self.assertIn("No such file or directory", stderr)
+
+class TestSmiFragCutRGroups(unittest.TestCase):
+    def test_one_cut_rgroup(self):
+        result = smifrag("Oc1ccccc1N", "--cut-rgroup", "Oc1ccccc1*")
+        self.assertEqual(result, [
+            ['1', 'N', '1', '1', '*N', '0', '7', '1', '*c1ccccc1O', 'Oc1ccccc1'],
+            ['1', 'N', '7', '1', '*c1ccccc1O', '0', '1', '1', '*N', 'N']
+            ])
+        
+    def test_two_cut_rgroups(self):
+        result = smifrag("Cc1ccccc1N", "--cut-rgroup", "Oc1ccccc1*", "--cut-rgroup", "*c1ccccc1N")
+        self.assertEqual(result, [
+            ['1', 'N', '7', '1', '*c1ccccc1N', '0', '1', '1', '*C', 'C'],
+            ['1', 'N', '1', '1', '*C', '0', '7', '1', '*c1ccccc1N', 'Nc1ccccc1']
+            ])
+
+    def test_invalid_cut_rgroup(self):
+        errmsg = smifrag_fail("Cc1ccccc1N", "--cut-rgroup", "Oc1ccccc1*", "--cut-rgroup", "FCl")
+        self.assertEqual(errmsg, "Cannot convert SMILES ('FCl') at --cut-rgroup #2: no wildcard atom found\n")
+
+    ### R-groups from file
+
+    def test_cut_rgroup_filename(self):
+        filename = create_test_filename(self, "rgroups.txt")
+        with open(filename, "w") as f:
+            f.write("*O\n"
+                    "*N\n")
+
+        result = smifrag("Cc1cc(O)ccc1N", "--cut-rgroup-file", filename)
+        self.assertEqual(result, [
+            ['1', 'N', '1', '1', '*O', '0', '8', '1', '*c1ccc(N)c(C)c1', 'Cc1ccccc1N'],
+            ['1', 'N', '8', '1', '*c1ccc(N)c(C)c1', '0', '1', '1', '*O', 'O'],
+            ['2', 'N', '7', '12', '*c1ccc(*)c(C)c1', '10', '2', '12', '*N.*O', '-'],
+            ['1', 'N', '1', '1', '*N', '0', '8', '1', '*c1ccc(O)cc1C', 'Cc1cccc(O)c1'],
+            ['1', 'N', '8', '1', '*c1ccc(O)cc1C', '0', '1', '1', '*N', 'N']
+            ])
+        
+    def test_missing_rgroup_filename(self):
+        filename = create_test_filename(self, "rgroups.txt")
+        stderr = smifrag_fail("Nc1ccccc1O", "--cut-rgroup-file", filename)
+        self.assertIn("Cannot use --cut-rgroup-file", stderr)
+        self.assertIn(repr(filename), stderr)
+        self.assertIn("No such file or directory", stderr)
+
+
 # TODO: Add a large number of tests for the different interesting ways to fragment.
 #  - check for chiral
 #  - check for directional bonds

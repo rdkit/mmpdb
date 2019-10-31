@@ -1,4 +1,4 @@
-# mmpdb 2.2 - matched molecular pair database generation and analysis
+# mmpdb 2.2-dev1 - matched molecular pair database generation and analysis
 
 
 ## Synopsis
@@ -186,7 +186,9 @@ the "`--help`" option on each command for details.
 Use "`mmpdb help-smiles-format`" for details about to parse different
 variants of the SMILES file format.
 
-
+The "`--cut-smarts`" option sets the SMARTS pattern used to determine
+which bonds to cut during fragmentation. Use "`--cut-rgroups`" or
+"`--cut-rgroup-file`" to cut R-groups specified by fragment SMILES.
 
 #### 2) Index the MMPA fragments to create a database
 

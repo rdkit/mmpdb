@@ -23,6 +23,7 @@ include mmpdblib/do_index.py
 include mmpdblib/drop_index.sql
 include mmpdblib/environment.py
 include mmpdblib/fileio.py
+include mmpdblib/frag2smarts.py
 include mmpdblib/fragment_algorithm.py
 include mmpdblib/fragment_io.py
 include mmpdblib/fragment_types.py
@@ -54,6 +55,8 @@ include tests/test_data.fragments
 include tests/test_data.mmpdb
 include tests/test_data.smi
 include tests/test_data_2018.mmpdb
+include tests/test_data_2019.mmpdb
+include tests/test_frag2smarts.py
 include tests/test_fragment.py
 include tests/test_index.py
 include tests/two_tabs.smi

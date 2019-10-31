@@ -37,7 +37,7 @@ with open("README.md") as f:
 
 setup(
     name="mmpdb",
-    version="2.2",
+    version="2.3-dev1",
     description="A package to identify matched molecular pairs and use them to predict property changes",
     author="Andrew Dalke",
     author_email="dalke@dalkescientific.com",

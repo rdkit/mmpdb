@@ -1,6 +1,7 @@
 # mmpdb - matched molecular pair database generation and analysis
 #
 # Copyright (c) 2015-2017, F. Hoffmann-La Roche Ltd.
+# Copyright (c) 2019, Andrew Dalke Scientific, AB
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
@@ -120,11 +121,13 @@ p = fragment_parser = subparsers.add_parser(
     help="fragment structures in a SMILES file based on its rotatable bonds",
     formatter_class=argparse.RawDescriptionHelpFormatter,
     epilog="""
-Fragment molecules in a SMILES file by breaking on 'cut bonds',
-as matched by --cut-smarts. Cut up to --num-cuts bonds. Don't
-fragment molecules with more than --max-rotatable-bonds bonds or
---max-heavies heavy atoms. Don't create multiple cuts if the fragments
-in the constant part have less than --min-heavies-per-const-frag atoms. 
+Fragment molecules in a SMILES file by breaking on 'cut bonds', as
+matched by --cut-smarts or the R-group SMILES of --cut-rgroup or
+--cut-rgroup-file. Cut up to --num-cuts bonds. Don't fragment
+molecules with more than --max-rotatable-bonds bonds or --max-heavies
+heavy atoms. Don't create multiple cuts if the fragments in the
+constant part have less than --min-heavies-per-const-frag atoms.  See
+'mmpdb rgroup2smarts' for details about cutting with R-group SMILES.
 
 The input structures come from a SMILES file. By default the fields
 are whitespace delimited, where the first column contains the SMILES
@@ -229,6 +232,54 @@ p.set_defaults(command=smifrag_command,
                subparser=p)
 p.add_argument("smiles", metavar="SMILES",
                help="SMILES string to fragment")
+
+#### mmpdb rgroup2smarts
+
+p = rgroup2smarts_parser = subparsers.add_parser(
+    "rgroup2smarts",
+    help="convert an R-group file into a SMARTS which matches all of the SMILES",
+    formatter_class=argparse.RawDescriptionHelpFormatter,
+    epilog="""
+
+This command is primarily meant for users to see how the `mmpdb
+fragment` parameters `--cut-rgroup` and `--cut-rgroup-file` work.
+
+A fragment file contains one fragment SMILES per line. Each fragment
+SMILES must contain one and only one wildcard atom ("*"), which marks
+the attachment point.
+
+Blank lines and leading whitespace are not supported. The SMILES ends
+at the first whitespace. Additional text on a line is ignored.
+
+Each fragment is turned into a SMARTS pattern which matches that
+fragment. By default the SMARTS patterns are converted into a
+recursive SMARTS with all of the fragments. Use `--single` to output
+the non-recursive SMARTS for each input SMILES.
+
+Use `--check` to verify that the final SMARTS matches the input
+fragments. Use `--cut-rgroup` to specify the SMILES fragments on the
+command-line instead of from a file.
+""" )
+
+
+def rgroup2smarts_command(parser, args):
+    from . import rgroup2smarts
+    rgroup2smarts.rgroup2smarts_command(parser, args)
+
+p.add_argument("--cut-rgroup", metavar="SMILES", action="append",
+                   help="R-group SMILES to use")
+p.add_argument("--single", "-s", action="store_true",
+                   help="generate a SMARTS for each R-group SMILES (default: generate a single recursive SMARTS)")
+p.add_argument("--check", "-c", action="store_true",
+                   help="check that the SMARTS strings are valid (default: assume they are valid)")
+p.add_argument("--explain", action="store_true",
+                   help="write conversion and check details to stderr")
+
+p.add_argument("rgroup_filename", metavar="FILENAME", nargs="?",
+                help="file containing one or more R-group SMILES")
+
+p.set_defaults(command=rgroup2smarts_command,
+               subparser=p)
 
 #### mmpdb index
 

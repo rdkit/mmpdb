@@ -1,9 +1,35 @@
 # CHANGELOG
 
-## mmpdb 2.2 - 2019-11-01
+## mmpdb (in development)
+
+The `fragment` and `smifrag` commands now support options for
+supervised fragmentation based on a specified set of R-group SMILES to
+use for the fragmentation. Multiple SMILES can be specified on the
+command-line using the `--cut-rgroup` argument, with one SMILES per
+argument, or using the `--cut-rgroup-file` argument with the name of
+an R-group file. The file must be formatted with one R-group SMILES
+per line.
+
+All SMILES strings must contain a single wildcard atom ("*"), which
+indicates the attachment point. The wildcard atom must contain only
+one single bond to the rest of the R-group, and cannot contain charge,
+hydrogens, isotope, or other properties.
+
+The SMILES strings are converted into a SMARTS pattern which matchs
+the SMILES exactly (each atom must have the same valence and hydrogen
+count, and the bond types must match). These SMARTS patterns are then
+merged into a single recusive SMARTS with two terms: the wildcard
+atom, single bonded to a recursive SMARTS term for each of the SMILES
+strings.
+
+The new `rgroup2smarts` command can be used to process the R-group
+SMILES into SMARTS, as a way to examine the conversion process and
+verify that it works.
+
+## mmpdb 2.2 - 2019-01-11
 
   This minor release contains improvements that help reducing the 
-  database size. MAny transformations and associated statistics inside
+  database size. Many transformations and associated statistics inside
   the database are unlikely to ever be used, since there are other 
   transformations that will yield the same compounds. To accomplish this, 
   three new options have been introduced:
