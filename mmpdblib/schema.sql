@@ -67,7 +67,6 @@ CREATE TABLE dataset (
 );
 
 
-
 -- Each used input structure gets its own 'compound'
 -- This table might not exist for rule-only data sets.
 
@@ -79,12 +78,14 @@ CREATE TABLE compound (
   clean_num_heavies INTEGER NOT NULL $COLLATE$  -- the number of heavies in the cleaned SMILES (needed?)
   );
 
+
 -- Normalized property names (eg, "IC50" might be mapped to 3).
 
 CREATE TABLE property_name (
   id $PRIMARY_KEY$,
   name VARCHAR(255) NOT NULL $COLLATE$
   );
+
 
 -- Properties for each input compound
 
@@ -97,7 +98,6 @@ CREATE TABLE compound_property (
   FOREIGN KEY (property_name_id) REFERENCES property_name (id)
   );
 
--- -- A matched molecular pair rule
 
 -- Normalized SMILES for the LHS or RHS of the rule transformation SMILES.
 CREATE TABLE rule_smiles (
@@ -107,6 +107,17 @@ CREATE TABLE rule_smiles (
 );
 
 
+-- The "constant_part" (also called the context) is the substructure
+-- which remains constant in the transformation. It typically has one
+-- or more R-groups. It is omitted from the transformation A>>B.
+
+CREATE TABLE constant_smiles (
+  id $PRIMARY_KEY$,
+  smiles VARCHAR(255)
+  );
+
+
+-- -- A matched molecular pair rule
 
 CREATE TABLE rule (
   id $PRIMARY_KEY$,
@@ -118,9 +129,19 @@ CREATE TABLE rule (
   to_smiles_id INTEGER NOT NULL REFERENCES rule_smiles(id)
   );
 
--- The "constant_part" (also called the context) is the substructure
--- which remains constant in the transformation. It typically has one
--- or more R-groups. It is omitted from the transformation A>>B.
+
+-- Table with normalized fingerprints for the rule_environment.
+
+-- Fingerprints are based on the RDKit Morgan (ECFP-like) circular
+-- fingerprints. They are only used for equality testing. To save
+-- space, they are SHA2 hashed then base64 coded, so only 43 bytes
+-- (344 bits) are needed.  They cannot be used for similarity testing.
+
+CREATE TABLE environment_fingerprint (
+ id INTEGER PRIMARY KEY,
+ fingerprint VARCHAR(43) NOT NULL $COLLATE$,  -- the base64-encoded SHA2
+ parent_id INTEGER   --Allow figuring out the parent of a given Env-FP
+ );
 
 
 -- A rule can have multiple rule environment, one per radius.
@@ -134,18 +155,6 @@ CREATE TABLE rule_environment (
  -- (the rule_env..._statistics "count" is the number of pairs with a given property)
  );
 
--- Table with normalized fingerprints for the rule_environment.
-
--- Fingerprints are based on the RDKit Morgan (ECFP-like) circular
--- fingerprints. They are only used for equality testing. To save
--- space, they are SHA2 hashed then base64 coded, so only 43 bytes
--- (344 bits) are needed.  They cannot be used for simliarity testing.
-
-CREATE TABLE environment_fingerprint (
- id INTEGER PRIMARY KEY,
- fingerprint VARCHAR(43) NOT NULL $COLLATE$  -- the base64-encoded SHA2
- );
-
 
 -- The pairs that belong to a rule_environment
 
@@ -157,10 +166,6 @@ CREATE TABLE pair (
   constant_id INTEGER REFERENCES constant_smiles(id)
   );
 
-CREATE TABLE constant_smiles (
-  id $PRIMARY_KEY$,
-  smiles VARCHAR(255)
-  );
 
 -- The aggregate property deltas for each rule environment
 

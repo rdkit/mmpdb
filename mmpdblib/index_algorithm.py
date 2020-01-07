@@ -1112,6 +1112,22 @@ class EnvironmentFingerprintTable(dict):
         return idx
 
 
+# Introduced to allow parent idx in Env-FP table
+class EnvironmentFingerprintTableParent:
+    def __init__(self, backend):
+        self.backend = backend
+        self.EnvironmentFingerprint = {}
+
+    def check(self, env_fp, parent_idx):
+        if env_fp in self.EnvironmentFingerprint:
+            return self.EnvironmentFingerprint[env_fp]
+        else:
+            idx = len(self.EnvironmentFingerprint)
+            self.backend.add_environment_fingerprint_parent(idx, env_fp, parent_idx)
+            self.EnvironmentFingerprint[env_fp] = idx
+            return idx
+
+
 class CompoundTable(dict):
     def __init__(self, fragment_index, property_name_idxs, properties, backend):
         self.fragment_index = fragment_index
@@ -1153,7 +1169,8 @@ class MMPWriter(BaseWriter):
         self._rule_smiles_table = RuleSmilesTable(self.backend)
         self._constant_smiles_table = ConstantSmilesTable(self.backend)
         self._rule_table = RuleTable(self._rule_smiles_table, self.backend)
-        self._fingerprint_table = EnvironmentFingerprintTable(self.backend)
+        #self._fingerprint_table = EnvironmentFingerprintTable(self.backend)    # Removed for parent indexing
+        self._fingerprint_table = EnvironmentFingerprintTableParent(self.backend)     # Added for parent indexing
         self._compound_table = CompoundTable(
             self.fragment_index, property_name_idxs, self.properties, self.backend)
         self._rule_environment_table = RuleEnvironmentTable(
@@ -1219,8 +1236,11 @@ class MMPWriter(BaseWriter):
         # XXX Add another layer of cache? I don't think it makes much sense.
         env_fps = self._environment_cache.get_or_compute_constant_environment(constant_smiles, max_radius)
         rule_envs = []
+        parent = -1          # Added for parent indexing
         for env_fp in env_fps:
-            env_fp_idx = self._fingerprint_table[env_fp.fingerprint]
+            #env_fp_idx = self._fingerprint_table[env_fp.fingerprint]        # Commented out for parent indexing
+            env_fp_idx = self._fingerprint_table.check(env_fp.fingerprint, parent)     # Modified for parent indexing
+            parent = env_fp_idx      # Added for parent indexing
             # NOTE: "string-encoded-key"
             # Originally I stored the tuple directly. This ends up using a lot of space
             # because there can be tens of millions of rule environments. A 3-element

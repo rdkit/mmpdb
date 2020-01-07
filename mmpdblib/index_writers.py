@@ -101,6 +101,10 @@ class TableIndexWriter(object):
     def add_environment_fingerprint(self, fp_idx, environment_fingerprint):
         self._W("FINGERPRINT\t%d\t%s\n" % (fp_idx, environment_fingerprint))
 
+    # Added to account for parents in indexing (only has an effect on SQLite Tables)
+    def add_environment_fingerprint_parent(self, fp_idx, environment_fingerprint, parent_idx):
+        self._W("FINGERPRINT\t%d\t%s\n" % (fp_idx, environment_fingerprint, parent_idx))
+
     def add_rule_environment(self, rule_env_idx, rule_idx, env_fp_idx, radius):
         self._W("RULEENV\t%d\t%d\t%d\t%d\n" % (rule_env_idx, rule_idx, env_fp_idx, radius))
 
@@ -165,6 +169,12 @@ class BaseSqliteIndexWriter(object):
         self.conn.execute("INSERT INTO environment_fingerprint (id, fingerprint) "
                           " VALUES (?, ?)",
                           (fp_idx, environment_fingerprint))
+
+    # Added to include a parent idx in the EnvironmentFingerprint table
+    def add_environment_fingerprint_parent(self, fp_idx, environment_fingerprint, parent_idx):
+        self.conn.execute("INSERT INTO environment_fingerprint (id, fingerprint, parent_id) "
+                          " VALUES (?, ?, ?)",
+                          (fp_idx, environment_fingerprint, parent_idx))
 
     def add_rule_environment(self, rule_env_idx, rule_idx, env_fp_idx, radius):
         self.conn.execute("INSERT INTO rule_environment (id, rule_id, environment_fingerprint_id,  radius) "
