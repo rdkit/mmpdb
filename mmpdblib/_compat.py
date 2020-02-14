@@ -67,7 +67,7 @@ else:
 
     # gzip requires a binary file
     binary_stdin = sys.stdin.buffer
-    binary_stdout = sys.stdout.buffer
+    binary_stdout = getattr(sys.stdout, 'buffer', sys.stdout)
     
     # Lazy map is the default
     imap = map
