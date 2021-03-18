@@ -195,43 +195,37 @@ def reaggregate_properties(dataset, property_name_ids, compound_values_for_prope
     num_pairs = dataset.get_num_pairs(cursor=cursor)
     
     all_pairs = dataset.iter_pairs(cursor=cursor)
-    all_pairs = reporter.progress(all_pairs, "Computing aggregate statistics", num_pairs)
+    all_pairs = reporter.progress(all_pairs, "Computing and updating aggregate statistics", num_pairs)
 
-    stats_info = []
-    seen_rule_environment_ids = set()
-    for rule_environment_id, rule_environment_pairs in itertools.groupby(
-            all_pairs, (lambda pair: pair.rule_environment_id)):
+    def generate_stats():
+        for rule_environment_id, rule_environment_pairs in itertools.groupby(
+                all_pairs, (lambda pair: pair.rule_environment_id)):
 
-        seen_rule_environment_ids.add(rule_environment_id)
-        rule_environment_pairs = list(rule_environment_pairs)  # now a list, not iterator
-        
-        for property_name_id in property_name_ids:
-            deltas = []
-            compound_values = compound_values_for_property_name_id[property_name_id]
-            for pair in rule_environment_pairs:
-                value1 = compound_values.get(pair.compound1_id, None)
-                if value1 is None:
-                    continue
-                value2 = compound_values.get(pair.compound2_id, None)
-                if value2 is None:
-                    continue
-                deltas.append(value2-value1)
-            if deltas:
-                stats = index_algorithm.compute_aggregate_values(deltas)
-                stats_info.append( (rule_environment_id, property_name_id, stats) )
+            rule_environment_pairs = list(rule_environment_pairs)  # now a list, not iterator
 
-    # Need to figure out if the statistics exist or need to be created
-    reporter.report("Generated %d rule statistics (%d rule environments, %d properties)"
-                    % (len(stats_info), len(seen_rule_environment_ids), len(property_name_ids)))
+            for property_name_id in property_name_ids:
+                deltas = []
+                compound_values = compound_values_for_property_name_id[property_name_id]
+                for pair in rule_environment_pairs:
+                    value1 = compound_values.get(pair.compound1_id, None)
+                    if value1 is None:
+                        continue
+                    value2 = compound_values.get(pair.compound2_id, None)
+                    if value2 is None:
+                        continue
+                    deltas.append(value2-value1)
+                if deltas:
+                    stats = index_algorithm.compute_aggregate_values(deltas)
+                    yield (rule_environment_id, property_name_id, stats)
+    stats_info = generate_stats()
+
     reporter.update("Getting information about which rule statistics exist...")
     existing_stats_ids = dataset.get_rule_environment_statistics_mapping(
         property_name_ids, cursor=cursor)
 
-    stats_info_progress = reporter.progress(
-        stats_info, "Updating statistics table", len(stats_info))
     seen_stats_ids = set()
     num_updated = num_added = 0
-    for (rule_environment_id, property_name_id, stats) in stats_info_progress:
+    for (rule_environment_id, property_name_id, stats) in stats_info:
         key = (rule_environment_id, property_name_id)
         stats_id = existing_stats_ids.get(key, None)
         if stats_id is not None:
