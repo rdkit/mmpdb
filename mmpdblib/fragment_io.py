@@ -36,6 +36,8 @@ import sys
 import json
 import re
 import itertools
+import os
+import sqlite3
 
 from . import __version__ as mmpdblib_version
 
@@ -347,16 +349,20 @@ def suggest_faster_json(reporter):
 
 
 def load_cache(filename, reporter):
-    reporter = reporters.get_reporter(reporter)
+    lc = filename.lower()
+    if (lc.endswith(".fragments.gz") or lc.endswith(".fragments")):
+        reporter = reporters.get_reporter(reporter)
 
-    table = {}
-    suggest_faster_json(reporter)
-    with read_fragment_records(filename) as reader:
-        for record in reporter.progress(reader, "Loading cache record"):
-            table[record.id] = record
-        
-    return FileCache(table, reader.options)
+        table = {}
+        suggest_faster_json(reporter)
+        with read_fragment_records(filename) as reader:
+            for record in reporter.progress(reader, "Loading cache record"):
+                table[record.id] = record
 
+        return FileCache(table, reader.options)
+
+    else:
+        return _load_fragdb(filename)
 
 ##### Write
 
@@ -495,12 +501,160 @@ class FragInfoWriter(object):
                                      frag.constant_num_heavies, frag.constant_symmetry_class,
                                      frag.constant_smiles, frag.constant_with_H_smiles
                                      ))
+#### SQLite-based fragment file
 
+SCHEMA_FILENAME = os.path.join(os.path.dirname(__file__), "fragment_schema.sql")
+_schema_template = None    
+def get_schema_template():
+    global _schema_template
+    if _schema_template is None:
+        with open(SCHEMA_FILENAME) as infile:
+            _schema_template = infile.read()
+    return _schema_template
+
+def init_fragdb(c, options):
+    from . import schema
+    
+    # Ensure SQL can read the file, and that no records exist
+    try:
+        c.execute("SELECT count(*) FROM record")
+    except sqlite3.OperationalError as err:
+        if "no such table: record" in str(err):
+            pass
+        else:
+            raise
+    else:
+        raise AssertionError("I tried to delete the fragdb file but apparently it's valid?!")
+            
+
+    # Create the schema
+    schema._execute_sql(c, get_schema_template())
+
+    c.execute("""
+INSERT INTO config(version, cut_smarts, max_heavies, max_rotatable_bonds,
+                   method, num_cuts, rotatable_smarts, salt_remover)
+            VALUES(?, ?, ?, ?, ?, ?, ?, ?)
+""", (3, options.cut_smarts, options.max_heavies, options.max_rotatable_bonds,
+          options.method, options.num_cuts, options.rotatable_smarts, options.salt_remover))
+    
+
+    
+class FragDBWriter:
+    def __init__(self, filename, db, c, options):
+        self.filename = filename
+        self.db = db
+        self.c = c
+        self._record_id = 0 # Manage the record ids myself
+
+    def close(self):
+        db, c = self.db, self.c
+        if db is not None:
+            self.db = self.c = None
+            c.close()
+            db.commit()  # don't rollback - keep partial writes too.
+            db.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.close()
+
+    def write_version(self):
+        raise NotImplementedError("cannot write version twice")
+
+    def write_options(self, options):
+        raise NotImplementedError("cannot add options twice")
+
+    def write_records(self, fragment_records):
+        c = self.c
+        for rec in fragment_records:
+            if rec.errmsg:
+                c.execute("""
+INSERT INTO error_record (title, input_smiles, errmsg)
+                  VALUES (?, ?, ?)""",
+                  (rec.id, rec.input_smiles, rec.errmsg))
+                continue
+
+            self._record_id = record_id = self._record_id + 1
+            
+            c.execute("""
+INSERT INTO record (id, title, input_smiles, num_normalized_heavies, normalized_smiles)
+            VALUES (?, ?, ?, ?, ?)""",
+           (record_id, rec.id, rec.input_smiles, rec.num_normalized_heavies, rec.normalized_smiles))
+
+            # XXX Is this sort still needed?
+            fragmentations = sorted(rec.fragments, key = get_fragment_sort_key)
+
+            for frag in fragmentations:
+                c.execute("""
+INSERT INTO fragmentation (record_id, num_cuts, enumeration_label,
+                           variable_num_heavies, variable_symmetry_class, variable_smiles,
+                           attachment_order, constant_num_heavies, constant_symmetry_class,
+                           constant_smiles, constant_with_H_smiles) 
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                   (record_id, frag.num_cuts, frag.enumeration_label,
+                    frag.variable_num_heavies, frag.variable_symmetry_class, frag.variable_smiles,
+                    frag.attachment_order, frag.constant_num_heavies, frag.constant_symmetry_class,
+                    frag.constant_smiles, frag.constant_with_H_smiles))
+
+def _get_fragdb_options(c):
+    try:
+        c.execute("SELECT count(*) FROM record")
+    except sqlite3.OperationalError as err:
+        raise ValueError(f"{filename!r} does not appear to be a fragdb file: {err}")
+
+    try:
+        c.execute("""
+SELECT version, cut_smarts, max_heavies, max_rotatable_bonds,
+                   method, num_cuts, rotatable_smarts, salt_remover
+  FROM config
+        """)
+    except sqlite3.OperationalError as err:
+        raise ValueError(f"{filename!r} does not appear to be a fragdb file: {err}")
+    
+    version, *args = schema._get_one(c)
+    if version != 3:
+        raise ValueError(f"{filename!r} is a version {version} fragdb database. Only version 2 is supported.")
+    
+    return config.FragmentOptions(*args)
+                
+def _load_fragdb(filename):
+    from . import schema
+    
+    db = sqlite3.connect(filename)
+    c = db.connect()
+    options = _get_fragdb_options(c)
+    return 
+
+class FragDB:
+    def __init__(self, metadata, options, db, c):
+        self.metadata = metadata
+        self.db = db
+        self.c = c
+
+    def get(self, title):
+        x = _get_one_or_none(self.c.execute("""
+SELECT id, title, input_smiles, num_normalized_heavies, normalized_smiles
+  FROM record
+ WHERE title = ?""", (title,)))
+        if x is not None:
+            1/0
+
+        x = _get_one_or_none(self.c.execute("""
+SELECT id, title, input_smiles, errmsg
+  FROM error_record
+ WHERE title = ?""", (title,)))
+        if x is not None:
+            2/0
+
+        return Non2
+    
+### Dispatch to the correct writer
 
 def open_fragment_writer(filename, options, format_hint=None):
-    if format_hint is not None and format_hint not in ("fragments", "fragments.gz", "fraginfo", "fraginfo.gz"):
+    if format_hint is not None and format_hint not in ("fragdb", "fragments", "fragments.gz", "fraginfo", "fraginfo.gz"):
         raise ValueError("Unsupported format_hint: %r" % (format_hint,))
-    outfile = fileio.open_output(filename, format_hint)
 
     if format_hint is None:
         if filename is None:
@@ -510,14 +664,32 @@ def open_fragment_writer(filename, options, format_hint=None):
             if (   lc_filename.endswith(".fraginfo.gz")
                 or lc_filename.endswith(".fraginfo")):
                 format_hint = "fraginfo"
+            elif ( lc_filename.endswith(".fragments.gz")
+                or lc_filename.endswith(".fragments")):
+                format_hint = "fragments"
             else:
-                format_hint = "fragment"
+                format_hint = "fragdb"
             
     if "fraginfo" in format_hint:
+        outfile = fileio.open_output(filename, format_hint)
         writer = FragInfoWriter(filename, outfile, options)
-    else:
+    elif "fragments" in format_hint:
+        outfile = fileio.open_output(filename, format_hint)
         writer = FragmentWriter(filename, outfile, options)
+    else:
+        if filename is None:
+            raise ValueError("Must specify a fragments output filename for 'fragdb' output")
+        try:
+            os.unlink(filename)
+        except FileNotFoundError:
+            pass
+        db = sqlite3.connect(filename)
+        c = db.cursor()
+        writer = FragDBWriter(filename, db, c, options)
+        init_fragdb(c, options)
+        return writer
 
+    # FragInfoWRiter and FragmentWriter but not FragDB
     writer.write_version()
     writer.write_options(options)
     return writer

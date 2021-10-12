@@ -158,18 +158,18 @@ Examples:
 
 2) Read from a gzip-compressed tab-delimited SMILES file. Use 8
 threads to fragment the structures. Save the results to
-dataset.fragments.gz .
+dataset.fragdb
 
   % mmpa fragment --delimiter tab dataset.smi.gz --num-jobs 8 \\
-      -o dataset.fragments.gz
+      -o dataset.fragdb
 
 3) Fragment the SMILES in 'dataset.smi.gz'. Reuse fragment information
-from the cache file 'old_dataset.fragments.gz' if possible, instead of
+from the cache file 'old_dataset.fragdb' if possible, instead of
 computing the fragments from scratch each time. Save the results to
-'new_dataset.fragments.gz'.
+'new_dataset.fragdb'.
 
-  % mmpa fragment --cache old_dataset.fragments.gz dataset.smi.gz \\
-      -o new_dataset.fragments.gz
+  % mmpa fragment --cache old_dataset.fragdb dataset.smi.gz \\
+      -o new_dataset.fragdb
 
 
 """ + smarts_aliases.get_epilog("--cut-smarts", smarts_aliases.cut_smarts_aliases)
@@ -197,9 +197,9 @@ p.add_argument("--has-header", default=False, action="store_true",
                help="skip the first line, which is the header line")
 p.add_argument("--output", "-o", metavar="FILENAME",
                help="save the fragment data to FILENAME (default=stdout)")
-p.add_argument("--out", metavar="FORMAT", choices=("fragments", "fragments.gz", "fraginfo", "fraginfo.gz"),
-               help="output format. One of 'fragments' or 'fragments.gz'. "
-               "If not present, guess from the filename, and default to 'fragments'")
+p.add_argument("--out", metavar="FORMAT", choices=("fragdb", "fragments", "fragments.gz", "fraginfo", "fraginfo.gz"),
+               help="output format. One of 'fragdb', 'fragments' or 'fragments.gz'. "
+               "If not present, guess from the filename, and default to 'fragdb'")
 p.add_argument("structure_filename", nargs="?", default=None,
                help="SMILES filename (default: read from stdin)")
 
