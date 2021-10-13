@@ -611,9 +611,6 @@ def smifrag_command(parser, args):
     if record.errmsg:
         parser.error("Cannot parse --smiles: %s" % (record.errmsg,))
         
-    #writer = fragment_io.FragInfoWriter(None, sys.stdout, None)
-    #writer.write_records([record])
-
     columns = [["#cuts"], ["enum.label"],
                ["#heavies"], ["symm.class"], ["smiles"],
                ["order"],

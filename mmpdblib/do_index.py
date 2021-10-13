@@ -151,11 +151,14 @@ def index_command(parser, args):
         selected_ids = set(properties.get_ids())
     end_properties_memory = get_memory_use()
 
+    fragment_filename = args.fragment_filename
+    if fragment_filename is None:
+        # Not specified so use the default name.
+        # XXX warning message?
+        fragment_filename = "input.fragdb"
+    
     if (args.out is None or args.out == "mmpdb") and args.output is None:
         # Use the filename based on the fragments filename
-        fragment_filename = args.fragment_filename
-        if fragment_filename is None:
-            parser.error("The '--out mmpdb' format requires a filename when reading from stdin.")
 
         # replace the extension (if any) with ".mmpdb"
         args.output = os.path.splitext(fragment_filename)[0] + ".mmpdb"
@@ -167,7 +170,7 @@ def index_command(parser, args):
 
     start_fragment_index_memory = get_memory_use()
     try:
-        fragment_reader = fragment_io.read_fragment_records(args.fragment_filename)
+        fragment_reader = fragment_io.read_fragment_records(fragment_filename)
     except fragment_types.FragmentFormatError as err:
         parser.error(str(err))
         

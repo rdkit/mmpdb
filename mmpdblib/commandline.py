@@ -197,7 +197,7 @@ p.add_argument("--has-header", default=False, action="store_true",
                help="skip the first line, which is the header line")
 p.add_argument("--output", "-o", metavar="FILENAME",
                help="save the fragment data to FILENAME (default=stdout)")
-p.add_argument("--out", metavar="FORMAT", choices=("fragdb", "fragments", "fragments.gz", "fraginfo", "fraginfo.gz"),
+p.add_argument("--out", metavar="FORMAT", choices=("fragdb", "fragments", "fragments.gz"),
                help="output format. One of 'fragdb', 'fragments' or 'fragments.gz'. "
                "If not present, guess from the filename, and default to 'fragdb'")
 p.add_argument("structure_filename", nargs="?", default=None,

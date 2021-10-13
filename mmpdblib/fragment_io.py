@@ -47,6 +47,7 @@ from . import fragment_algorithm
 from . import reporters
 from .fragment_types import FragmentRecord, FragmentErrorRecord, FragmentFormatError
 from ._compat import basestring
+from . import schema
 
 SOFTWARE = "mmpdb-" + mmpdblib_version
 
@@ -107,6 +108,9 @@ class FragmentReader(object):
     
     
 def read_fragment_records(source):
+    assert source is not None
+    return _load_fragdb(source)
+
     if source is None:
         infile = fileio.open_input(None)
         filename = "<stdin>"
@@ -430,12 +434,12 @@ class FragmentWriter(object):
 _wildcard_pat = re.compile(  re.escape("[*]")
                            + "|"
                            + re.escape("*"))
-                       
-                
+
+
 def relabel(smiles, order=None):
     input_smiles = smiles
     input_order = order
-    
+
     if order is None:
         order = list(range(smiles.count("*")))
     else:
@@ -444,63 +448,9 @@ def relabel(smiles, order=None):
 
     def add_isotope_tag_to_wildcard(m):
         return "[*:%d]" % (order.pop(0)+1,)
-    
+
     return _wildcard_pat.sub(add_isotope_tag_to_wildcard, smiles)
 
-            
-class FragInfoWriter(object):
-    def __init__(self, filename, outfile, options):
-        self.filename = filename
-        self._outfile = outfile
-        self.options = options
-
-    def close(self):
-        self._outfile.close()
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *args):
-        self._outfile.close()
-        
-    def write_version(self):
-        self._outfile.write("FORMAT mmpdb-fraginfo/2\n")
-        self._outfile.write("SOFTWARE " + SOFTWARE + "\n")
-
-    def write_options(self, options):
-        for k, v in sorted(options.to_text_settings()):
-            if "\n" in k or "\r" in k or "\t" in k or " " in k:
-                raise ValueError("Unsupported whitespace in key %r" % (k,))
-            if "\n" in v or "\r" in v or "\t" in v:
-                raise ValueError("Unsupported whitespace in %s value %r" % (k, v))
-            self._outfile.write("OPTION %s=%s\n" % (k, v))
-            
-    def write_records(self, fragment_records):
-        outfile = self._outfile
-        
-        for rec in fragment_records:
-            if rec.errmsg:
-                outfile.write("IGNORE id=%r %r errmsg=%r\n"
-                              % (rec.id, rec.input_smiles, rec.errmsg))
-            else:
-                outfile.write("RECORD id=%r %r #heavies=%d #fragmentations=%d\n"
-                              % (rec.id, rec.input_smiles, rec.num_normalized_heavies, len(rec.fragments)))
-                
-                fragmentations = sorted(rec.fragments, key = get_fragment_sort_key)
-                for frag in fragmentations:
-                    reaction = "variable %s // constant %s" % (
-                        relabel(frag.variable_smiles, frag.attachment_order),
-                        relabel(frag.constant_smiles))
-                                              
-                    outfile.write(" FRAG #cuts=%d enum_label=%s %s\n"
-                                  "   variable: #heavies=%d symm_class=%s %s attachment_order=%s\n"
-                                  "   constant: #heavies=%d symm_class=%s %s H-smiles=%s\n"
-                                  % (frag.num_cuts, frag.enumeration_label, reaction,
-                                     frag.variable_num_heavies, frag.variable_symmetry_class,
-                                     frag.variable_smiles, frag.attachment_order,
-                                     frag.constant_num_heavies, frag.constant_symmetry_class,
-                                     frag.constant_smiles, frag.constant_with_H_smiles
-                                     ))
 #### SQLite-based fragment file
 
 SCHEMA_FILENAME = os.path.join(os.path.dirname(__file__), "fragment_schema.sql")
@@ -513,8 +463,6 @@ def get_schema_template():
     return _schema_template
 
 def init_fragdb(c, options):
-    from . import schema
-    
     # Ensure SQL can read the file, and that no records exist
     try:
         c.execute("SELECT count(*) FROM record")
@@ -537,10 +485,12 @@ def init_fragdb(c, options):
 
     c.execute("""
 INSERT INTO config(version, cut_smarts, max_heavies, max_rotatable_bonds,
-                   method, num_cuts, rotatable_smarts, salt_remover)
-            VALUES(?, ?, ?, ?, ?, ?, ?, ?)
+                   method, num_cuts, rotatable_smarts,
+                   salt_remover, min_heavies_per_const_frag)
+            VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)
 """, (3, options.cut_smarts, options.max_heavies, options.max_rotatable_bonds,
-          options.method, options.num_cuts, options.rotatable_smarts, options.salt_remover))
+          options.method, options.num_cuts, options.rotatable_smarts,
+          options.salt_remover, options.min_heavies_per_const_frag))
     
 
     
@@ -554,6 +504,7 @@ class FragDBWriter:
     def close(self):
         db, c = self.db, self.c
         if db is not None:
+            c.execute("CREATE INDEX fragmentation_on_record_id ON fragmentation(record_id)")
             self.db = self.c = None
             c.close()
             db.commit()  # don't rollback - keep partial writes too.
@@ -609,34 +560,39 @@ def _get_fragdb_options(c):
     except sqlite3.OperationalError as err:
         raise ValueError(f"{filename!r} does not appear to be a fragdb file: {err}")
 
+    fields = [
+        "cut_smarts", "max_heavies", "max_rotatable_bonds",
+        "method", "num_cuts", "rotatable_smarts",
+        "salt_remover", "min_heavies_per_const_frag",
+        ]
+    field_str = ", ".join(f'"{name}"' for name in fields)
     try:
-        c.execute("""
-SELECT version, cut_smarts, max_heavies, max_rotatable_bonds,
-                   method, num_cuts, rotatable_smarts, salt_remover
+        c.execute(f"""
+SELECT version, {field_str}
   FROM config
         """)
     except sqlite3.OperationalError as err:
         raise ValueError(f"{filename!r} does not appear to be a fragdb file: {err}")
-    
-    version, *args = schema._get_one(c)
+
+    version, *field_values = next(c)
     if version != 3:
         raise ValueError(f"{filename!r} is a version {version} fragdb database. Only version 2 is supported.")
-    
-    return config.FragmentOptions(*args)
+
+    kwargs = dict(zip(fields, field_values))
+    return config.FragmentOptions(**kwargs)
                 
 def _load_fragdb(filename):
-    from . import schema
-    
     db = sqlite3.connect(filename)
-    c = db.connect()
+    c = db.cursor()
     options = _get_fragdb_options(c)
-    return 
+    return FragDB(None, options, db, c)
 
 class FragDB:
     def __init__(self, metadata, options, db, c):
         self.metadata = metadata
         self.db = db
         self.c = c
+        self.options = options
 
     def get(self, title):
         x = _get_one_or_none(self.c.execute("""
@@ -653,12 +609,70 @@ SELECT id, title, input_smiles, errmsg
         if x is not None:
             2/0
 
-        return Non2
+        return None
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.close()
+
+    def close(self):
+        c, db = self.c, self.db
+        if self.c is not None:
+            self.c = self.db = None
+            c.close()
+            db.rollback()
+
+    def __iter__(self):
+        record_c = self.db.cursor()
+        fragment_c = self.db.cursor()
+        # Ignore the errors
+        record_c.execute("""
+SELECT id, title, input_smiles, num_normalized_heavies, normalized_smiles
+  FROM record
+        """)
+        for (record_id, record_title, input_smiles, num_normalized_heavies,
+                 normalized_smiles) in record_c:
+            fragment_c.execute("""
+SELECT num_cuts, enumeration_label,
+       variable_num_heavies, variable_symmetry_class, variable_smiles,
+       attachment_order,
+       constant_num_heavies, constant_symmetry_class, constant_smiles,
+       constant_with_H_smiles
+  FROM fragmentation
+ WHERE fragmentation.record_id = ?
+""", (record_id,))
+            fragmentations = []
+            for (num_cuts, enumeration_label,
+                 variable_num_heavies, variable_symmetry_class, variable_smiles,
+                 attachment_order,
+                 constant_num_heavies, constant_symmetry_class, constant_smiles,
+                 constant_with_H_smiles) in fragment_c:
+                fragmentations.append(fragment_algorithm.Fragmentation(
+                    num_cuts = num_cuts,
+                    enumeration_label = enumeration_label,
+                    variable_num_heavies = variable_num_heavies,
+                    variable_symmetry_class = variable_symmetry_class,
+                    variable_smiles = variable_smiles,
+                    attachment_order = attachment_order,
+                    constant_num_heavies = constant_num_heavies,
+                    constant_symmetry_class = constant_symmetry_class,
+                    constant_smiles = constant_smiles,
+                    constant_with_H_smiles = constant_with_H_smiles,
+                    ))
+            yield FragmentRecord(
+                id = record_title,
+                input_smiles = input_smiles,
+                num_normalized_heavies = num_normalized_heavies,
+                normalized_smiles = normalized_smiles,
+                fragments = fragmentations,
+                )
     
 ### Dispatch to the correct writer
 
 def open_fragment_writer(filename, options, format_hint=None):
-    if format_hint is not None and format_hint not in ("fragdb", "fragments", "fragments.gz", "fraginfo", "fraginfo.gz"):
+    if format_hint is not None and format_hint not in ("fragdb", "fragments", "fragments.gz"):
         raise ValueError("Unsupported format_hint: %r" % (format_hint,))
 
     if format_hint is None:
@@ -666,24 +680,20 @@ def open_fragment_writer(filename, options, format_hint=None):
             format_hint = "fragment"
         else:
             lc_filename = filename.lower()
-            if (   lc_filename.endswith(".fraginfo.gz")
-                or lc_filename.endswith(".fraginfo")):
-                format_hint = "fraginfo"
-            elif ( lc_filename.endswith(".fragments.gz")
+            if ( lc_filename.endswith(".fragments.gz")
                 or lc_filename.endswith(".fragments")):
                 format_hint = "fragments"
             else:
                 format_hint = "fragdb"
             
-    if "fraginfo" in format_hint:
-        outfile = fileio.open_output(filename, format_hint)
-        writer = FragInfoWriter(filename, outfile, options)
-    elif "fragments" in format_hint:
+    if "fragments" in format_hint:
         outfile = fileio.open_output(filename, format_hint)
         writer = FragmentWriter(filename, outfile, options)
+        writer.write_version()
+        writer.write_options(options)
     else:
         if filename is None:
-            raise ValueError("Must specify a fragments output filename for 'fragdb' output")
+            filename = "input.fragdb"
         try:
             os.unlink(filename)
         except FileNotFoundError:
@@ -695,6 +705,4 @@ def open_fragment_writer(filename, options, format_hint=None):
         return writer
 
     # FragInfoWRiter and FragmentWriter but not FragDB
-    writer.write_version()
-    writer.write_options(options)
     return writer

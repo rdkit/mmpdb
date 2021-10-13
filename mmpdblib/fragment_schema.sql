@@ -41,17 +41,18 @@ CREATE TABLE config (
   cut_smarts TEXT,
   max_heavies INTEGER,
   max_rotatable_bonds INTEGER,
-  method STRING,
+  method TEXT,
   num_cuts INTEGER,
-  rotatable_smarts STRING,
-  salt_remover STRING
+  rotatable_smarts TEXT,
+  salt_remover TEXT,
+  min_heavies_per_const_frag INTEGER
 );
 
 CREATE TABLE error_record (
   id INTEGER PRIMARY KEY,
-  title STRING,
-  input_smiles STRING,
-  errmsg STRING
+  title TEXT,
+  input_smiles TEXT,
+  errmsg TEXT
 );
 
 CREATE TABLE record (
@@ -72,8 +73,7 @@ CREATE TABLE fragmentation (
   variable_smiles TEXT NOT NULL,
   attachment_order TEXT NOT NULL,
   constant_num_heavies INTEGER,
-  constant_symmetry_class INTEGER,
+  constant_symmetry_class TEXT NOT NULL,
   constant_smiles TEXT NOT NULL,
   constant_with_H_smiles TEXT
 );
-
