@@ -525,8 +525,13 @@ def init_fragdb(c, options):
             raise
     else:
         raise AssertionError("I tried to delete the fragdb file but apparently it's valid?!")
-            
 
+    # To try:
+    #  c.execute("PRAGMA journal_mode=WAL")
+    #  c.execute("PRAGMA synchronous=off")
+    # My WAL attempt left a couple of temp files in the local directory.
+    # Perhaps I didn't close things?
+    
     # Create the schema
     schema._execute_sql(c, get_schema_template())
 
