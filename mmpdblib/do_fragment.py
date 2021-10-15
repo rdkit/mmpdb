@@ -621,7 +621,7 @@ def smifrag_command(parser, args):
               "right", "center", "left", "left"]
 
     has_rows = False
-    for frag in record.fragments:
+    for frag in record.fragmentations:
         has_rows = True
         items = [str(frag.num_cuts),
                  frag.enumeration_label,
