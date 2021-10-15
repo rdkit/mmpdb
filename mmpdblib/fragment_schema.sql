@@ -36,44 +36,51 @@
 -- Earlier versions used JSON-Lines.
 -- The SQLite database improves I/O time, reduces memory use, and
 --     simplifies the development of fragment analysis tools.
-CREATE TABLE config (
-  version INTEGER,
-  cut_smarts TEXT,
-  max_heavies INTEGER,
-  max_rotatable_bonds INTEGER,
-  method TEXT,
-  num_cuts INTEGER,
-  rotatable_smarts TEXT,
-  salt_remover TEXT,
-  min_heavies_per_const_frag INTEGER
+
+CREATE TABLE options (
+	id INTEGER NOT NULL,
+	version INTEGER,
+	cut_smarts VARCHAR(1000),
+	max_heavies INTEGER,
+	max_rotatable_bonds INTEGER,
+	method VARCHAR(20),
+	num_cuts INTEGER,
+	rotatable_smarts VARCHAR(1000),
+	salt_remover VARCHAR(200),
+	min_heavies_per_const_frag INTEGER,
+	PRIMARY KEY (id)
 );
 
 CREATE TABLE error_record (
-  id INTEGER PRIMARY KEY,
-  title TEXT,
-  input_smiles TEXT,
-  errmsg TEXT
+	id INTEGER NOT NULL,
+	title VARCHAR(100) NOT NULL,
+	input_smiles VARCHAR(300) NOT NULL,
+	errmsg VARCHAR(100),
+	PRIMARY KEY (id)
 );
 
 CREATE TABLE record (
-  id INTEGER PRIMARY KEY,
-  title TEXT,
-  input_smiles TEXT NOT NULL,
-  num_normalized_heavies INTEGER,
-  normalized_smiles TEXT NOT NULL
-  );
+	id INTEGER NOT NULL,
+	title VARCHAR(50) NOT NULL,
+	input_smiles VARCHAR(400) NOT NULL,
+	num_normalized_heavies INTEGER,
+	normalized_smiles VARCHAR(350) NOT NULL,
+	PRIMARY KEY (id)
+);
 
 CREATE TABLE fragmentation (
-  id INTEGER PRIMARY KEY,
-  record_id INTEGER REFERENCES record(id),
-  num_cuts INTEGER,
-  enumeration_label TEXT NOT NULL,
-  variable_num_heavies INTEGER,
-  variable_symmetry_class TEXT NOT NULL,
-  variable_smiles TEXT NOT NULL,
-  attachment_order TEXT NOT NULL,
-  constant_num_heavies INTEGER,
-  constant_symmetry_class TEXT NOT NULL,
-  constant_smiles TEXT NOT NULL,
-  constant_with_H_smiles TEXT
+	id INTEGER NOT NULL,
+	record_id INTEGER,
+	num_cuts INTEGER,
+	enumeration_label VARCHAR(1) NOT NULL,
+	variable_num_heavies INTEGER,
+	variable_symmetry_class VARCHAR(3) NOT NULL,
+	variable_smiles VARCHAR(350) NOT NULL,
+	attachment_order VARCHAR(3) NOT NULL,
+	constant_num_heavies INTEGER,
+	constant_symmetry_class VARCHAR(3) NOT NULL,
+	constant_smiles VARCHAR(350) NOT NULL,
+	constant_with_H_smiles VARCHAR(350),
+	PRIMARY KEY (id),
+	FOREIGN KEY(record_id) REFERENCES record (id)
 );
