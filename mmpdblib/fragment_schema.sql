@@ -37,6 +37,12 @@
 -- The SQLite database improves I/O time, reduces memory use, and
 --     simplifies the development of fragment analysis tools.
 
+-- NOTE: There is configuration information in three files!
+-- 1) fragment_types.py -- the data types
+-- 2) fragment_schema.sql -- (this file) defines the SQL schema
+-- 3) fragment_io.py -- defines the mapping from SQL to the data types
+
+
 CREATE TABLE options (
 	id INTEGER NOT NULL,
 	version INTEGER,

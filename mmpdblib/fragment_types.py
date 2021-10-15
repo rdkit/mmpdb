@@ -31,6 +31,14 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+# NOTE: There is configuration information in three files!
+# 1) fragment_types.py -- the data types in this file
+# 2) fragment_schema.sql -- defines the SQL schema
+# 3) fragment_io.py -- defines the mapping from SQL to the data types
+
+# I tried using SQLAlchemy to merge them into one but that
+# added a ~30% overhead to fragment generation.
+
 import dataclasses
 from dataclasses import dataclass
 from typing import List, Optional, Literal

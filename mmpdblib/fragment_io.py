@@ -457,6 +457,12 @@ def relabel(smiles, order=None):
 
 #### "fragdb" -- SQLite-based fragment file
 
+# NOTE: There is configuration information in three files!
+# 1) fragment_types.py -- the data types
+# 2) fragment_schema.sql -- defines the SQL schema
+# 3) fragment_io.py -- (this file) defines the mapping from SQL to the data types
+
+
 SCHEMA_FILENAME = os.path.join(os.path.dirname(__file__), "fragment_schema.sql")
 _schema_template = None    
 def get_schema_template():
