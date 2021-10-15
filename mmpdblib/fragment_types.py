@@ -1,6 +1,7 @@
 # mmpdb - matched molecular pair database generation and analysis
 #
 # Copyright (c) 2015-2017, F. Hoffmann-La Roche Ltd.
+# Copyright (c) 2021, Andrew Dalke Scientific AB
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
@@ -30,72 +31,69 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+import dataclasses
+from dataclasses import dataclass
+from typing import List, Optional, Literal
 
-class FragmentRecord(object):
-    __slots__ = ("id", "input_smiles", "num_normalized_heavies", "normalized_smiles", "fragments")
-    errmsg = None
+@dataclass
+class FragmentOptions:
+    max_heavies: Optional[int]
+    max_rotatable_bonds: Optional[int]
+    rotatable_smarts: str
+    cut_smarts: str
 
-    def __init__(self, id, input_smiles, num_normalized_heavies, normalized_smiles, fragments):
-        self.id = id
-        self.input_smiles = input_smiles
-        self.num_normalized_heavies = num_normalized_heavies
-        self.normalized_smiles = normalized_smiles
-        self.fragments = fragments
+    num_cuts: Literal[1,2,3]
+    method: Literal["chiral"]
+    salt_remover: str
+    min_heavies_per_const_frag: int
 
-    def __repr__(self):
-        return "FragmentRecord(%r, %r, %d, %r, %r)" % (
-            self.id, self.input_smiles, self.num_normalized_heavies, self.normalized_smiles,
-            self.fragments)
+    def to_dict(self):
+        return dataclasses.asdict(self)
+    
+    # For backwards compatability (still needed?) -- TODO: remove
+    def to_text_settings(self):
+        def _none(x):
+            return "none" if x is None else str(x)
+        return tuple((name, _none(value))
+                         for (name, value) in dataclasses.asdict(self).items())
+
+@dataclass
+class Fragmentation:
+    num_cuts: int
+    enumeration_label: str
+    variable_num_heavies: int
+    variable_symmetry_class: str
+    variable_smiles: str
+    attachment_order: str
+    constant_num_heavies: int
+    constant_symmetry_class: str
+    constant_smiles: str
+    constant_with_H_smiles: Optional[str]
+
+    def get_unique_key(self):
+        return "%s.%s.%s" % (self.attachment_order, self.variable_smiles, self.constant_smiles)
+    
+@dataclass
+class FragmentRecord:
+    """An input structure record which could be parsed and fragmented, and its fragmentations"""
+    id: str
+    input_smiles: str
+    num_normalized_heavies: int
+    normalized_smiles: str
+    fragmentations: List[Fragmentation]
+    errmsg = None  # make it easier to tell if this is an error record
 
 
+@dataclass
 class FragmentErrorRecord(object):
-    __slots__ = ("id", "input_smiles", "errmsg", "fragments")
-    num_normalized_heavies = normalized_mol = None
-    
-    def __init__(self, id, input_smiles, errmsg):
-        self.id = id
-        self.input_smiles = input_smiles
-        self.errmsg = errmsg
-        self.fragments = []  # Don't share a mutable list with other instances
-
-    def __repr__(self):
-        return "FragmentErrorRecord(%r, %r, %r)" % (self.id, self.input_smiles, self.errmsg)
+    """An input structure record which could not be parsed and fragmented"""
+    id: str
+    input_smiles: str
+    errmsg: str
 
 
-class Fragment(object):
-    __slots__ = ("num_cuts", "variable_symmetry_class", "num_variable_heavies", "variable_smiles",
-                 "num_constant_heavies", "constant_smiles", "constant_with_H_smiles")
+## Exceptions
 
-    def __init__(self, num_cuts,
-                 variable_symmetry_class, num_variable_heavies, variable_smiles,
-                 num_constant_heavies, constant_smiles, constant_with_H_smiles):
-        ## assert num_cuts in (1, 2, 3)
-        ## assert len(variable_symmetry_class) in (1,2,3), variable_symmetry_class
-        ## assert num_variable_heavies > 0
-        ## assert variable_smiles
-        ## assert num_constant_heavies > 0
-        ## assert constant_smiles
-
-        ## if "[*:2]" in constant_smiles:
-        ##     assert constant_smiles.index("[*:1]") < constant_smiles.index("[*:2]"), constant_smiles
-        ##     if "[*:3]" in constant_smiles:
-        ##         assert constant_smiles.index("[*:2]") < constant_smiles.index("[*:3]"), constant_smiles
-        
-        self.num_cuts = num_cuts
-        self.variable_symmetry_class = variable_symmetry_class
-        self.num_variable_heavies = num_variable_heavies
-        self.variable_smiles = variable_smiles
-        self.num_constant_heavies = num_constant_heavies
-        self.constant_smiles = constant_smiles
-        self.constant_with_H_smiles = constant_with_H_smiles
-        
-    def __repr__(self):
-        return "Fragment(%d, %r, %d, %r, %d, %r, %r)" % (
-            self.num_cuts, self.variable_symmetry_class,
-            self.num_variable_heavies, self.variable_smiles,
-            self.num_constant_heavies, self.constant_smiles, self.constant_with_H_smiles)
-    
-        
 class FragmentValueError(ValueError):
     def __init__(self, name, value, reason):
         self.name = name

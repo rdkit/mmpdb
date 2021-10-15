@@ -37,6 +37,7 @@ import re
 from rdkit import Chem
 import itertools
 from . import smiles_syntax  # for validation
+from .fragment_types import Fragmentation
 
 #####
 
@@ -45,39 +46,6 @@ class EnumerationLabel(object):
     NO_ENUMERATION = "N"
     CONSTANT_UP_ENUMERATION = "C"
     VARIABLE_UP_ENUMERATION = "V"
-
-
-class Fragmentation(object):
-    __slots__ = ("num_cuts", "enumeration_label",
-                 "variable_num_heavies", "variable_symmetry_class", "variable_smiles",
-                 "attachment_order",
-                 "constant_num_heavies", "constant_symmetry_class", "constant_smiles", "constant_with_H_smiles")
-    def __init__(self,
-                 num_cuts, enumeration_label,
-                 variable_num_heavies, variable_symmetry_class, variable_smiles,
-                 attachment_order,
-                 constant_num_heavies, constant_symmetry_class, constant_smiles, constant_with_H_smiles):
-        self.num_cuts = num_cuts
-        self.enumeration_label = enumeration_label
-        self.variable_num_heavies = variable_num_heavies
-        self.variable_symmetry_class = variable_symmetry_class
-        self.variable_smiles = variable_smiles
-        self.attachment_order = attachment_order
-        self.constant_num_heavies = constant_num_heavies
-        self.constant_symmetry_class = constant_symmetry_class
-        self.constant_smiles = constant_smiles
-        self.constant_with_H_smiles = constant_with_H_smiles
-
-    def __repr__(self):
-        return ("Fragmentation({self.num_cuts}, {self.enumeration_label!r}, "
-                "{self.variable_num_heavies}, {self.variable_symmetry_class!r}, {self.variable_smiles!r}, "
-                "{self.attachment_order!r}, "
-                "{self.constant_num_heavies}, {self.constant_symmetry_class!r}, "
-                "{self.constant_smiles!r}, {self.constant_with_H_smiles!r})").format(
-                    self=self)
-
-    def get_unique_key(self):
-        return "%s.%s.%s" % (self.attachment_order, self.variable_smiles, self.constant_smiles)
 
 
 #####

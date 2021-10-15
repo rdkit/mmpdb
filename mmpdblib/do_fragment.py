@@ -175,7 +175,7 @@ def get_fragment_options_from_args(parser, args):
     if min_heavies_per_const_frag == "none":
         min_heavies_per_const_frag = 0
 
-    return specified_args, config.FragmentOptions(
+    return specified_args, fragment_types.FragmentOptions(
         max_heavies = max_heavies,
         max_rotatable_bonds = max_rotatable_bonds,
         rotatable_smarts =rotatable_smarts,

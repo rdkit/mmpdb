@@ -38,6 +38,7 @@ import re
 import itertools
 import os
 import sqlite3
+import dataclasses
 
 from . import __version__ as mmpdblib_version
 
@@ -45,7 +46,8 @@ from . import config
 from . import fileio
 from . import fragment_algorithm
 from . import reporters
-from .fragment_types import FragmentRecord, FragmentErrorRecord, FragmentFormatError
+from .fragment_types import (FragmentOptions, FragmentRecord, FragmentErrorRecord,
+                                 Fragmentation, FragmentFormatError)
 from ._compat import basestring
 from . import schema
 
@@ -109,7 +111,9 @@ class FragmentReader(object):
     
 def read_fragment_records(source):
     assert source is not None
-    return _load_fragdb(source)
+    lc = source.lower()
+    if not (lc.endswith("fragments") or lc.endswith("fragments.gz")):
+        return open_fragdb(source)
 
     if source is None:
         infile = fileio.open_input(None)
@@ -181,7 +185,7 @@ _option_parser = {
 
 def _get_options(line_reader, location):
     options_dict = {}
-    options = config.FragmentOptions(**config.DEFAULT_FRAGMENT_OPTIONS.to_dict())
+    options = FragmentOptions(**config.DEFAULT_FRAGMENT_OPTIONS.to_dict())
     version = None
     software = None
     lineno = 0
@@ -366,7 +370,7 @@ def load_cache(filename, reporter):
         return FileCache(table, reader.options)
 
     else:
-        return _load_fragdb(filename)
+        return open_fragdb(filename)
 
 ##### Write
 
@@ -451,7 +455,7 @@ def relabel(smiles, order=None):
 
     return _wildcard_pat.sub(add_isotope_tag_to_wildcard, smiles)
 
-#### SQLite-based fragment file
+#### "fragdb" -- SQLite-based fragment file
 
 SCHEMA_FILENAME = os.path.join(os.path.dirname(__file__), "fragment_schema.sql")
 _schema_template = None    
@@ -476,24 +480,142 @@ def init_fragdb(c, options):
 
     # To try:
     #  c.execute("PRAGMA journal_mode=WAL")
-    #  c.execute("PRAGMA synchronous=off")
+    c.execute("PRAGMA synchronous=off")
     # My WAL attempt left a couple of temp files in the local directory.
     # Perhaps I didn't close things?
     
     # Create the schema
     schema._execute_sql(c, get_schema_template())
 
-    c.execute("""
-INSERT INTO config(version, cut_smarts, max_heavies, max_rotatable_bonds,
-                   method, num_cuts, rotatable_smarts,
-                   salt_remover, min_heavies_per_const_frag)
-            VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)
-""", (3, options.cut_smarts, options.max_heavies, options.max_rotatable_bonds,
-          options.method, options.num_cuts, options.rotatable_smarts,
-          options.salt_remover, options.min_heavies_per_const_frag))
-    
+    insert_options(c, options)
 
+def open_fragdb(filename):
+    db = sqlite3.connect(filename)
+    c = db.cursor()
+    # See if this is a database
+    try:
+        c.execute("SELECT COUNT(*) FROM record")
+    except sqlite3.OperationalError as err:
+        raise ValueError(f"{filename!r} does not appear to be a fragdb")
+    try:
+        c.execute("SELECT COUNT(*) FROM options")
+    except sqlite3.OperationalError as err:
+        raise ValueError(f"{filename!r} does not appear to be a fragdb")
+
+    for (count,) in c:
+        if count != 1:
+            raise ValueError(f"{filename!r} does not appear to be a fragdb")
+        break
     
+    options = select_options(c)
+    return FragDB(None, options, db, c)
+    
+#### options
+
+_option_attrs = [field.name for field in dataclasses.fields(FragmentOptions)]
+_option_cols = ["version"] + _option_attrs
+
+_option_fields = ", ".join(_option_cols)
+_option_qs = ",".join("?" * len(_option_cols))
+
+_insert_options_sql = f"INSERT INTO options({_option_fields}) VALUES({_option_qs})"
+
+def insert_options(c, options):
+    values = [3] + [getattr(options, attr) for attr in _option_attrs]
+    c.execute(_insert_options_sql, values)
+
+def select_options(c):
+    sql = f"SELECT {_option_fields} FROM options"
+    for row in c.execute(sql):
+        version, *values = row
+        if version != 3:
+            raise ValueError(f"Expected version 3 options, not version {version}")
+        return FragmentOptions(*values)
+    raise AssertionError("Missing options in fragdb")
+
+#### FragmentRecord
+
+_record_attrs = ("id", "input_smiles", "num_normalized_heavies", "normalized_smiles")
+_record_cols = ("title", "input_smiles", "num_normalized_heavies", "normalized_smiles")
+_record_fields = ", ".join(_record_cols)
+_record_qs = ",".join("?" * len(_record_cols))
+
+_insert_record_sql = f"INSERT INTO record (id, {_record_fields}) VALUES (?, {_record_qs})"
+def insert_fragment_record(c, rec, record_id):
+    record_values = [getattr(rec, attr) for attr in _record_attrs]
+    c.execute(_insert_record_sql, [record_id] + record_values)
+
+    for frag in rec.fragmentations:
+        c.execute(
+            _insert_fragmentation_sql,
+            [record_id] + [getattr(frag, attr) for attr in _fragmentation_attrs],
+            )
+
+
+_select_record_by_title_sql = f"SELECT id,{_record_fields} FROM record WHERE title = ?"
+def select_fragment_record_by_title(c, title):
+    c.execute(_select_record_by_title_sql, (title,))
+    for row in c:
+        break
+    else:
+        return None
+
+    record_id, *record_values = row
+
+    return FragmentRecord(
+        *record_values,
+        fragmentations = list(select_fragmentations_by_record_id(c, record_id)),
+        )
+
+_fragmentation_attrs = [field.name for field in dataclasses.fields(Fragmentation)]
+_fragmentation_cols = _fragmentation_attrs[:]
+_fragmentation_fields = ",".join(_fragmentation_cols)
+_fragmentation_qs = ",".join("?" * len(_fragmentation_cols))
+
+_insert_fragmentation_sql = f"""
+INSERT INTO fragmentation (record_id, {_fragmentation_fields}) VALUES (?, {_fragmentation_qs})
+"""
+
+_select_fragmentation_by_record_id_sql = f"SELECT {_fragmentation_fields} FROM fragmentation WHERE record_id = ?"
+def select_fragmentations_by_record_id(c, record_id):
+    c.execute(_select_fragmentation_by_record_id_sql, (record_id,))
+    for row in c:
+        yield Fragmentation(*row)
+
+_select_fragmentations_sql = f"SELECT id,{_record_fields} FROM record"
+def iter_fragment_records(record_c, fragmentation_c):
+    record_c.execute(select_fragmentations_sql)
+    for row in record_c:
+        record_id, *record_values = row
+        fragmentations = list(select_fragmentations_by_record_id(fragmentation_c, record_id))
+        yield FragmentRecord(
+            *record_values,
+            fragmentations = fragmentations,
+            )
+    
+#### FragmentErrorRecord
+
+_error_record_attrs = ("id", "input_smiles", "errmsg")
+_error_record_cols = ("title", "input_smiles", "errmsg")
+_error_record_fields = ", ".join(_error_record_cols)
+_error_record_qs = ",".join("?" * len(_error_record_cols))
+
+_insert_fragment_error_sql = f"""
+INSERT INTO error_record ({_error_record_fields}) VALUES ({_error_record_qs})
+"""
+def insert_fragment_error_record(c, rec):
+    c.execute(_insert_fragment_error_sql, [getattr(rec, attr) for attr in _error_record_attrs])
+
+_select_error_record_by_title_sql = f"SELECT {_error_record_fields} FROM error_record WHERE title = ?"
+def select_fragment_error_record_by_title(c, title):
+    c.execute(_select_error_record_by_title_sql, (title,))
+    for row in c:
+        return FragmentErrorRecord(*row)
+
+    return None
+
+####
+
 class FragDBWriter:
     def __init__(self, filename, db, c, options):
         self.filename = filename
@@ -505,6 +627,8 @@ class FragDBWriter:
         db, c = self.db, self.c
         if db is not None:
             c.execute("CREATE INDEX fragmentation_on_record_id ON fragmentation(record_id)")
+            c.execute("CREATE INDEX record_on_title ON record(title)")
+            c.execute("CREATE INDEX error_record_on_title ON error_record(title)")
             self.db = self.c = None
             c.close()
             db.commit()  # don't rollback - keep partial writes too.
@@ -525,34 +649,12 @@ class FragDBWriter:
     def write_records(self, fragment_records):
         c = self.c
         for rec in fragment_records:
-            if rec.errmsg:
-                c.execute("""
-INSERT INTO error_record (title, input_smiles, errmsg)
-                  VALUES (?, ?, ?)""",
-                  (rec.id, rec.input_smiles, rec.errmsg))
+            if rec.errmsg is not None:
+                insert_fragment_error_record(c, rec)
                 continue
 
             self._record_id = record_id = self._record_id + 1
-            
-            c.execute("""
-INSERT INTO record (id, title, input_smiles, num_normalized_heavies, normalized_smiles)
-            VALUES (?, ?, ?, ?, ?)""",
-           (record_id, rec.id, rec.input_smiles, rec.num_normalized_heavies, rec.normalized_smiles))
-
-            # XXX Is this sort still needed?
-            fragmentations = sorted(rec.fragments, key = get_fragment_sort_key)
-
-            for frag in fragmentations:
-                c.execute("""
-INSERT INTO fragmentation (record_id, num_cuts, enumeration_label,
-                           variable_num_heavies, variable_symmetry_class, variable_smiles,
-                           attachment_order, constant_num_heavies, constant_symmetry_class,
-                           constant_smiles, constant_with_H_smiles) 
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                   (record_id, frag.num_cuts, frag.enumeration_label,
-                    frag.variable_num_heavies, frag.variable_symmetry_class, frag.variable_smiles,
-                    frag.attachment_order, frag.constant_num_heavies, frag.constant_symmetry_class,
-                    frag.constant_smiles, frag.constant_with_H_smiles))
+            insert_fragment_record(c, rec, record_id)
 
 def _get_fragdb_options(c):
     try:
@@ -579,13 +681,9 @@ SELECT version, {field_str}
         raise ValueError(f"{filename!r} is a version {version} fragdb database. Only version 2 is supported.")
 
     kwargs = dict(zip(fields, field_values))
-    return config.FragmentOptions(**kwargs)
+    return FragmentOptions(**kwargs)
                 
-def _load_fragdb(filename):
-    db = sqlite3.connect(filename)
-    c = db.cursor()
-    options = _get_fragdb_options(c)
-    return FragDB(None, options, db, c)
+###
 
 class FragDB:
     def __init__(self, metadata, options, db, c):
@@ -594,22 +692,12 @@ class FragDB:
         self.c = c
         self.options = options
 
-    def get(self, title):
-        x = _get_one_or_none(self.c.execute("""
-SELECT id, title, input_smiles, num_normalized_heavies, normalized_smiles
-  FROM record
- WHERE title = ?""", (title,)))
-        if x is not None:
-            1/0
-
-        x = _get_one_or_none(self.c.execute("""
-SELECT id, title, input_smiles, errmsg
-  FROM error_record
- WHERE title = ?""", (title,)))
-        if x is not None:
-            2/0
-
-        return None
+    def get(self, id):
+        obj = select_fragment_record_by_title(self.c, id)
+        if obj is not None:
+            return obj
+        
+        return select_fragment_error_record_by_title(self.c, id)
 
     def __enter__(self):
         return self
@@ -625,49 +713,7 @@ SELECT id, title, input_smiles, errmsg
             db.rollback()
 
     def __iter__(self):
-        record_c = self.db.cursor()
-        fragment_c = self.db.cursor()
-        # Ignore the errors
-        record_c.execute("""
-SELECT id, title, input_smiles, num_normalized_heavies, normalized_smiles
-  FROM record
-        """)
-        for (record_id, record_title, input_smiles, num_normalized_heavies,
-                 normalized_smiles) in record_c:
-            fragment_c.execute("""
-SELECT num_cuts, enumeration_label,
-       variable_num_heavies, variable_symmetry_class, variable_smiles,
-       attachment_order,
-       constant_num_heavies, constant_symmetry_class, constant_smiles,
-       constant_with_H_smiles
-  FROM fragmentation
- WHERE fragmentation.record_id = ?
-""", (record_id,))
-            fragmentations = []
-            for (num_cuts, enumeration_label,
-                 variable_num_heavies, variable_symmetry_class, variable_smiles,
-                 attachment_order,
-                 constant_num_heavies, constant_symmetry_class, constant_smiles,
-                 constant_with_H_smiles) in fragment_c:
-                fragmentations.append(fragment_algorithm.Fragmentation(
-                    num_cuts = num_cuts,
-                    enumeration_label = enumeration_label,
-                    variable_num_heavies = variable_num_heavies,
-                    variable_symmetry_class = variable_symmetry_class,
-                    variable_smiles = variable_smiles,
-                    attachment_order = attachment_order,
-                    constant_num_heavies = constant_num_heavies,
-                    constant_symmetry_class = constant_symmetry_class,
-                    constant_smiles = constant_smiles,
-                    constant_with_H_smiles = constant_with_H_smiles,
-                    ))
-            yield FragmentRecord(
-                id = record_title,
-                input_smiles = input_smiles,
-                num_normalized_heavies = num_normalized_heavies,
-                normalized_smiles = normalized_smiles,
-                fragments = fragmentations,
-                )
+        return iter_fragment_records(self.db.cursor(), self.db.cursor())
     
 ### Dispatch to the correct writer
 

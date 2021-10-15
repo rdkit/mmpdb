@@ -379,14 +379,15 @@ SELECT property_name.name, count(property_name_id)
         from . import fragment_io
         cursor = self.mmpa_db.execute("SELECT fragment_options FROM dataset WHERE id = 1", (),
                                       cursor)
+        import json
+        from . import fragment_types
         for (fragment_options,) in cursor:
-            import json
             d = json.loads(fragment_options)
             # {"max_heavies": 100, "max_rotatable_bonds": 10,
             #  "rotatable_smarts": "[!$([NH]!@C(=O))&!D1&!$(*#*)]-&!@[!$([NH]!@C(=O))&!D1&!$(*#*)]",
             #  "cut_smarts": "[#6+0;!$(*=,#[!#6])]!@!=!#[!#0;!#1;!$([CH2]);!$([CH3][CH2])]", "num_cuts": 3,
             #   "method": "dalke", "salt_remover": "<default>"
-            return config.FragmentOptions(
+            return fragment_types.FragmentOptions(
                 max_heavies = d["max_heavies"],
                 max_rotatable_bonds = d["max_rotatable_bonds"],
                 rotatable_smarts = str(d["rotatable_smarts"]),  # otherwise it's unicode

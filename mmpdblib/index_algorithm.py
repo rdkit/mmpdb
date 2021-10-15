@@ -533,7 +533,7 @@ def load_fragment_index(fragment_reader, fragment_filter=None, selected_ids=None
         
         normalized_smiles_to_ids[record.normalized_smiles].append(record.id)
         
-        for fragmentation in record.fragments:
+        for fragmentation in record.fragmentations:
             if not fragment_filter.allow_fragment(
                     fragmentation.variable_num_heavies, record.num_normalized_heavies):
                 continue
