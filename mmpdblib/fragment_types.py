@@ -41,7 +41,19 @@
 
 import dataclasses
 from dataclasses import dataclass
-from typing import List, Optional, Literal
+from typing import List, Optional
+
+try:
+    from typing import Literal
+except ImportError:
+    # Compatability for Python 3.7
+    # ("typing.Literal" was added in Python 3.8)
+    # Make Literai[x] return Any
+    from typing import Any
+    class LiteralClass(dict):
+        def __missing__(self, x):
+            return Any
+    Literal = LiteralClass()
 
 @dataclass
 class FragmentOptions:
