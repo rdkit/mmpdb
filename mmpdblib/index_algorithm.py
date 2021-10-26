@@ -44,7 +44,7 @@ import itertools
 # import binascii
 import operator
 
-from . import fragment_io
+from . import fragment_db
 from . import fileio, reporters
 from . import environment
 from . import fragment_algorithm
@@ -424,10 +424,10 @@ if USE_SMIRKS_TABLE:
 class RelabelCache(dict):
     def __missing__(self, key):
         if isinstance(key, _compat.basestring):
-            result = fragment_io.relabel(key)
+            result = fragment_db.relabel(key)
         else:
             smiles, order = key
-            result = fragment_io.relabel(smiles, order)
+            result = fragment_db.relabel(smiles, order)
         self[key] = result
         return result
 
@@ -470,9 +470,9 @@ def cansmirks(num_cuts,
         ## print("new_order:", new_order, "constant_order:", constant_order)
 
     ## print("Relabel", constant_smiles, "with", constant_order)
-    ## print("smiles1", smiles1, " -> ", fragment_io.relabel(smiles1))
-    ## print("smiles2", smiles2, " -> ", fragment_io.relabel(smiles2, new_order), "new_order:", new_order)
-    ## print("constant", fragment_io.relabel(constant_smiles, constant_order))
+    ## print("smiles1", smiles1, " -> ", fragment_db.relabel(smiles1))
+    ## print("smiles2", smiles2, " -> ", fragment_db.relabel(smiles2, new_order), "new_order:", new_order)
+    ## print("constant", fragment_db.relabel(constant_smiles, constant_order))
     
     return (relabel_cache[smiles1] + ">>" + relabel_cache[smiles2, new_order],
                 relabel_cache[constant_smiles, constant_order])

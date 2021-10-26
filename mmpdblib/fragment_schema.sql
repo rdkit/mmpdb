@@ -40,7 +40,7 @@
 -- NOTE: There is configuration information in three files!
 -- 1) fragment_types.py -- the data types
 -- 2) fragment_schema.sql -- (this file) defines the SQL schema
--- 3) fragment_io.py -- defines the mapping from SQL to the data types
+-- 3) fragment_db.py -- defines the mapping from SQL to the data types
 
 
 CREATE TABLE options (

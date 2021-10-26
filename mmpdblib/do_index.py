@@ -37,7 +37,7 @@ import os
 
 from . import command_support
 from . import index_algorithm
-from . import fragment_io
+from . import fragment_db
 from . import fragment_types
 from . import properties_io
 from ._compat import open_universal
@@ -166,11 +166,9 @@ def index_command(parser, args):
 
     #reporter.report("Using fragment filters: %s" % (fragment_filter.get_args(),))
 
-    fragment_io.suggest_faster_json(reporter)
-
     start_fragment_index_memory = get_memory_use()
     try:
-        fragment_reader = fragment_io.read_fragment_records(fragment_filename)
+        fragment_reader = fragment_db.read_fragment_records(fragment_filename)
     except fragment_types.FragmentFormatError as err:
         parser.error(str(err))
         

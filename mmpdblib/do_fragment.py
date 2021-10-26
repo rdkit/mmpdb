@@ -46,7 +46,7 @@ from . import command_support
 from . import reporters
 from . import fileio
 from . import fragment_algorithm
-from . import fragment_io
+from . import fragment_db
 from . import fragment_types
 from . import smarts_aliases
 
@@ -552,7 +552,7 @@ def fragment_command(parser, args):
             raise AssertionError("Should not get here")
         
         try:
-            cache = fragment_io.load_cache(args.cache, reporter)
+            cache = fragment_db.load_cache(args.cache, reporter)
         except IOError as err:
             parser.error("Cannot open cache: %s" % (err,))
         except ValueError as err:
@@ -579,7 +579,7 @@ def fragment_command(parser, args):
         try:
             with fileio.read_smiles_file(args.structure_filename, args.format,
                                          args.delimiter, args.has_header) as reader:
-                with fragment_io.open_fragment_writer(output_filename,
+                with fragment_db.open_fragment_writer(output_filename,
                                                       options = fragment_filter.options,
                                                       ) as writer:
                     records = make_fragment_records(reader, fragment_filter, cache,
@@ -603,7 +603,7 @@ def fragment_command(parser, args):
         reporter.update("")
     
         ## with fileio.open_output(args.output, args.out) as outfile:
-        ##     fragment_io.write_fragment_records(outfile, records, )
+        ##     fragment_db.write_fragment_records(outfile, records, )
 
 def smifrag_command(parser, args):
     reporter = command_support.get_reporter(args.quiet)

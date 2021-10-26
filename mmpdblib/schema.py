@@ -376,7 +376,6 @@ SELECT property_name.name, count(property_name_id)
         return property_name_id
     
     def get_fragment_options(self, cursor=None):
-        from . import fragment_io
         cursor = self.mmpa_db.execute("SELECT fragment_options FROM dataset WHERE id = 1", (),
                                       cursor)
         import json

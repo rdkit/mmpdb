@@ -192,10 +192,6 @@ def add_fragment_arguments(parser):
                    help="Ignore fragmentations where one or more constant fragments are very small (default: %r)"
                          % (OPTS.min_heavies_per_const_frag,))
     
-    ## p.add_argument("--method", choices=("dalke", "hussain"), type=fragment_io.parse_method_value,
-    ##                help="fragment canonicalization method to use (default: %s)"
-    ##                % (FRAGMENT_OPTIONS.method,))
-
 ###### Index
 
 parse_min_variable_heavies_value = nonnegative_int
