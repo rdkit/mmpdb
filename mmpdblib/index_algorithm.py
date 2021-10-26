@@ -421,13 +421,33 @@ if USE_SMIRKS_TABLE:
             raise SystemExit("cansmirks_table.py generated")
     
 
+_wildcard_pat = re.compile(  re.escape("[*]")
+                           + "|"
+                           + re.escape("*"))
+
+
+def relabel(smiles, order=None):
+    input_smiles = smiles
+    input_order = order
+
+    if order is None:
+        order = list(range(smiles.count("*")))
+    else:
+        order = [int(c) for c in order]
+
+    def add_isotope_tag_to_wildcard(m):
+        return "[*:%d]" % (order.pop(0)+1,)
+
+    return _wildcard_pat.sub(add_isotope_tag_to_wildcard, smiles)
+
+
 class RelabelCache(dict):
     def __missing__(self, key):
         if isinstance(key, _compat.basestring):
-            result = fragment_db.relabel(key)
+            result = relabel(key)
         else:
             smiles, order = key
-            result = fragment_db.relabel(smiles, order)
+            result = relabel(smiles, order)
         self[key] = result
         return result
 
@@ -470,9 +490,9 @@ def cansmirks(num_cuts,
         ## print("new_order:", new_order, "constant_order:", constant_order)
 
     ## print("Relabel", constant_smiles, "with", constant_order)
-    ## print("smiles1", smiles1, " -> ", fragment_db.relabel(smiles1))
-    ## print("smiles2", smiles2, " -> ", fragment_db.relabel(smiles2, new_order), "new_order:", new_order)
-    ## print("constant", fragment_db.relabel(constant_smiles, constant_order))
+    ## print("smiles1", smiles1, " -> ", relabel(smiles1))
+    ## print("smiles2", smiles2, " -> ", relabel(smiles2, new_order), "new_order:", new_order)
+    ## print("constant", relabel(constant_smiles, constant_order))
     
     return (relabel_cache[smiles1] + ">>" + relabel_cache[smiles2, new_order],
                 relabel_cache[constant_smiles, constant_order])

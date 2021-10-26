@@ -51,31 +51,6 @@ from .fragment_types import (FragmentOptions, FragmentRecord, FragmentErrorRecor
 from ._compat import basestring
 from . import schema
 
-SOFTWARE = "mmpdb-" + mmpdblib_version
-
-##### Read
-
-
-_wildcard_pat = re.compile(  re.escape("[*]")
-                           + "|"
-                           + re.escape("*"))
-
-
-def relabel(smiles, order=None):
-    input_smiles = smiles
-    input_order = order
-
-    if order is None:
-        order = list(range(smiles.count("*")))
-    else:
-        assert not isinstance(order[0], int), ("Fix this for Python 3", order)
-        order = [int(c) for c in order]
-
-    def add_isotope_tag_to_wildcard(m):
-        return "[*:%d]" % (order.pop(0)+1,)
-
-    return _wildcard_pat.sub(add_isotope_tag_to_wildcard, smiles)
-
 #### "fragdb" -- SQLite-based fragment file
 
 # NOTE: There is configuration information in three files!
