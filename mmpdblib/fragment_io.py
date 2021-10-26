@@ -342,10 +342,11 @@ class FragDB:
     def __iter__(self):
         return iter_fragment_records(self.db.cursor(), self.db.cursor())
     
-### Dispatch to the correct writer
+### connect to the database and prepare for writing.
 
 def open_fragment_writer(filename, options):
     assert filename is not None
+    # Remove any existing file.
     try:
         os.unlink(filename)
     except FileNotFoundError:
