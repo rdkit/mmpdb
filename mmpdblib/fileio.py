@@ -28,7 +28,7 @@ from __future__ import print_function, absolute_import
 
 import sys
 import gzip
-#import io
+import os
 
 from ._compat import basestring, open_universal, io_wrapper
 from ._compat import binary_stdin, binary_stdout
@@ -469,7 +469,20 @@ _delimiter_readers = {
     "native": _read_whitespace,
     }
 
+def remove_suffixes(filename):
+    """Remove .gz (if present) then any additional suffix
 
+    Used to get the '/a/x' in '/a/x.smi.gz' or '/a/x.smi'.
+    """
+    left, ext = os.path.splitext(filename)
+    if ext.lower() == ".gz":
+        left, ext = os.path.splitext(left)
+    if not left:
+        # Handle odd names like ".smi", ".gz, and ".smi.gz".
+        return "input"
+    return left
+    
+    
 def read_smiles_file(filename, format=None, delimiter="whitespace", has_header=False):
     if format is None:
         if filename is not None and filename.lower().endswith(".gz"):

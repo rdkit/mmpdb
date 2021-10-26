@@ -196,10 +196,7 @@ p.add_argument("--delimiter", default="whitespace",
 p.add_argument("--has-header", default=False, action="store_true",
                help="skip the first line, which is the header line")
 p.add_argument("--output", "-o", metavar="FILENAME",
-               help="save the fragment data to FILENAME (default=stdout)")
-p.add_argument("--out", metavar="FORMAT", choices=("fragdb", "fragments", "fragments.gz"),
-               help="output format. One of 'fragdb', 'fragments' or 'fragments.gz'. "
-               "If not present, guess from the filename, and default to 'fragdb'")
+               help="save the fragment data to FILENAME (default: based on the structure filename)")
 p.add_argument("structure_filename", nargs="?", default=None,
                help="SMILES filename (default: read from stdin)")
 
@@ -501,6 +498,28 @@ p.add_argument("--recount", action="store_true",
 add_multiple_dataset_arguments(p)
 p.set_defaults(command=list_command,
                subparser=p)
+
+
+#### mmpdb smi_split
+
+# mmpdb smi_split blah.smi.gz --num-records 1000 --template "{basename}.{i}.smi"
+# mmpdb smi_split blah.smi.gz --num-files 5 --template "{basename}.{i}.smi"
+
+
+#### mmpdb fragdb_stats
+
+
+#### mmpdb fragdb_merge
+
+# mmpdb fragdb_merge blah.*.fragdb -o blah.fragdb
+
+#### mmpdb fragdb_split
+
+# mmpdb fragdb_split blah.fragdb --template "{basename}.{i}.fragdb" --jobs blah.txt
+#   mmpdb index {basename}.{i}.fragdb --no-H '{basename}.{i}.fragdb'
+#   mmpdb index {basename}.fragdb --H -o '{basename}.H.fragdb'
+
+# mmpdb mmpdb_join blah.*.fragdb -o blah.fragdb
 
 
 #### mmpdb loadprops

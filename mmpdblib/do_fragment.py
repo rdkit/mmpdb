@@ -535,6 +535,11 @@ def fragment_command(parser, args):
     except ValueError as err:
         sys.stderr.write(str(err) + "\n")
         raise SystemExit(1)
+
+    structure_filename = args.structure_filename
+    output_filename = args.output
+    if output_filename is None:
+        output_filename = fileio.remove_suffixes(structure_filename) + ".fragdb"
     
     # Use a cache?
     cache = None
@@ -573,9 +578,9 @@ def fragment_command(parser, args):
         try:
             with fileio.read_smiles_file(args.structure_filename, args.format,
                                          args.delimiter, args.has_header) as reader:
-                with fragment_io.open_fragment_writer(filename = args.output,
+                with fragment_io.open_fragment_writer(output_filename,
                                                       options = fragment_filter.options,
-                                                      format_hint = args.out) as writer:
+                                                      ) as writer:
                     records = make_fragment_records(reader, fragment_filter, cache,
                                                     pool=pool, reporter=reporter)
                     writer.write_records(records)
