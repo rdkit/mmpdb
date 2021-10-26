@@ -506,8 +506,16 @@ p.set_defaults(command=list_command,
 # mmpdb smi_split blah.smi.gz --num-files 5 --template "{basename}.{i}.smi"
 
 
-#### mmpdb fragdb_stats
+#### mmpdb fragdb_constants
 
+p = fragdb_constants_parser = subparsers.add_parser(
+    "fragdb_constants",
+    help="generate statistics about constants in a fragdb file",
+    )
+
+
+## p.add_argument(
+##     "--max
 
 #### mmpdb fragdb_merge
 

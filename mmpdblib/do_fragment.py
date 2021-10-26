@@ -539,7 +539,10 @@ def fragment_command(parser, args):
     structure_filename = args.structure_filename
     output_filename = args.output
     if output_filename is None:
-        output_filename = fileio.remove_suffixes(structure_filename) + ".fragdb"
+        if structure_filename is None:
+            output_filename = "input.fragdb"
+        else:
+            output_filename = fileio.remove_suffixes(structure_filename) + ".fragdb"
         reporter.report(f"Using {output_filename!r} as the default --output file.")
     
     # Use a cache?
