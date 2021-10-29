@@ -120,6 +120,9 @@ def _execute_sql(c, bulk_sql):
         except Exception:
             sys.stderr.write("Failed to execute the following SQL:\n")
             sys.stderr.write(statement)
+            if statement[-1:] != "\n":
+                sys.stderr.write("\n")
+            sys.stderr.flush()
             raise
 
 
