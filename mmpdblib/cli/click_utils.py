@@ -126,5 +126,5 @@ def pop_known_args(names, kwargs, opts):
     
 def die(*msgs):
     for msg in msgs:
-        click.echo(msg, error=True)
+        click.echo(msg, err=True)
     raise SystemExit(1)
