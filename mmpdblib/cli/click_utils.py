@@ -104,6 +104,11 @@ class positive_float(click.ParamType):
 class nonnegative_int(click.IntRange):
     def __init__(self):
         super().__init__(0)
+
+class radius_type(IntChoice):
+    name = "R"
+    def __init__(self):
+        super().__init__(["0", "1", "2", "3", "4", "5"])
     
 def name_to_command_line(s):
     return "--" + s.replace("_", "-")
@@ -132,18 +137,199 @@ def die(*msgs):
 
 ###### Shared options
 
+class DatabaseOptions:
+    def __init__(self, databases, copy_to_memory = False):
+        self.databases = databases
+        self.copy_to_memory = copy_to_memory
+        
+def _in_memory_option(command):
+    click.option(
+        "--in-memory",
+        is_flag=True,
+        default=False,
+        help = "load the SQLite database into memory before use (requires APSW)"
+        )(command)
+        
+def add_single_database_parameters(add_in_memory = False):
+    def add_single_database_parameters_decorator(command):
+        click.argument(
+            "database",
+            metavar = "DATABASE",
+            )(command)
+        
+        if add_in_memory:
+            _in_memory_option(command)
+            
+        def wrapped_command(**kwargs):
+            popped_kwargs = {
+                "databases": [
+                    kwargs.pop("database") # is a string
+                    ], 
+                }
+            if add_in_memory:
+                popped_kwargs["copy_to_memory"] = kwargs.pop("in_memory")
+            kwargs["database_options"] = DatabaseOptions(**popped_kwargs)
+            return command(**kwargs)
 
-def add_single_database_argument(command):
-    click.argument(
-        "database",
-        metavar = "DATABASE",
+        set_click_attrs(wrapped_command, command)
+        return wrapped_command
+    return add_single_database_parameters_decorator
+
+def add_multiple_databases_parameters(add_in_memory = False):
+    def add_multiple_databases_parameters_decorator(command):
+        click.argument(
+            "database",
+            nargs = -1,
+            metavar="DATABASE",
+            )(command)
+        
+        if add_in_memory:
+            _in_memory_option(command)
+            
+        def wrapped_command(**kwargs):
+            popped_kwargs = {
+                "databases": kwargs.pop("database")  # is 0 or more
+                }
+            if add_in_memory:
+                popped_kwargs["copy_to_memory"] = kwargs.pop("in_memory")
+            kwargs["database_options"] = DatabaseOptions(**popped_kwargs)
+            return command(**kwargs)
+
+        set_click_attrs(wrapped_command, command)
+        return wrapped_command
+    
+    return add_multiple_databases_parameters_decorator
+
+def add_single_property(command):
+    click.option(
+        "--property",
+        "-p",
+        "property_name",
+        metavar="NAME",
+        required = True,
+        help = "property to use",
         )(command)
     return command
 
-def add_multiple_databases_argument(command):
-    click.argument(
-        "databases",
-        nargs = -1,
-        metavar="DATABASE",
+def add_multiple_properties(command):
+    click.option(
+        "--property",
+        "-p",
+        "property_names",
+        metavar = "NAME",
+        multiple = True,
+        help = "property to use (may be specified multiple times)",
+        )(command)
+    click.option(
+        "--no-properties",
+        is_flag = True,
+        default = False,
+        help = "don't use any properties",
         )(command)
     return command
+
+## Rule selection
+
+class parse_where(click.ParamType):
+    name = "EXPR"
+    def convert(self, value, param, ctx):
+        if not isinstance(value, str):
+            return value
+        from .. import analysis_algorithms
+        try:
+            return analysis_algorithms.get_where_function(value)
+            
+        except ValueError as err:
+            raise click.UsageError(str(err))
+        
+        except analysis_algorithms.EvalError as err:
+            raise click.UsageError(str(err))
+
+class parse_score(click.ParamType):
+    name = "EXPR"
+    def convert(self, value, param, ctx):
+        if not isinstance(value, str):
+            return value
+        from .. import analysis_algorithms
+        try:
+            return analysis_algorithms.get_score_function(value)
+        except ValueError as err:
+            raise click.UsageError(str(err))
+        
+        except analysis_algorithms.EvalError as err:
+            raise click.UsageError(str(err))
+
+
+
+class parse_cutoff_list(click.ParamType):
+    name = "LIST"
+    def convert(self, value_obj, param, ctx):
+        if isinstance(value_obj, (list, tuple)):
+            return value_obj
+        
+        prev = None
+        values = []
+        for term in value_obj.split(","):
+            try:
+                value = int(term)
+            except ValueError as err:
+                raise click.UsageError(
+                    f"could not parse {term} as an integer: {err}"
+                    )
+
+            if value < 0:
+                raise click.UsageError("threshold values must be non-negative")
+
+            if prev is not None and prev <= value:
+                raise click.UsageError("threshold values must be in decreasing order")
+            
+            prev = value
+            values.append(value)
+
+        if not values:  # Let people specify ""
+            return [0]
+
+        return values        
+
+def add_rule_selection_options(command):
+    OPTS = config.DEFAULT_RULE_SELECTION_OPTIONS
+
+    def add_option(*args, **kwargs):
+        click.option(*args, **kwargs)(command)
+
+    add_option(
+        "--where",
+        default=OPTS.where,
+        type = parse_where(),
+        help = "select only rules for which the expression is true",
+        )
+
+    add_option(
+        "--score",
+        default= OPTS.score,
+        type = parse_score(),
+        help="use to break ties when multiple rules produce the same SMILES",
+        )
+
+    msg = ",".join(str(i) for i in OPTS.cutoff_list)
+    add_option(
+        "--rule-selection-cutoffs",
+        default = OPTS.cutoff_list,
+        type = parse_cutoff_list(),
+        help=(
+            "evaluate rule environments with the given minimum pair count. If multiple "
+            "counts are given, consider them in turn until there is a selected environment. "
+            f"(default: '{msg}')"
+            ),
+        )
+
+    def wrapped_command(**kwargs):
+        kwargs["rule_selection_options"] = config.RuleSelectionOptions(
+            where = kwargs.pop("where"),
+            score = kwargs.pop("score"),
+            cutoff_list = kwargs.pop("rule_selection_cutoffs"),
+            )
+        return command(**kwargs)
+
+    set_click_attrs(wrapped_command, command)
+    return wrapped_command

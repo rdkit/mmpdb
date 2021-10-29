@@ -1,6 +1,14 @@
 import click
 
-from .click_utils import command, IntChoice
+from .click_utils import (
+    command,
+    die,
+    radius_type,
+    add_single_database_parameters,
+    add_single_property,
+    add_rule_selection_options,
+    nonnegative_int,
+    )
 
 # predict a property for a structure given the known property for
 # another structure, using the MMPA database to identify the possible
@@ -10,15 +18,6 @@ from .click_utils import command, IntChoice
 # pairs with the same transformations and their properties.
 
 predict_epilog="""
-
-  --smiles SMILES, -s SMILES
-                        the base structure to transform
-  --reference SMILES    the reference structure
-  --property NAME, -p NAME
-                        property to use
-
-  --value VALUE, -v VALUE
-                        the property value for the reference
 
 Predict the change in a specified '--property' going from the
 '--reference' SMILES to the input '--smiles', using the matched
@@ -94,69 +93,34 @@ to O_to_S_rules.txt and O_to_S_pairs.txt:
 
 
 @command(epilog=predict_epilog)
-@add_single_dataset_arguments
+
 @click.option(
     "--smiles",
     "-s",
+    metavar = "SMILES",
     required = True,
     help = "the base structure to transform",
     )
-@click.option(
-    "--min-variable-size",
-    metavar = "N",
-    type = click.IntRange(0),
-    default = 0,
-    help = "require at least N atoms in the variable fragment (default: 0)",
-    )
 
 @click.option(
-    "--max-variable-size",
-    metavar = "N",
-    type = click.IntRange(0),
-    default = 9999,
-    help = "allow at most N atoms in the variable fragment (default: 9999)",
+    "--reference",
+    "reference_smiles",
+    metavar = "SMILES",
+    required = True,
+    help = "the reference structure",
     )
+@add_single_database_parameters(add_in_memory=True)
+
+@add_single_property
+
+@add_rule_selection_options
 
 @click.option(
-    "--min-constant-size",
-    metavar = "N",
-    type = nonnegative_int,
-    default = 0,
-    help = "require at least N atoms in the constant fragment (default: 0)",
-    )
-
-@click.option(
-    "--min-radius",
-    "-r",
-    metavar = "R",
-    type = IntChoice("0", "1", "2", "3", "4", "5"),
-    default = 0,
-    help = "fingerprint radius (default: 0)",
-    )
-
-@click.option(
-    "--min-pairs",
-    metavar = "N",
-    type = click.IntRange(0),
-    default = 0,
-    help = "require at least N pairs in the transformation to report a product (default: 0)",
-    )
-    
-p.add_argument(
-    "--substructure",
-    "-S",
-    metavar = "SMARTS",
-    help = "require the substructure pattern in the product",
-    )
-@add_multiple_properties_default_all
-@add_rule_selection_arguments
-@add_in_memory
-@click.option(
-    "--jobs",
-    "-j",
-    type = click.IntRange(1),
-    default = 1,
-    help = "number of jobs to run in parallel (default: 1)",
+    "--value",
+    "-v",
+    type = click.FLOAT,
+    default = None,
+    help = "the property value for the reference",
     )
 
 @click.option(
@@ -164,59 +128,89 @@ p.add_argument(
     help = "explain each of the steps in the transformation process",
     )
 
+## @click.option(
+##     "--output",
+##     "-o",
+##     metavar = "FILENAME",
+##     help = "save the output to FILENAME (default=stdout)",
+##     )
 @click.option(
-    "--output",
-    "-o",
-    metavar = "FILENAME",
-    help = "save the output to FILENAME (default=stdout)",
+    "--save-details",
+    is_flag = True,
+    default = False,
+    help = "save information about the transformation pairs and statistics to two CSV files",
     )
+
+@click.option(
+    "--prefix",
+    metavar = "STRING",
+    default = "pred_detail",
+    help = "prefix to use for each CSV filename (default: 'pred_details')",
+    )
+
 @click.option(
     "--times/--no-times",
     help = "report timing information for each step",
     )
-def predict(**kwargs):
+@click.pass_obj
+def predict(
+        reporter,
+        database_options,
+        rule_selection_options,
+        property_name,
+        explain,
+        smiles,
+        reference_smiles,
+        value,
+        save_details,
+        prefix,
+        times,
+        ):
     """predict the effect of a structural transformation
 
     BLAH:
     """
+    import time
+    from .. import (
+        dbutils,
+        analysis_algorithms,
+        )
+
+    reporter.set_explain(explain)
     # --smiles 'c1ccccc1C(=O)N(C)C' --reference 'c1ccccc1C(=O)NC' --property MP e.mmpdb --save-details
     start_time = time.time()
     
-    dataset = dbutils.open_dataset_from_args_or_exit(args)
+    dataset = dbutils.open_dataset_from_options_or_exit(database_options, reporter.quiet)
     open_time = time.time()
     
-    rule_selection_function = analysis_algorithms.get_rule_selection_function_from_args(parser, args)
+    rule_selection_function = rule_selection_options.get_rule_selection_function()
     predict_tool = analysis_algorithms.get_predict_tool(dataset, rule_selection_function)
 
-    property_name = args.property
     if not predict_tool.is_available_property_name(property_name):
         property_names = sorted(predict_tool.get_property_names())
         if not property_names:
-            parser.error("--property %r not available and no properties available"
-                         % (property_name,))
+            die(f"--property {property_name!r} not available and no properties available")
         if len(property_names) == 1:
-            parser.error("--property %r not available. Only %s is available."
-                         % (property_name, property_names[0]))
-        parser.error("--property %r not available. Available properties:"
-                     % (property_name, ", ".join(property_names)))
+            die(f"--property {property_name!r} not available. Only {property_names[0]!r} is available.")
+            
+        available = ", ".join(map(repr,property_names))
+        die(f"--property {property_name!r} not available. Available properties: {available}")
             
 
-    reference_record = predict_tool.fragment_reference_smiles(args.reference)
+    reference_record = predict_tool.fragment_reference_smiles(reference_smiles)
     if reference_record.errmsg:
-        parser.error("Unable to fragment --reference %r: %s"
-                     % (args.reference, reference_record.errmsg))
+        die(f"Unable to fragment --reference {reference!r}: {reference_record.errmsg}")
 
-    smiles_record = predict_tool.fragment_predict_smiles(args.smiles)
+    smiles_record = predict_tool.fragment_predict_smiles(smiles)
     if smiles_record.errmsg:
-        parser.error("Unable to fragment --smiles %r: %s"
-                     % (args.smiles, reference_record.errmsg))
+        parser.error(f"Unable to fragment --smiles {smiles!r}: {reference_record.errmsg}")
         
     query_prep_time = time.time()
     
-    explain = command_support.get_explain(args.explain)
+    explain = reporter.explain
     try:
         predict_result = predict_tool.predict(
-            reference_record.fragments, smiles_record.fragments, property_name,
+            reference_record.fragmentations, smiles_record.fragmentations, property_name,
             explain=explain)
     except analysis_algorithms.EvalError as err:
         sys.stderr.write("ERROR: %s\nExiting.\n" % (err,))
@@ -234,8 +228,8 @@ def predict(**kwargs):
 
         # always include the "+" or "-" sign for a delta
         print_args = ["predicted delta: %+g" % (delta,)]
-        if args.value is not None:
-            print_args.append("predicted value: %g" % (args.value + delta,))
+        if value is not None:
+            print_args.append("predicted value: %g" % (value + delta,))
         if std is not None:
             print_args.append("+/- %g" % (std,))
 
@@ -245,9 +239,9 @@ def predict(**kwargs):
     
         print(*print_args)
 
-    if args.save_details:
+    if save_details:
         try:
-            property_rules_file = open(args.prefix+"_rules.txt", "w")
+            property_rules_file = open(prefix+"_rules.txt", "w")
         except Exception as err:
             parser.error("Unable to open output rules file: %s" % (err,))
             
@@ -263,7 +257,7 @@ def predict(**kwargs):
                     )
             
         try:
-            property_rule_pairs_file = open(args.prefix+"_pairs.txt", "w")
+            property_rule_pairs_file = open(prefix+"_pairs.txt", "w")
         except Exception as err:
             parser.error("Unable to open output rules file: %s" % (err,))
 
@@ -280,7 +274,7 @@ def predict(**kwargs):
                 )
     output_time = time.time()
 
-    if args.times:
+    if times:
         sys.stderr.write("Elapsed time (in seconds):\n")
         format_dt = get_time_delta_formatter(output_time - start_time)
         

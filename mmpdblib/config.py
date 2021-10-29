@@ -246,20 +246,31 @@ def add_index_options(parser):
                    help="Maximum Environment Radius to be indexed in the MMPDB database")
 
 
-class DEFAULT_RULE_SELECTION_OPTIONS:
-    where = None
-    score = None
-    cutoff_list = (10, 5, 0)
+class RuleSelectionOptions:
+    def __init__(self, where, score, cutoff_list):
+        self.where = where
+        self.score = score
+        self.cutoff_list = cutoff_list
 
-
-def add_rule_selection_arguments(parser):
-    OPTS = DEFAULT_RULE_SELECTION_OPTIONS
-    parser.add_argument("--where", metavar="EXPR", default=OPTS.where,
-                        help="select only rules for which the expression is true")
-    parser.add_argument("--score", metavar="EXPR", default=OPTS.score,
-                        help="use to break ties when multiple rules produce the same SMILES")
-    parser.add_argument("--rule-selection-cutoffs", metavar="LIST", type=cutoff_list, default=OPTS.cutoff_list,
-                        dest="cutoffs",
-                        help="evaluate rule environments with the given minimum pair count. If multiple "
-                             "counts are given, consider them in turn until there is a selected environment. "
-                             "(default: '10,5,0')")
+    def get_rule_selection_function(self):
+        from . import analysis_algorithms
+        # generate the sort key for the different cutoffs
+        score_function = self.score
+        if score_function is None:
+            score_function = analysis_algorithms.default_score_function
+        
+        rule_key_function = analysis_algorithms.ComputeRuleKey(
+            score_function = score_function,
+            cutoffs = self.cutoff_list,
+            )
+        # wrap it together into a selection function
+        return analysis_algorithms.RuleSelectionFunction(
+            self.where,
+            rule_key_function,
+            )
+    
+DEFAULT_RULE_SELECTION_OPTIONS = RuleSelectionOptions(
+    where = None,
+    score = None,
+    cutoff_list = (10, 5, 0),
+    )

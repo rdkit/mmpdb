@@ -204,7 +204,10 @@ class SingleSmilesReader(object):
     location = fileio.Location.from_source("<string>")
 
 
-def make_fragment_record_from_smiles(smiles, fragment_filter, reporter):
+def make_fragment_record_from_smiles(smiles, fragment_filter, reporter=None):
+    from . import reporters
+    reporter = reporters.get_reporter(reporter)
+
     reader = SingleSmilesReader(smiles)
     records = make_fragment_records(reader, fragment_filter, reporter=reporter)
     for record in records:

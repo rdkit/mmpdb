@@ -39,7 +39,6 @@ import copy
 from rdkit import Chem
 
 from . import command_support
-from . import do_fragment
 from . import fragment_algorithm
 from . import index_algorithm
 from . import environment
@@ -364,7 +363,7 @@ def _get_tool(klass, dataset, rule_selection_function):
     cursor = dataset.get_cursor()
     property_name_to_id = dataset.get_property_names_table(cursor)
     fragment_options = dataset.get_fragment_options(cursor)
-    fragment_filter = do_fragment.get_fragment_filter(fragment_options)
+    fragment_filter = fragment_options.get_fragment_filter()
     return klass(
         dataset=dataset,
         property_name_to_id=property_name_to_id,
@@ -400,11 +399,13 @@ def get_predict_tool(
 
 class PredictTool(Tool):
     def fragment_predict_smiles(self, smiles):
+        from . import fragment_records
+        
         if "[H]" in smiles:
-            smiles_record = do_fragment.make_hydrogen_fragment_record("query", smiles, self.fragment_filter)
+            smiles_record = fragment_records.make_hydrogen_fragment_record("query", smiles, self.fragment_filter)
             return smiles_record
 
-        smiles_record = do_fragment.make_fragment_record_from_smiles(smiles, self.fragment_filter)
+        smiles_record = fragment_records.make_fragment_record_from_smiles(smiles, self.fragment_filter)
         if smiles_record.errmsg is not None:
             return smiles_record
 
@@ -412,11 +413,13 @@ class PredictTool(Tool):
         hydrogen_fragments = fragment_algorithm.get_hydrogen_fragmentations(
             smiles_record.normalized_smiles, smiles_record.num_normalized_heavies)
 
-        smiles_record.fragments.extend(hydrogen_fragments)
+        smiles_record.fragmentations.extend(hydrogen_fragments)
         return smiles_record
 
     def fragment_reference_smiles(self, smiles):
-        smiles_record = do_fragment.make_fragment_record_from_smiles(smiles, self.fragment_filter)
+        from . import fragment_records
+        
+        smiles_record = fragment_records.make_fragment_record_from_smiles(smiles, self.fragment_filter)
         if smiles_record.errmsg is not None:
             return smiles_record
 
@@ -424,7 +427,7 @@ class PredictTool(Tool):
         hydrogen_fragments = fragment_algorithm.get_hydrogen_fragmentations(
             smiles_record.normalized_smiles, smiles_record.num_normalized_heavies)
 
-        smiles_record.fragments.extend(hydrogen_fragments)
+        smiles_record.fragmentations.extend(hydrogen_fragments)
         return smiles_record
 
     def predict(self, reference_fragments, smiles_fragments,
@@ -757,12 +760,16 @@ def get_transform_tool(
 
 class TransformTool(Tool):
     def fragment_transform_smiles(self, smiles):
+        from . import fragment_records
+        
         # Figure out how I'm going to fragment the input --smiles
         if "[H]" in smiles:
             # User-specified transform location
-            record = do_fragment.make_hydrogen_fragment_record("query", smiles, self.fragment_filter)
+            record = fragment_records.make_hydrogen_fragment_record(
+                "query", smiles, self.fragment_filter)
         else:
-            record = do_fragment.make_fragment_record_from_smiles(smiles, self.fragment_filter)
+            record = fragment_records.make_fragment_record_from_smiles(
+                smiles, self.fragment_filter)
         return record
     
     def transform(self, transform_fragments, property_names,
