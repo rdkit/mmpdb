@@ -39,6 +39,7 @@
 
 import os
 import sys
+import itertools
 
 try:
     from urlparse import urlparse  # Python 2
@@ -237,19 +238,80 @@ def open_database(dburl, copy_to_memory=False, quiet=False):
     return get_dbinfo(dburl).open_database(copy_to_memory=copy_to_memory, quiet=quiet)
 
 
-def open_database_from_args_or_exit(args):
-    dburl = args.databases[0]
+def open_database_or_exit(dburl, copy_to_memory=False, quiet=False):
     dbinfo = get_dbinfo(dburl)
-    copy_to_memory = getattr(args, "in_memory", False)
-    quiet = getattr(args, "quiet", False)
     try:
         return dbinfo.open_database(copy_to_memory=copy_to_memory, quiet=quiet)
     except DBError as err:
-        sys.stderr.write("Cannot connect to %s: %s\n"
-                         % (dbinfo.get_human_name(), err))
+        sys.stderr.write(f"Cannot connect to {dbinfo.get_human_name()}: {err}\n")
         raise SystemExit(1)
 
 
 def open_dataset_from_args_or_exit(args):
     db = open_database_from_args_or_exit(args)
     return db.get_dataset()
+
+#####
+
+def reaggregate_properties(dataset, property_name_ids, compound_values_for_property_name_id,
+                           cursor, reporter):
+    # Mapping from rule environment id to rule environment statistics id
+    
+    reporter.update("Computing aggregate statistics")
+    num_pairs = dataset.get_num_pairs(cursor=cursor)
+    
+    all_pairs = dataset.iter_pairs(cursor=cursor)
+    all_pairs = reporter.progress(all_pairs, "Computing and updating aggregate statistics", num_pairs)
+
+    def generate_stats():
+        for rule_environment_id, rule_environment_pairs in itertools.groupby(
+                all_pairs, (lambda pair: pair.rule_environment_id)):
+
+            rule_environment_pairs = list(rule_environment_pairs)  # now a list, not iterator
+
+            for property_name_id in property_name_ids:
+                deltas = []
+                compound_values = compound_values_for_property_name_id[property_name_id]
+                for pair in rule_environment_pairs:
+                    value1 = compound_values.get(pair.compound1_id, None)
+                    if value1 is None:
+                        continue
+                    value2 = compound_values.get(pair.compound2_id, None)
+                    if value2 is None:
+                        continue
+                    deltas.append(value2-value1)
+                if deltas:
+                    stats = index_algorithm.compute_aggregate_values(deltas)
+                    yield (rule_environment_id, property_name_id, stats)
+    stats_info = generate_stats()
+
+    reporter.update("Getting information about which rule statistics exist...")
+    existing_stats_ids = dataset.get_rule_environment_statistics_mapping(
+        property_name_ids, cursor=cursor)
+
+    seen_stats_ids = set()
+    num_updated = num_added = 0
+    for (rule_environment_id, property_name_id, stats) in stats_info:
+        key = (rule_environment_id, property_name_id)
+        stats_id = existing_stats_ids.get(key, None)
+        if stats_id is not None:
+            dataset.update_rule_environment_statistics(stats_id, stats)
+            seen_stats_ids.add(stats_id)
+            num_updated += 1
+        else:
+            dataset.add_rule_environment_statistics(rule_environment_id, property_name_id, stats)
+            num_added += 1
+
+    to_delete = set(existing_stats_ids.values()) - seen_stats_ids
+    num_deleted = len(to_delete)
+    if to_delete:
+        delete_report = reporter.progress(
+            iter(to_delete), "Deleting rule statistics", num_deleted)
+        while 1:
+            ids = list(itertools.islice(delete_report, 0, 1000))
+            if not ids:
+                break
+            dataset.delete_rule_environment_statistics(ids)
+
+    reporter.report("Number of rule statistics added: %d updated: %d deleted: %d"
+                    % (num_added, num_updated, num_deleted))

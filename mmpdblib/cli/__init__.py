@@ -43,6 +43,7 @@ from . import (
     index,
     rgroup2smarts,
     list_,
+    loadprops,
     )
 
 def add_commands(group):
@@ -137,6 +138,7 @@ main.add_command(smifrag.smifrag)
 main.add_command(index.index)
 main.add_command(rgroup2smarts.rgroup2smarts)
 main.add_command(list_.list_)
+main.add_command(loadprops.loadprops)
 
 @main.command()
 def spam():
