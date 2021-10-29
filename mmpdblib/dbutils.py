@@ -149,7 +149,7 @@ class DBFile(DBInfo):
     def get_human_name(self):
         return "file %r" % (self.name,)
 
-    def open_database(self, copy_to_memory=False, quiet=False):
+    def open_database(self, *, copy_to_memory=False, quiet=False):
         if not os.path.exists(self.name):
             raise DBError("File does not exist")
         database_class = playhouse_db_url.schemes[get_default_sqlite_adapter(quiet)]

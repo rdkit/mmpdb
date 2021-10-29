@@ -37,10 +37,13 @@ import click
 
 from .click_utils import ordered_group
 
-from . import fragment
-from . import smifrag
-from . import index
-from . import rgroup2smarts
+from . import (
+    fragment,
+    smifrag,
+    index,
+    rgroup2smarts,
+    list_,
+    )
 
 def add_commands(group):
     for name, cmd in group.commands.items():
@@ -133,6 +136,7 @@ main.add_command(fragment.fragment)
 main.add_command(smifrag.smifrag)
 main.add_command(index.index)
 main.add_command(rgroup2smarts.rgroup2smarts)
+main.add_command(list_.list_)
 
 @main.command()
 def spam():

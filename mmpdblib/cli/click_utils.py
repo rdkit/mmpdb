@@ -128,3 +128,22 @@ def die(*msgs):
     for msg in msgs:
         click.echo(msg, err=True)
     raise SystemExit(1)
+
+
+###### Shared options
+
+
+def add_single_database_argument(command):
+    click.argument(
+        "database",
+        metavar = "DATABASE",
+        )(command)
+    return command
+
+def add_multiple_databases_argument(command):
+    click.argument(
+        "databases",
+        nargs = -1,
+        metavar="DATABASE",
+        )(command)
+    return command
