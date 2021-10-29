@@ -34,16 +34,7 @@
 #
 
 import click
-import signal
-import multiprocessing
 
-from rdkit import Chem
-
-from .. import fragment_db
-from .. import fragment_types
-from .. import fragment_algorithm
-from .. import fragment_records
-from .. import fileio
 
 from .. import smarts_aliases
 from .click_utils import (
@@ -60,10 +51,14 @@ from . import smi_utils
 
 # Make it so that ^C works in the main thread
 def init_worker():
+    import signal
     signal.signal(signal.SIGINT, signal.SIG_IGN)
 
 
 def create_pool(num_jobs):
+    import multiprocessing
+    from ... import fragment_records,
+
     if num_jobs > 1:
         pool = multiprocessing.Pool(num_jobs, init_worker)
     else:
@@ -177,6 +172,7 @@ def cannot_combine_with_fragment_options(ctx, cache):
     "structure_filename",
     default = None,
     required = False,
+    metavar = "FILENAME",
     #help = "SMILES filename (default: read from stdin)",
     )
 @click.pass_context
@@ -194,7 +190,18 @@ def fragment(
         # input
         structure_filename,
         ):
-    """fragment structures in a SMILES file based on its rotatable bonds"""
+    """fragment structures in a SMILES file based on its rotatable bonds
+
+    FILENAME: SMILES file (default: read from stdin)
+    """
+    from .. import (
+        fragment_db,
+        fragment_types,
+        fragment_algorithm,
+        fragment_records,
+        fileio,
+        )
+    
     config = ctx.obj
     cannot_combine_with_fragment_options(ctx, cache)
     

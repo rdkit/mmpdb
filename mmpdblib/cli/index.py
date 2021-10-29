@@ -35,23 +35,8 @@
 
 import sys
 import os
-from dataclasses import dataclass
 
 import click
-
-try:
-    import psutil
-except ImportError:
-    psutil = None
-
-from .. import command_support
-from .. import config
-from .. import fragment_db
-from .. import fragment_types
-from .. import index_algorithm
-from .. import index_types
-from .. import properties_io
-
 
 from .click_utils import (
     IntChoice,
@@ -65,6 +50,15 @@ from .click_utils import (
     positive_int_or_none,
     set_click_attrs,
     )
+
+from .. import index_types
+
+def get_psutil():
+    try:
+        import psutil
+    except ImportError:
+        psutil = None
+    return psutil
 
 #### Map click options to an index_types.IndexOptions
 
@@ -188,15 +182,18 @@ def check_validity(kwargs):
 
 ##### Get memory size
 
-if psutil is None:
-    def get_memory_use():
+_process = None
+def get_memory_use():
+    global _process
+    psutil = get_psutil()
+    if psutil is None:
         return 0
-else:
-    _process = psutil.Process(os.getpid())
 
-    def get_memory_use():
-        info = _process.memory_info()
-        return info.rss  # or info.vms?
+    if _process is None:
+        _process = psutil.Process(os.getpid())
+
+    info = _process.memory_info()
+    return info.rss  # or info.vms?
 
 
 def human_memory(n):
@@ -390,6 +387,13 @@ def index(
 
     FILENAME: the name of the fragdb file containing the fragments to index
     """
+    from .. import (
+        fragment_db,
+        fragment_types,
+        index_algorithm,
+        properties_io,
+        )
+    
     if title is None:
         title = f"MMPs from {fragment_filename!r}"
 

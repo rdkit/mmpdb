@@ -175,7 +175,10 @@ p.add_argument(
     help = "report timing information for each step",
     )
 def predict(**kwargs):
-    "predict the effect of a structural transformation"
+    """predict the effect of a structural transformation
+
+    BLAH:
+    """
     # --smiles 'c1ccccc1C(=O)N(C)C' --reference 'c1ccccc1C(=O)NC' --property MP e.mmpdb --save-details
     start_time = time.time()
     
