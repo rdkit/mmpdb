@@ -138,9 +138,15 @@ def die(*msgs):
 ###### Shared options
 
 class DatabaseOptions:
+    def __init__(self, database, copy_to_memory = False):
+        self.database = database
+        self.copy_to_memory = copy_to_memory
+
+class DatabasesOptions:
     def __init__(self, databases, copy_to_memory = False):
         self.databases = databases
         self.copy_to_memory = copy_to_memory
+
         
 def _in_memory_option(command):
     click.option(
@@ -162,9 +168,7 @@ def add_single_database_parameters(add_in_memory = False):
             
         def wrapped_command(**kwargs):
             popped_kwargs = {
-                "databases": [
-                    kwargs.pop("database") # is a string
-                    ], 
+                "database":  kwargs.pop("database")
                 }
             if add_in_memory:
                 popped_kwargs["copy_to_memory"] = kwargs.pop("in_memory")
@@ -192,7 +196,7 @@ def add_multiple_databases_parameters(add_in_memory = False):
                 }
             if add_in_memory:
                 popped_kwargs["copy_to_memory"] = kwargs.pop("in_memory")
-            kwargs["database_options"] = DatabaseOptions(**popped_kwargs)
+            kwargs["databases_options"] = DatabasesOptions(**popped_kwargs)
             return command(**kwargs)
 
         set_click_attrs(wrapped_command, command)

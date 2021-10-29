@@ -239,7 +239,7 @@ def open_database(dburl, copy_to_memory=False, quiet=False):
 
 
 def open_database_from_options_or_exit(db_options, quiet=False):
-    dbinfo = get_dbinfo(db_options.databases[0])
+    dbinfo = get_dbinfo(db_options.database)
     try:
         return dbinfo.open_database(copy_to_memory=db_options.copy_to_memory, quiet=quiet)
     except DBError as err:
