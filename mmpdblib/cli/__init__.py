@@ -47,6 +47,8 @@ from . import (
     list_,
     loadprops,
     propcat,
+    drop_index,
+    create_index,
     )
 
 def add_commands(group):
@@ -145,7 +147,8 @@ main.add_command(rgroup2smarts.rgroup2smarts)
 main.add_command(list_.list_)
 main.add_command(loadprops.loadprops)
 main.add_command(propcat.propcat)
-
+main.add_command(drop_index.drop_index)
+main.add_command(create_index.create_index)
 
 ## add_commands(cli_fragdb.fragdb_utils)
 
