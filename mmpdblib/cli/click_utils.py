@@ -102,8 +102,14 @@ class positive_float(click.ParamType):
         return value
             
 class nonnegative_int(click.IntRange):
+    name = "N"
     def __init__(self):
         super().__init__(0)
+
+class positive_int(click.IntRange):
+    name = "N"
+    def __init__(self):
+        super().__init__(1)
 
 class radius_type(IntChoice):
     name = "R"

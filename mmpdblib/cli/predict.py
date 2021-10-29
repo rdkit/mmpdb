@@ -1,3 +1,4 @@
+import sys
 import click
 
 from .click_utils import (
@@ -275,6 +276,7 @@ def predict(
     output_time = time.time()
 
     if times:
+        from .transform import get_time_delta_formatter
         sys.stderr.write("Elapsed time (in seconds):\n")
         format_dt = get_time_delta_formatter(output_time - start_time)
         

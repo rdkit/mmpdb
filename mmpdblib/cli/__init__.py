@@ -42,6 +42,7 @@ from . import (
     smifrag,
     index,
     predict,
+    transform,
     rgroup2smarts,
     list_,
     loadprops,
@@ -137,14 +138,11 @@ def main(ctx, quiet):
 main.add_command(fragment.fragment)
 main.add_command(smifrag.smifrag)
 main.add_command(index.index)
+main.add_command(transform.transform)
 main.add_command(predict.predict)
 main.add_command(rgroup2smarts.rgroup2smarts)
 main.add_command(list_.list_)
 main.add_command(loadprops.loadprops)
-
-@main.command()
-def spam():
-    pass
 
 
 ## add_commands(cli_fragdb.fragdb_utils)

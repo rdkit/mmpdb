@@ -1,3 +1,5 @@
+"implement the 'transform' command"
+
 # mmpdb - matched molecular pair database generation and analysis
 #
 # Copyright (c) 2015-2017, F. Hoffmann-La Roche Ltd.
@@ -30,18 +32,29 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-from __future__ import print_function
+import click
+from .click_utils import (
+    command,
+    nonnegative_int,
+    positive_int,
+    radius_type,
+    
+    add_single_database_parameters,
+    add_multiple_properties,
+    add_rule_selection_options,
+    )
 
-import sys
-import time
-import multiprocessing
-
-from rdkit import Chem
-
-from . import command_support
-from . import dbutils
-from . import analysis_algorithms
-from . import fileio
+class parse_smarts(click.ParamType):
+    name = "SMARTS"
+    def convert(self, value, param, ctx):
+        if not isinstance(value, str):
+            return value
+        
+        from rdkit import Chem
+        substructure_pat = Chem.MolFromSmarts(value)
+        if substructure_pat is None:
+            raise click.UsageError(f"Unable to part SMARTS: {value}")
+        return substructure_pat
 
 # Helper function to make a new function which format time deltas
 # so all the "."s are lined up and they use the minimal amount of
@@ -55,9 +68,258 @@ def get_time_delta_formatter(max_dt):
         return fmt % (dt,)
 
     return format_dt
+    
 
-########################
+transform_epilog = """
 
+Apply transforms from an mmpdb database to an input structure.
+Include possible property change statistics for the resulting
+products.
+
+Specify the input structure using --smiles. This will be fragmented
+using the fragmentation parameters appropriate for the database. By
+default all fragmentations will be considered. Use --min-variable-size
+and --min-constant-size to set minimum heavy counts for the constant
+and variable parts of the fragment.
+
+By default the matching algorithm evaluates all radii around the local
+environment of the constant's connection points. The scoring function
+(see below) decides which radius is best. Use the --min-radius option
+to require the environment match up to at least N bonds away.
+
+Use --min-pairs to require that a transformation have at least N pairs
+in the database. The default is 0, which allows all transformations.
+
+For more complex filters, use the --where option. It takes a Python
+expression which is allowed to use any of the following variable
+names:
+
+\b
+  rule_id, is_reversed, from_smiles, from_num_heavies, to_smiles,
+  to_num_heavies, smirks, rule_environment_id, radius, fingerprint_id,
+  fingerprint, rule_environment_statistics_id, count, avg, std,
+  kurtosis, skewness, min, q1, median, q3, max, paired_t, p_value,
+  is_bidirectional
+
+as well as the Python variables None, True, and False. The values come
+from the transformation rule, the rule environment, and the rule
+environment statistics.
+
+The --where expression is evaluated independently for each
+property. There is currently no way to specify a different expression
+for different properties, or for the expression to know which property
+is being evaluated.
+
+Sometimes multiple transformations of an input structure lead to the
+same final product. When this happens, the possible transformation are
+put into bins based on their number of pairs. By default the first bin
+contains transforms with at least 10 pairs, the second contains
+transforms with at least 5 pairs, and the third contains transforms
+with any pairs. The bin thresholds can be changed with the
+--rule-selection-cutoffs option, which contains a list of
+comma-separated integers. The default is equivalent to
+'--rule-selection-cutoffs 10,5,0'.
+
+A scoring function is used to decide which transformation to use from
+a bin. The transformation with the largest score is selected. Use the
+--score option to define an alternate scoring function as a Python
+expression. The default is equivalant to:
+
+  ((ninf if std is None else -std), radius, from_num_heavies, from_smiles)
+
+This expression may contain any of the variables in the --where
+option, as well as 'inf' and 'ninf', which can be used as equivalent
+for positive and negative infinity in numerical comparisons. The
+default expression selects the smallest standard deviation, breaks
+ties using the largest radius, breaks ties with the most atoms
+changed, then breaks ties arbitrarily by the substructure SMILES of
+the left side of the transformation.
+
+Note: if the --where or --score expressions start with a '-' then the
+command-line parser may confuse it with a command-line option. In that
+case, use a space as the first character in the expression, or enclose
+the expression with parentheses.
+
+Specify a SMARTS pattern with --substructure to limit the output to
+products containing the specified substructure.
+
+By default the output will contain predicted property changes for all
+of the properties in the database. Use --property to select specific
+options. Use it once for each property you want to evaluate. For
+example, to get the results for both MW and MP use:
+  --property MW --property MP
+
+If you do not want property information in the output, specify
+--no-properties.
+
+The transformation output by default is sent to stdout. Use '--output'
+to specify an output filename.
+
+The output is a tab-delimited CSV file where the first line is a
+header. The first column contains a sequential identifier, and the
+second column contains the SMILES string for the product. Next come
+the property columns. Each property gets 17 columns of output. The
+column headers are prefixed with the property name followed by a "_"
+and then the name of the data stored in the column. (There is
+currently no way to limit the output to specific columns, other than
+to change the code in do_transform.py.)
+
+The "*_from_smiles" and "*_to_smiles" columns describe the
+transformation.  Sometimes multiple transforms lead to the same
+product and cause different properties to have different
+transformations. The "*_radius" and "*_fingerprint" columns contain
+the environment fingerprint radius and fingerprint string. The
+remaining columns contain the database row id for the rule environment
+record, and the statistics information for the given property.
+
+The '--explain' option writes debug information to stderr. The
+'--times' options reports timing information about the major stages to
+stderr.
+
+The transform code runs in a single thread by default. It has been
+parallelized, though it is not highly scalable. Use '--jobs' to
+specify the number of threads (really, "processes") to use.
+
+Examples:
+
+1) Generate all of the products of diphenyl ether using the MMP
+transforms in the 'csd.mmpdb' database where there are are least 30
+pairs. Also include the predicted effects on the 'MP' property. (Note:
+the output is reformatted and trimmed for use as help text.)
+
+\b
+  % mmpdb transform csd.mmpdb --smiles 'c1ccccc1Oc1ccccc1' --min-pairs 30 -p MP
+  ID                 SMILES MP_from_smiles       MP_to_smiles  MP_radius  \\
+   1  Brc1ccc(Oc2ccccc2)cc1  [*:1]c1ccccc1  [*:1]c1ccc(Br)cc1          0
+   2  COc1ccc(Oc2ccccc2)cc1  [*:1]c1ccccc1  [*:1]c1ccc(OC)cc1          0
+   3             COc1ccccc1  [*:1]c1ccccc1             [*:1]C          0
+
+\b
+                               MP_fingerprint  MP_rule_environment_id  \\
+  59SlQURkWt98BOD1VlKTGRkiqFDbG6JVkeTJ3ex3bOA                     947
+  59SlQURkWt98BOD1VlKTGRkiqFDbG6JVkeTJ3ex3bOA                    4560
+  59SlQURkWt98BOD1VlKTGRkiqFDbG6JVkeTJ3ex3bOA                      90
+
+\b
+  MP_count   MP_avg  MP_std  MP_kurtosis  MP_skewness  MP_min  MP_q1  \\
+        34  14.5290  30.990    -0.267780      0.32663     -66   -7.0
+        56   8.7143  38.945     7.013600      1.81870    -172  -10.0
+       106 -23.4430  36.987     1.563800      0.65077    -159  -44.0
+
+\b
+  MP_median  MP_q3  MP_max  MP_paired_t    MP_p_value
+       15.5   37.0      67      -2.7338  9.987200e-03
+       10.5   32.5      79      -1.6745  9.971500e-02
+      -20.0   -3.0      49       6.5256  2.447100e-09
+
+2) Require a standard deviation of no larger than 4.5 and give
+priority to transformation with at least 20 pairs before following the
+normal cutoffs. The --score here matches the default scoring function.
+
+\b
+  % mmpdb transform csd.mmpdb --smiles 'c1ccccc1Oc1ccccc1' \\
+      --where 'std is not None and std < 4.5' \\
+      --rule-selection-cutoffs '20,10,5,0' \\
+      --score '((ninf if std is None else -std), radius, from_num_heavies, from_smiles)' \\
+      --property MP
+"""
+
+@command(epilog = transform_epilog)
+
+@add_single_database_parameters()
+
+@click.option(
+    "--smiles",
+    "-s",
+    required = True,
+    help = "the base structure to transform",
+    )
+
+@click.option(
+    "--min-variable-size",
+    type = nonnegative_int(), metavar="N",
+    default = 0,
+    help = "require at least N atoms in the variable fragment (default: 0)"
+    )
+
+@click.option(
+    "--max-variable-size",
+    type = nonnegative_int(),
+    default = 9999,
+    help = "allow at most N atoms in the variable fragment (default: 9999)",
+    )
+
+@click.option(
+    "--min-constant-size",
+    type = nonnegative_int(),
+    default = 0,
+    help = "require at least N atoms in the constant fragment (default: 0)",
+    )
+
+@click.option(
+    "--min-radius",
+    "-r",
+    type = radius_type(),
+    default = 0,
+    help = "fingerprint radius (default: 0)",
+    )
+
+@click.option(
+    "--min-pairs",
+    type = nonnegative_int(),
+    default = 0,
+    help = "require at least N pairs in the transformation to report a product (default: 0)",
+    )
+
+@click.option(
+    "--substructure",
+    "-S",
+    type = parse_smarts(),
+    help = "require the substructure pattern in the product"
+    )
+
+@add_multiple_properties
+
+@add_rule_selection_options
+
+@click.option(
+    "--jobs",
+    "-j",
+    "num_jobs",
+    type = positive_int(),
+    default = 1,
+    help  = "number of jobs to run in parallel (default: 1)",
+    )
+
+@click.option(
+    "--explain",
+    is_flag = True,
+    default = False,
+    help = "explain each of the steps in the transformation process",
+    )
+
+@click.option(
+    "--output",
+    "-o",
+    metavar = "FILENAME",
+    help = "save the output to FILENAME (default=stdout)",
+    )
+
+@click.option(
+    "--times",
+    is_flag = True,
+    default = False,
+    help = "report timing information for each step",
+    )
+@click.pass_obj
+def transform(
+        reporter,
+        **kwargs
+    ):
+    """transform a structure
+
+    DATABASE: a mmpdb database
+    """
 def transform_command(parser, args):
     min_radius = args.min_radius
     assert min_radius in list("012345"), min_radius
@@ -149,6 +411,5 @@ def transform_command(parser, args):
         sys.stderr.write("      transform: %s\n" % format_dt(transform_time - query_prep_time))
         sys.stderr.write("   write output: %s\n" % format_dt(output_time - transform_time))
         sys.stderr.write("         TOTAL = %s\n" % format_dt(output_time - start_time))
-        
-########################
+
 
