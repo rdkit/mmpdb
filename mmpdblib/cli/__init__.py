@@ -46,6 +46,7 @@ from . import (
     rgroup2smarts,
     list_,
     loadprops,
+    propcat,
     )
 
 def add_commands(group):
@@ -143,6 +144,7 @@ main.add_command(predict.predict)
 main.add_command(rgroup2smarts.rgroup2smarts)
 main.add_command(list_.list_)
 main.add_command(loadprops.loadprops)
+main.add_command(propcat.propcat)
 
 
 ## add_commands(cli_fragdb.fragdb_utils)
