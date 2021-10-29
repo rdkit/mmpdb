@@ -1,6 +1,7 @@
 # mmpdb - matched molecular pair database generation and analysis
 #
 # Copyright (c) 2015-2017, F. Hoffmann-La Roche Ltd.
+# Copyright (c) 2021, Andrew Dalke Scientific, AB
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
@@ -92,6 +93,8 @@ def init_fragdb(c, options):
     insert_options(c, options)
 
 def open_fragdb(filename):
+    with open(filename, "rb"): # Let Python raise any IOErrors
+        pass
     db = sqlite3.connect(filename)
     c = db.cursor()
     # See if this is a database
@@ -186,7 +189,7 @@ def select_fragmentations_by_record_id(c, record_id):
 
 _select_fragmentations_sql = f"SELECT id,{_record_fields} FROM record"
 def iter_fragment_records(record_c, fragmentation_c):
-    record_c.execute(select_fragmentations_sql)
+    record_c.execute(_select_fragmentations_sql)
     for row in record_c:
         record_id, *record_values = row
         fragmentations = list(select_fragmentations_by_record_id(fragmentation_c, record_id))

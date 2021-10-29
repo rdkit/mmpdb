@@ -40,6 +40,7 @@ import argparse
 from ._compat import basestring
 from . import smarts_aliases
 from . import fragment_types
+from . import index_types
 
 # Things to pass as the ArgumentParser argument's 'type'
 
@@ -203,46 +204,17 @@ parse_max_heavies_transf = nonnegative_int
 parse_max_frac_trans = nonnegative_float
 parse_max_radius = nonnegative_int
 
-class IndexingOptions(object):
-    def __init__(self,
-                 min_variable_heavies, max_variable_heavies,
-                 min_variable_ratio, max_variable_ratio,
-                 max_heavies_transf, max_frac_trans,
-                 max_radius):
-        assert min_variable_heavies is None or min_variable_heavies >= 0, min_variable_heavies
-        self.min_variable_heavies = min_variable_heavies
-
-        assert (    (max_variable_heavies is None)
-                 or (min_variable_heavies is None and max_variable_heavies >= 0)
-                 or (min_variable_heavies <= max_variable_heavies)), max_variable_heavies
-        self.max_variable_heavies = max_variable_heavies
-
-        assert min_variable_ratio is None or 0.0 <= min_variable_ratio <= 1.0, min_variable_ratio
-        self.min_variable_ratio = min_variable_ratio
-
-        assert (   (max_variable_ratio is None)
-                or (min_variable_ratio is not None and max_variable_ratio <= 1.0)
-                or (min_variable_ratio <= max_variable_ratio <= 1.0) )
-        self.max_variable_ratio = max_variable_ratio
-
-        assert max_heavies_transf is None or max_heavies_transf >= 0, max_heavies_transf
-        self.max_heavies_transf = max_heavies_transf
-
-        assert max_frac_trans is None or max_frac_trans >= 0, max_heavies_transf
-        self.max_frac_trans = max_frac_trans
-
-        assert max_radius >= 0, max_radius
-        self.max_radius = max_radius
-
         
-DEFAULT_INDEX_OPTIONS = IndexingOptions(
+DEFAULT_INDEX_OPTIONS = index_types.IndexOptions(
     min_variable_heavies = None, # XXX can this be 0?
     max_variable_heavies = 10,
     min_variable_ratio = None,   # XXX can this be 0.0?
     max_variable_ratio = None,
     max_heavies_transf = None,
     max_frac_trans = None,  # XXX can this be 1.0?,
-    max_radius = 5
+    max_radius = 5,
+    symmetric = False,
+    smallest_transformation_only = False,
     )
 
 def add_index_options(parser):

@@ -43,15 +43,15 @@ import itertools
 # import json
 # import binascii
 import operator
-
-from . import fragment_db
-from . import fileio, reporters
-from . import environment
-from . import fragment_algorithm
-from . import index_writers
 from . import _compat
+from . import config
+from . import environment
+from . import fileio, reporters
+from . import fragment_algorithm
+from . import fragment_db
+from . import fragment_records
+from . import index_writers
 
-from . import do_fragment            # new
 import rdkit
 from rdkit import Chem
 
@@ -88,33 +88,6 @@ parse_min_variable_ratio_value = _positive_float
 parse_max_heavies_transf = _nonnegative_int
 
 
-class IndexOptions(object):
-    def __init__(self, min_variable_heavies=None, max_variable_heavies=None,
-                       min_variable_ratio=None, max_variable_ratio=None,
-                       symmetric=False, max_heavies_transf=None, max_frac_trans=None,
-                       smallest_transformation_only=False):
-        self.min_variable_heavies = min_variable_heavies
-        self.max_variable_heavies = max_variable_heavies
-        self.min_variable_ratio = min_variable_ratio
-        self.max_variable_ratio = max_variable_ratio
-        
-        self.symmetric = symmetric
-        self.max_heavies_transf = max_heavies_transf
-        self.max_frac_trans = max_frac_trans
-        self.smallest_transformation_only = smallest_transformation_only
-    
-    def to_dict(self):
-        from collections import OrderedDict
-        items = [
-            ("min_variable_heavies", self.min_variable_heavies),
-            ("max_variable_heavies", self.max_variable_heavies),
-            ("min_variable_ratio", self.min_variable_ratio),
-            ("max_variable_ratio", self.max_variable_ratio),
-            ("symmetric", self.symmetric),
-            ("max_heavies_transf", self.max_heavies_transf),
-            ("max_frac_trans", self.max_frac_trans),
-            ("smallest_transformation_only", self.smallest_transformation_only)]
-        return OrderedDict([(key, value) for (key, value) in items if value is not None])
 
 ### Filter the fragments coming in
 
@@ -776,7 +749,7 @@ class VariableFragmentsReducer(object):
         variable_smiles = variable_smiles.replace("*:1", "Ne").replace("*:2", "Ar").replace("*:3", "Kr")
         fragments = self._variable_cache.get(variable_smiles, None)
         if fragments is None:
-            pieces = do_fragment.make_fragment_record_from_smiles(variable_smiles, self.fragment_filter)
+            pieces = fragment_records.make_fragment_record_from_smiles(variable_smiles, self.fragment_filter)
             # Filter to relevant constant pieces
             possibly_reducible_pieces = []
             for fragment in pieces.fragments:
@@ -816,7 +789,7 @@ class VariableFragmentsReducer(object):
 #        variable_smiles = variable_smiles.replace("*:1", "Ne").replace("*:2", "Ar").replace("*:3", "Kr")
 #        fragments = self._variable_cache.get(variable_smiles, None)
 #        if fragments is None:
-#            pieces = do_fragment.make_fragment_record_from_smiles(variable_smiles, self.fragment_filter)
+#            pieces = fragment_records.make_fragment_record_from_smiles(variable_smiles, self.fragment_filter)
 #            # Filter to relevant constant pieces
 #            pieces = [fragment for fragment in pieces.fragments
 #                      if fragment.num_cuts == 1]         # Only single-cuts indicate reducible fragmentations
@@ -857,8 +830,12 @@ class VariableFragmentsReducer(object):
     
 
 def find_matched_molecular_pairs(
-        index, fragment_reader, index_options=IndexOptions(), environment_cache=EnvironmentCache(),
-        max_radius=5, reporter=None):
+        index,
+        fragment_reader,
+        index_options = config.DEFAULT_INDEX_OPTIONS,
+        environment_cache = EnvironmentCache(),
+        max_radius = 5,
+        reporter = None):
 
     from rdkit import Chem
 
@@ -872,7 +849,8 @@ def find_matched_molecular_pairs(
     relabel_cache = RelabelCache()
     NO_ENUMERATION = fragment_algorithm.EnumerationLabel.NO_ENUMERATION
 
-    fragment_filter = do_fragment.get_fragment_filter(fragment_reader.options)
+    
+    fragment_filter = fragment_reader.options.get_fragment_filter()
     Variable_Reducability_Filter = VariableFragmentsReducer(fragment_filter)
 
     with reporter.progress(
@@ -976,6 +954,7 @@ def find_matched_molecular_pairs(
                         if max_frac_trans is None or max_frac_trans >= 1.0:
                             pass
                         else:
+                            # XXX this changes max_radius?? FIXME??
                             max_radius = get_max_radius_for_fraction_transfer(
                                 max_frac_trans, smirks, tmp_constant_smiles, max_radius, environment_cache)
                             if max_radius is None:
