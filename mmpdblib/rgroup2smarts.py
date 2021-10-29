@@ -78,8 +78,9 @@ def rgroup_mol_to_smarts(mol):
     for idx, atom in enumerate(mol.GetAtoms()):
         if atom.HasProp("molAtomMapNumber"):
             atom_map = atom.GetProp("molAtomMapNumber")
-            raise ValueError("atom maps are not supported (atom %d has atom map %r)" % (
-                idx, atom_map))
+            raise ValueError(
+                f"atom maps are not supported (atom {idx} has atom map {atom_map!r})"
+                )
         
         # Figure out which atom is the wildcard
         atomno = atom.GetAtomicNum()
@@ -166,7 +167,7 @@ class ParseError(ValueError):
         self.location = location
         self._where = location.where()
     def __str__(self):
-        return "%s at %s" % (self.msg, self._where)
+        return f"{self.msg} at {self._where}"
 
 class ConversionError(ValueError):
     def __init__(self, msg, location, extra=None):
@@ -177,16 +178,16 @@ class ConversionError(ValueError):
         self._where = location.where()
     def __str__(self):
         if self.extra is None:
-            return "%s at %s" % (self.msg, self._where)
+            return f"{self.msg} at {self._where}"
         else:
-            return "%s at %s: %s" % (self.msg, self._where, self.extra)
+            return f"{self.msg} at {self._where}: {self.extra}"
 
 class Record(object):
     def __init__(self, smiles, id=None):
         self.smiles = smiles
         self.id = id
     def __repr__(self):
-        return "Record(%r, id=%r)" % (self.smiles, self.id)
+        return "Record({self.smiles!r}, id={self.id!r})"
         
 def parse_rgroup_file(infile, location=None):
     if location is None:
@@ -223,17 +224,17 @@ def parse_rgroup_file(infile, location=None):
 class FileLocation(fileio.Location):
 
     def where(self):
-        if self.record_id is None:
-            return "%r, line %d" % (self.filename, self.lineno)
-        else:
-            return "%r, line %d, record %r" % (self.filename, self.lineno, self.record_id)
+        msg = f"{self.filename!r}, line {self.lineno}"
+        if self.record_id is not None:
+            msg += f", record {self.record_id!r}"
+        return msg
 
 class ListLocation(fileio.Location):
     def where(self):
         if self.record_id is None:
-            return "%s #%s" % (self.filename, self.recno)
+            return f"{self.filename} #{self.recno}"
         else:
-            return "%s #%s, record %r" % (self.source, self.recno, self.record_id)
+            return f"{self.source} #{self.recno}, record {self.record_id!r}"
 
 def iter_smiles_list(smiles_iter, location):
     recno = location.recno
@@ -250,38 +251,43 @@ def iter_smiles_list(smiles_iter, location):
         
 def iter_smiles_as_smarts(record_reader, location, explain=None, all_mols=None):
     if explain is None:
-        explain = command_support.no_explain
-        
+        def explain(msg, *args):
+            pass
+
     for record in record_reader:
         location.record_id = record.id
         smiles = record.smiles
         mol = Chem.MolFromSmiles(smiles)
         if mol is None:
             raise ConversionError(
-                "Cannot parse SMILES (%r)" % (smiles,),
+                f"Cannot parse SMILES ({smiles!r})",
                 location
                 )
         try:
             smarts = rgroup_mol_to_smarts(mol)
         except ValueError as err:
             raise ConversionError(
-                "Cannot convert SMILES (%r)" % (smiles,),
+                f"Cannot convert SMILES ({smiles!r})",
                 location,
                 str(err))
         
-        explain("#%d: converted SMILES %r to SMARTS %r" % (location.recno, smiles, smarts))
+        explain(f"#{location.recno}: converted SMILES {smiles!r} to SMARTS {smarts!r}")
         if all_mols is not None:
             pat = Chem.MolFromSmarts(smarts)
             if pat is None:
-                raise ConversionError("SMARTS failure for %r" % (smarts,),
-                                          location,
-                                          "using SMILES %r" % (smiles,))
+                raise ConversionError(
+                    f"SMARTS failure for {smarts!r}",
+                    location,
+                    "using SMILES {smiles!r}"
+                    )
             
             if not mol.HasSubstructMatch(pat):
-                raise ConversionError("SMARTS %r does not match SMILES %r" % (smarts, smiles),
-                                          location)
+                raise ConversionError(
+                    "SMARTS {smarts!r} does not match SMILES {smiles!r}",
+                    location,
+                    )
             all_mols.append((mol, location.where(), smiles))
-            explain("#%d passed the self-check" % (location.recno,))
+            explain("#{location.recno} passed the self-check")
             
         yield smarts
 
@@ -289,7 +295,7 @@ def make_recursive_smarts(smarts_list):
     terms = []
     for smarts in smarts_list:
         if not smarts.startswith("*-!@"):
-            raise ValueError("invalid prefix: %r" % (smarts,))
+            raise ValueError("invalid prefix: {smarts!r}")
         
         terms.append("$(" + smarts[4:] + ")")
     return "*-!@[" + ",".join(terms) + "]"
@@ -302,103 +308,8 @@ def get_recursive_smarts_from_cut_rgroups(rgroups, source="rgroup", offset=0):
     return make_recursive_smarts(iter_smarts)
 
 def get_recursive_smarts_from_cut_filename(filename):
-    
     location = FileLocation(filename)
     with open(filename) as infile:
         record_reader = parse_rgroup_file(infile, location)
         iter_smarts = iter_smiles_as_smarts(record_reader, location)
         return make_recursive_smarts(iter_smarts)
-
-    
-###### Command-line code
-
-def die(msg):
-    sys.stderr.write(msg + "\n")
-    raise SystemExit(1)
-
-def rgroup2smarts_command(parser, args):
-    check = args.check
-    explain = command_support.get_explain(args.explain)
-    
-    filename = "<unknown>"
-    close = None
-    
-    if args.cut_rgroup is not None:
-        if args.rgroup_filename is not None:
-            parser.error("Cannot specify both an R-group filename and a --cut-rgroup")
-        location = ListLocation("--cut-rgroup SMILES")
-        location.save(recno=1)
-        explain("Using --cut-rgroup SMILES from the command-line")
-        record_reader = iter_smiles_list(args.cut_rgroup, location)
-        
-    elif args.rgroup_filename is not None:
-        filename = args.rgroup_filename
-        explain("Reading R-group SMILES from %r" % (filename,))
-        location = FileLocation(args.rgroup_filename)
-        try:
-            f = open(args.rgroup_filename)
-        except OSError as err:
-            die("Cannot open input file: %s" % (err,))
-        close = f.close
-        record_reader = parse_rgroup_file(f, location)
-        
-    else:
-        explain("Reading R-group SMILES from <stdin>")
-        location = FileLocation("<stdin>")
-        record_reader = parse_rgroup_file(sys.stdin, location)
-
-    if check:
-        all_mols = []
-    else:
-        all_mols = None
-        
-    outfile = sys.stdout
-
-    iter_smarts = iter_smiles_as_smarts(record_reader, location, explain, all_mols)
-
-    all_smarts = None
-    
-    try:
-        if args.single:
-            for smarts in iter_smarts:
-                outfile.write(smarts + "\n")
-        else:
-            all_smarts = []
-            for smarts in iter_smarts:
-                assert smarts.startswith("*-!@"), (smarts, location)
-                all_smarts.append(smarts)
-            if not all_smarts:
-                die("Cannot make a SMARTS: no SMILES strings found in %r" % (location.filename,))
-                
-    except ParseError as err:
-        die("Cannot parse input file: %s" % (err,))
-    except ConversionError as err:
-        die(str(err))
-    finally:
-        if close is not None:
-            close()
-
-
-    if not args.single:
-        smarts = make_recursive_smarts(all_smarts)
-        
-        try:
-            if check:
-                explain("Checking that the SMARTS matches all of the input molecules")
-                all_pat = Chem.MolFromSmarts(smarts)
-                if all_pat is None:
-                    die("Cannot process final SMARTS: %r" % (smarts,))
-                
-                for i, (mol, where, smiles) in enumerate(all_mols):
-                    if not mol.HasSubstructMatch(all_pat):
-                        die("final SMARTS does not match SMILES from %s (%r)" % (
-                            where, smiles))
-                    explain("checked #%d" % (i,))
-        finally:
-            outfile.write(smarts + "\n")
-            
-    outfile.flush()
-    
-
-if __name__ == "__main__":
-    main()
