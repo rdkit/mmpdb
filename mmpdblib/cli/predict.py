@@ -168,7 +168,7 @@ def predict(
         ):
     """predict the effect of a structural transformation
 
-    BLAH:
+    DATABASE: an mmpdb database
     """
     import time
     from .. import (
