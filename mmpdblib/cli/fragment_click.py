@@ -10,9 +10,8 @@ from .click_utils import (
     positive_int_or_none,
     set_click_attrs,
     )
+
 from .. import config
-from .. import fragment_types
-from .. import rgroup2smarts
 from .. import smarts_aliases
 
 def callback_chain(*funcs):
@@ -176,7 +175,9 @@ def make_fragment_options(
         salt_remover,
         min_heavies_per_const_frag,
 ):
-
+    from .. import fragment_types
+    from .. import rgroup2smarts
+    
     if cut_rgroup_file is not None:
         try:
             cut_smarts = rgroup2smarts.get_recursive_smarts_from_cut_filename(
