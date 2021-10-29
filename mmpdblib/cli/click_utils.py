@@ -343,3 +343,34 @@ def add_rule_selection_options(command):
 
     set_click_attrs(wrapped_command, command)
     return wrapped_command
+
+## Properties
+
+def get_property_names_or_error(dataset, *, property_names, no_properties=False, all_properties=False):
+    property_names = []
+
+    if property_names:
+        if no_properties:
+            raise click.UsageError("Cannot specify --property and --no-properties")
+        if all_properties:
+            raise click.UsageError("Cannot specify --property and --all-properties")
+    
+    known_names = dataset.get_property_names()
+    if not property_names:
+        if no_properties:
+            return []
+        # Use all of the properties
+        return known_names
+
+    known_names = set(known_names)
+    seen = set()
+    for name in property_names:
+        # If a property is specified multiple times, only use the first one.
+        if name in seen:
+            continue
+        seen.add(name)
+
+        if name not in known_names:
+            die(f"--property {name!r} is not present in the database")
+        property_names.append(name)
+    return property_names

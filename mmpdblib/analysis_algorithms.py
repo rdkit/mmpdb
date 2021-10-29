@@ -800,7 +800,7 @@ class TransformTool(Tool):
     def expand_variable_symmetry(self, transform_record):
         # Expand fragmentations of transform where the variable part is symmetric
         symmetry_fragments = []
-        for fragment in transform_record.fragments:
+        for fragment in transform_record.fragmentations:
             if fragment.num_cuts == 1: 
                 continue         # No symmetry here
             elif fragment.num_cuts == 2 and fragment.variable_symmetry_class == "11":
@@ -866,7 +866,7 @@ class TransformTool(Tool):
                 symmetry_fragments.append(new_fragment)
 
         for frag in symmetry_fragments:
-            transform_record.fragments.append(frag)
+            transform_record.fragmentations.append(frag)
 
         return transform_record
 
@@ -1222,7 +1222,7 @@ def test_transform():
     dataset = db.get_dataset()
     transform_tool = get_transform_tool(dataset)
     transform_record = transform_tool.fragment_transform_smiles("c1ccccc1C(=O)N(C)C")
-    result = transform_tool.transform(transform_record.fragments, ["MP"],
+    result = transform_tool.transform(transform_record.fragmentations, ["MP"],
                                       explain=command_support.get_explain(False))
     result.write_products(sys.stdout, include_empty=True)
     

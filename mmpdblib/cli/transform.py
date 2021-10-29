@@ -32,9 +32,11 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+import sys
 import click
 from .click_utils import (
     command,
+    die,
     nonnegative_int,
     positive_int,
     radius_type,
@@ -42,6 +44,7 @@ from .click_utils import (
     add_single_database_parameters,
     add_multiple_properties,
     add_rule_selection_options,
+    get_property_names_or_error,
     )
 
 class parse_smarts(click.ParamType):
@@ -274,6 +277,7 @@ normal cutoffs. The --score here matches the default scoring function.
 @click.option(
     "--substructure",
     "-S",
+    "substructure_pat",
     type = parse_smarts(),
     help = "require the substructure pattern in the product"
     )
@@ -301,6 +305,7 @@ normal cutoffs. The --score here matches the default scoring function.
 @click.option(
     "--output",
     "-o",
+    "output_filename",
     metavar = "FILENAME",
     help = "save the output to FILENAME (default=stdout)",
     )
@@ -314,67 +319,78 @@ normal cutoffs. The --score here matches the default scoring function.
 @click.pass_obj
 def transform(
         reporter,
-        **kwargs
+        explain,
+        min_radius,
+        min_pairs,
+        min_variable_size,
+        max_variable_size,
+        min_constant_size,
+        database_options,
+        property_names,
+        no_properties,
+        substructure_pat,
+        rule_selection_options,
+        smiles,
+        num_jobs,
+        output_filename,
+        times,
+        #**kwargs
     ):
     """transform a structure
 
     DATABASE: a mmpdb database
     """
-def transform_command(parser, args):
-    min_radius = args.min_radius
-    assert min_radius in list("012345"), min_radius
-    min_radius = int(min_radius)
-    min_pairs = int(args.min_pairs)
-    min_variable_size = args.min_variable_size
-    max_variable_size = args.max_variable_size
-    assert max_variable_size > min_variable_size, "max-variable-size must be greater than min-variable-size"
-    min_constant_size = args.min_constant_size
+    import time
+    from .. import (
+        dbutils,
+        analysis_algorithms,
+        fileio,
+        )
     
-    explain = command_support.get_explain(args.explain)
+    assert max_variable_size > min_variable_size, "max-variable-size must be greater than min-variable-size"
+
+    reporter.set_explain(explain)
 
     start_time = time.time()
-    dataset = dbutils.open_dataset_from_args_or_exit(args)
+    dataset = dbutils.open_dataset_from_options_or_exit(database_options)
     open_time = time.time()
     
-    property_names = command_support.get_property_names_or_error(parser, args, dataset)
+    property_names = get_property_names_or_error(
+        dataset,
+        property_names = property_names,
+        no_properties = no_properties)
+        
     if not property_names:
         include_empty = True
     else:
         include_empty = False  # should there be a --show-all option to enable this?
 
-    if args.substructure:
-        substructure_pat = Chem.MolFromSmarts(args.substructure)
-        if substructure_pat is None:
-            parser.error("Cannot parse --substructure %r" % (args.substructure,))
-    else:
-        substructure_pat = None
-        
     # evaluate --where, --score, and --rule-selection-cutoffs.
-    rule_selection_function = analysis_algorithms.get_rule_selection_function_from_args(
-        parser, args)
-    
+    rule_selection_function = rule_selection_options.get_rule_selection_function()
+
     transform_tool = analysis_algorithms.get_transform_tool(dataset, rule_selection_function)
-    transform_record = transform_tool.fragment_transform_smiles(args.smiles)
-    transform_record = transform_tool.expand_variable_symmetry(transform_record)
+    transform_record = transform_tool.fragment_transform_smiles(smiles)
 
     if transform_record.errmsg:
-        parser.error("Unable to fragment --smiles %r: %s"
-                     % (args.smiles, transform_record.errmsg))
-
+        die(f"Unable to fragment --smiles {smiles!r}: {transform_record.errmsg}")
+        
+    transform_record = transform_tool.expand_variable_symmetry(transform_record)
+    
     # Make sure I can open the output file before I start doing heavy work.
     try:
-        outfile = fileio.open_output(args.output, args.output)
+        outfile = fileio.open_output(output_filename, output_filename)
     except IOError as err:
-        parser.error("Cannot open --output file: %s" % (err,))
+        die("Cannot open --output file: {err}")
 
     query_prep_time = time.time()
-    if args.jobs > 1:
-        pool = multiprocessing.Pool(processes=args.jobs)
+    if num_jobs > 1:
+        pool = multiprocessing.Pool(processes=num_jobs)
     else:
         pool = None
+    
     try:
         result = transform_tool.transform(
-            transform_record.fragments, property_names,
+            transform_record.fragmentations, property_names,
             min_radius=min_radius,
             min_pairs=min_pairs,
             min_variable_size=min_variable_size,
@@ -382,7 +398,7 @@ def transform_command(parser, args):
             min_constant_size=min_constant_size,
             substructure_pat=substructure_pat,
             pool=pool,
-            explain=explain,
+            explain=reporter.explain,
             )
     except analysis_algorithms.EvalError as err:
         sys.stderr.write("ERROR: %s\nExiting.\n" % (err,))
@@ -403,7 +419,7 @@ def transform_command(parser, args):
 
     output_time = time.time()
     
-    if args.times:
+    if times:
         sys.stderr.write("Elapsed time (in seconds):\n")
         format_dt = get_time_delta_formatter(output_time - start_time)
         sys.stderr.write("  open database: %s\n" % format_dt(open_time - start_time))
