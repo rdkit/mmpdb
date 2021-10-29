@@ -51,7 +51,10 @@ from .click_utils import (
     set_click_attrs,
     )
 
-from .. import index_types
+from .. import (
+    config,
+    index_types,
+    )
 
 def get_psutil():
     try:

@@ -57,7 +57,7 @@ def init_worker():
 
 def create_pool(num_jobs):
     import multiprocessing
-    from ... import fragment_records,
+    from .. import fragment_records
 
     if num_jobs > 1:
         pool = multiprocessing.Pool(num_jobs, init_worker)
