@@ -49,6 +49,7 @@ from . import (
     propcat,
     drop_index,
     create_index,
+    help_,
     )
 
 def add_commands(group):
@@ -150,6 +151,7 @@ main.add_command(propcat.propcat)
 main.add_command(drop_index.drop_index)
 main.add_command(create_index.create_index)
 
+add_commands(help_.help_group)
 ## add_commands(cli_fragdb.fragdb_utils)
 
 if __name__ == "__main__":
