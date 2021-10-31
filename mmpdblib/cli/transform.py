@@ -57,8 +57,9 @@ class parse_smarts(click.ParamType):
         from rdkit import Chem
         substructure_pat = Chem.MolFromSmarts(value)
         if substructure_pat is None:
-            raise click.UsageError(f"Unable to part SMARTS: {value}")
+            raise self.fail(f"Unable to pase SMARTS: {value}", param, ctx)
         return substructure_pat
+
 
 # Helper function to make a new function which format time deltas
 # so all the "."s are lined up and they use the minimal amount of

@@ -284,10 +284,10 @@ class parse_where(click.ParamType):
             return analysis_algorithms.get_where_function(value)
             
         except ValueError as err:
-            raise click.UsageError(str(err))
+            self.fail(str(err), param, ctx)
         
         except analysis_algorithms.EvalError as err:
-            raise click.UsageError(str(err))
+            self.fail(str(err), param, ctx)
 
 class parse_score(click.ParamType):
     name = "EXPR"
@@ -298,10 +298,10 @@ class parse_score(click.ParamType):
         try:
             return analysis_algorithms.get_score_function(value)
         except ValueError as err:
-            raise click.UsageError(str(err))
+            self.fail(str(err), param, ctx)
         
         except analysis_algorithms.EvalError as err:
-            raise click.UsageError(str(err))
+            self.fail(str(err), param, ctx)
 
 
 
@@ -317,15 +317,26 @@ class parse_cutoff_list(click.ParamType):
             try:
                 value = int(term)
             except ValueError as err:
-                raise click.UsageError(
-                    f"could not parse {term} as an integer: {err}"
+                self.fail(
+                    f"could not parse {term} as an integer: {err}",
+                    param,
+                    ctx,
                     )
 
             if value < 0:
-                raise click.UsageError("threshold values must be non-negative")
+                self.fail(
+                    "threshold values must be non-negative",
+                    param,
+                    ctx,
+                    )
 
             if prev is not None and prev <= value:
-                raise click.UsageError("threshold values must be in decreasing order")
+                self.fail(
+                    "threshold values must be in decreasing order",
+                    param,
+                    ctx,
+                    )
+                    
             
             prev = value
             values.append(value)
