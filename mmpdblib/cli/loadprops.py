@@ -1,4 +1,4 @@
-"implement 'loadprops'"
+"Implement the 'loadprops' command"
 
 # mmpdb - matched molecular pair database generation and analysis
 #

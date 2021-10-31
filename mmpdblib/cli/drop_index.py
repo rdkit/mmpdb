@@ -1,4 +1,4 @@
-"implement the 'drop_index' command"
+"Implement the 'drop_index' command"
 
 # mmpdb - matched molecular pair database generation and analysis
 #

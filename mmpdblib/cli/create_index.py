@@ -1,4 +1,4 @@
-"implement the 'create_index' command"
+"Implement the 'create_index' command"
 
 # mmpdb - matched molecular pair database generation and analysis
 #

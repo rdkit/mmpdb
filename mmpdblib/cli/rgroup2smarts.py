@@ -1,3 +1,5 @@
+"Implement the 'rgroup2smarts' command"
+
 # mmpdb - matched molecular pair database generation and analysis
 #
 # Copyright (c) 2019, Andrew Dalke Scientific, AB

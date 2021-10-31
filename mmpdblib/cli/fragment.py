@@ -1,4 +1,4 @@
-"""Implement the 'fragment' command"""
+"Implement the 'fragment' command"
 
 # mmpdb - matched molecular pair database generation and analysis
 #

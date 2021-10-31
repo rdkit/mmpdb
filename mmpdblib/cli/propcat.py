@@ -1,4 +1,4 @@
-"implement the 'propcat' command"
+"Implement the 'propcat' command"
 
 # mmpdb - matched molecular pair database generation and analysis
 #

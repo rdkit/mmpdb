@@ -1,4 +1,4 @@
-"""Implement the 'smifrag' command"""
+"Implement the 'smifrag' command"
 
 # mmpdb - matched molecular pair database generation and analysis
 #
