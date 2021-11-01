@@ -35,6 +35,8 @@
 
 import click
 
+from .click_utils import set_click_attrs
+
 class SmiInputOptions:
     def __init__(self, format, delimiter, has_header):
         self.format = format
@@ -42,9 +44,9 @@ class SmiInputOptions:
         self.has_header = has_header
         
 
-def add_input_options(f):
+def add_input_options(command):
     def add_option(*args, **kwargs):
-        click.option(*args, **kwargs)(f)
+        click.option(*args, **kwargs)(command)
 
     add_option(
         "--in",
@@ -69,6 +71,7 @@ def add_input_options(f):
     
     add_option(
         "--has-header",
+        is_flag = True,
         default = False,
         help = "skip the first line, which is the header line",
         )
@@ -83,10 +86,9 @@ def add_input_options(f):
             delimiter = kwargs.pop("delimiter"),
             has_header = kwargs.pop("has_header")
             )
-        return f(**kwargs)
+        return command(**kwargs)
 
-    make_input_options_wrapper.__name__ = f.__name__
-    make_input_options_wrapper.__click_params__ = f.__click_params__
-            
+    set_click_attrs(make_input_options_wrapper, command)
+
     return make_input_options_wrapper
     
