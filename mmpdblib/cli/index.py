@@ -78,7 +78,6 @@ def add_index_options(command):
     add_option(
         "--min-variable-heavies",
         type = nonnegative_int(),
-        metavar = "N",
         default = DEFAULT_INDEX_OPTIONS.min_variable_heavies,
         help = "Minimum number of non-hydrogen atoms in the variable fragment.",
         )
@@ -136,6 +135,7 @@ def add_index_options(command):
     add_option(
         "--symmetric",
         "-s",
+        is_flag = True,
         default = DEFAULT_INDEX_OPTIONS.symmetric,
         help = (
             "Output symmetrically equivalent MMPs, i.e output both cmpd1,cmpd2, "
@@ -146,6 +146,7 @@ def add_index_options(command):
     assert DEFAULT_INDEX_OPTIONS.smallest_transformation_only is False, "unsupported"
     add_option(
         "--smallest-transformation-only",
+        is_flag = True,
         default = DEFAULT_INDEX_OPTIONS.smallest_transformation_only,
         help = "Ignore all transformations that can be reduced to smaller fragments",
         )
@@ -155,6 +156,10 @@ def add_index_options(command):
         # Fill in the defaults
         popped_kwargs = pop_known_args(param_names, kwargs, DEFAULT_INDEX_OPTIONS)
 
+        # adjust for 'none'
+        if popped_kwargs["max_variable_heavies"] == "none":
+            popped_kwargs["max_variable_heavies"] = None
+        
         check_validity(popped_kwargs)
         kwargs["index_options"] = index_types.IndexOptions(**popped_kwargs)
 
@@ -365,6 +370,7 @@ entire structure, and save the transformation in both A>>B and B>>A
 
 @click.option(
     "--memory",
+    is_flag = True,
     default = False,
     help = "Report a summary of the memory use",
     )
