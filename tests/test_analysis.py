@@ -34,7 +34,7 @@ import unittest
 import gzip
 import re
 
-from mmpdblib import commandline
+from mmpdblib import cli
 
 from support import capture_stdout, capture_stderr
 from support import get_filename, create_test_filename
@@ -45,7 +45,7 @@ if wildcard_atom == "[*]":
     TEST_DATA_MMPDB = get_filename("test_data_2019.mmpdb")
 elif wildcard_atom == "*":
     # The dataset was generated with:
-    #   python -m mmpdblib.commandline index test_data.fragments --properties test_data.csv -o test_data_2018.mmpdb
+    #   python -m mmpdblib.cli index test_data.fragments --properties test_data.csv -o test_data_2018.mmpdb
     TEST_DATA_MMPDB = get_filename("test_data_2019.mmpdb")
 else:
     raise AssertionError(wildcard_atom)
@@ -64,18 +64,20 @@ def transform(*args):
     args = ("--quiet", "transform", TEST_DATA_MMPDB) + tuple(args)
     with capture_stdout() as stdout:
         try:
-            commandline.main(args)
+            cli.main(args)
         except SystemExit as err:
-            raise AssertionError("SystemExit trying to run %r: %s" % (args, err))
+            if err.code != 0:
+                raise AssertionError("SystemExit trying to run %r: %s" % (args, err))
     return parse_table(stdout.value)
 
 def transform_fail(*args):
     args = ("--quiet", "transform", TEST_DATA_MMPDB) + tuple(args)
     with capture_stderr() as stderr:
         try:
-            commandline.main(args)
+            cli.main(args)
         except SystemExit as err:
-            pass
+            if err.code == 0:
+                raise AssertionError("Should have failed: %r" % (args,))
         else:
             raise AssertionError("Should have failed: %r" % (args,))
     return stderr.value
@@ -343,18 +345,20 @@ def predict(*args):
     args = ("--quiet", "predict", TEST_DATA_MMPDB) + tuple(args)
     with capture_stdout() as stdout:
         try:
-            commandline.main(args)
+            cli.main(args)
         except SystemExit as err:
-            raise AssertionError("SystemExit trying to run %r: %s" % (args, err))
+            if err.code != 0:
+                raise AssertionError("SystemExit trying to run %r: %s" % (args, err))
     return parse_predict(stdout.value)
 
 def predict_fail(*args):
     args = ("--quiet", "predict", TEST_DATA_MMPDB) + tuple(args)
     with capture_stderr() as stderr:
         try:
-            commandline.main(args)
+            cli.main(args)
         except SystemExit as err:
-            pass
+            if err.code == 0:
+                raise AssertionError("Should have failed: %r" % (args,))
         else:
             raise AssertionError("Should have failed: %r" % (args,))
     return stderr.value
