@@ -262,33 +262,33 @@ class TestTransformCommand(unittest.TestCase):
     #### Error conditions
     def test_bad_smiles(self):
         errmsg = transform_fail("--smiles", "NOT_A_SMILES")
-        self.assertIn("error: Unable to fragment --smiles 'NOT_A_SMILES': invalid smiles\n", errmsg)
+        self.assertIn("Unable to fragment --smiles 'NOT_A_SMILES': invalid smiles\n", errmsg)
 
     def test_bad_smiles_not_enough_heavy_atoms(self):
         errmsg = transform_fail("--smiles", "C")
-        self.assertIn("error: Unable to fragment --smiles 'C': not enough heavy atoms\n", errmsg)
+        self.assertIn("Unable to fragment --smiles 'C': not enough heavy atoms\n", errmsg)
 
     def test_bad_min_constant_size(self):
         #[--min-constant-size N]
         errmsg = transform_fail("--smiles", "c1cccnc1O", "--min-constant-size", "Q")
-        self.assertIn("--min-constant-size: must be a positive integer or zero\n", errmsg)
+        self.assertIn("Error: Invalid value for '--min-constant-size': must be a positive integer or zero", errmsg)
         errmsg = transform_fail("--smiles", "c1cccnc1O", "--min-constant-size", "-1")
-        self.assertIn("--min-constant-size: must be a positive integer or zero\n", errmsg)
+        self.assertIn("Error: Invalid value for '--min-constant-size': must be a positive integer or zero", errmsg)
         errmsg = transform_fail("--smiles", "c1cccnc1O", "--min-constant-size", "1.0")
-        self.assertIn("--min-constant-size: must be a positive integer or zero\n", errmsg)
+        self.assertIn("Error: Invalid value for '--min-constant-size': must be a positive integer or zero", errmsg)
 
     def test_bad_radius(self):
         errmsg = transform_fail("--smiles", "c1cccnc1O", "--min-radius", "-1")
-        self.assertIn("--min-radius/-r: invalid choice: '-1'", errmsg)
-        self.assertIn("'0', '1', '2', '3', '4', '5'", errmsg)
+        self.assertIn("Error: Invalid value for '--min-radius' / '-r': "
+                          "'-1' is not one of '0', '1', '2', '3', '4', '5'.", errmsg)
 
     def test_bad_min_pairs(self):
         errmsg = transform_fail("--smiles", "c1cccnc1O", "--min-pairs", "-1")
-        self.assertIn("--min-pairs: must be a positive integer or zero\n", errmsg)
+        self.assertIn("Error: Invalid value for '--min-pairs': must be a positive integer or zero\n", errmsg)
 
     def test_bad_substructure(self):
         errmsg = transform_fail("--smiles", "c1cccnc1O", "--substructure", "ZZTop")
-        self.assertIn("Cannot parse --substructure 'ZZTop'\n", errmsg)
+        self.assertIn("Invalid value for '--substructure' / '-S': Unable to parse SMARTS: 'ZZTop'\n", errmsg)
 
     def test_bad_property_name(self):
         errmsg = transform_fail("--smiles", "c1cccnc1O", "--property", "BP")
@@ -296,32 +296,33 @@ class TestTransformCommand(unittest.TestCase):
 
     def test_bad_where(self):
         errmsg = transform_fail("--smiles", "c1cccnc1O", "--where", "BAD_VARIABLE")
-        self.assertIn("unsupported variable name 'BAD_VARIABLE', in --where 'BAD_VARIABLE'\n", errmsg)
+        self.assertIn("Error: Invalid value for '--where': unsupported variable name 'BAD_VARIABLE'", errmsg)
         errmsg = transform_fail("--smiles", "c1cccnc1O", "--where", "invalid Python expression")
-        self.assertIn("invalid syntax (--where, line 1), in --where 'invalid Python expression'\n", errmsg)
+        self.assertIn("Error: Invalid value for '--where': Cannot parse: invalid syntax (--where, line 1)", errmsg)
 
     def test_bad_score(self):
         errmsg = transform_fail("--smiles", "c1cccnc1O", "--score", "BAD_VARIABLE")
-        self.assertIn("unsupported variable name 'BAD_VARIABLE', in --score 'BAD_VARIABLE'\n", errmsg)
+        self.assertIn("Error: Invalid value for '--score': unsupported variable name 'BAD_VARIABLE'", errmsg)
         errmsg = transform_fail("--smiles", "c1cccnc1O", "--score", "invalid Python expression")
-        self.assertIn("invalid syntax (--score, line 1), in --score 'invalid Python expression'\n", errmsg)
+        self.assertIn("Error: Invalid value for '--score': Cannot parse: invalid syntax (--score, line 1)", errmsg)
 
     def test_bad_rule_selection_cutoffs(self):
         errmsg = transform_fail("--smiles", "c1cccnc1O", "--rule-selection-cutoffs", "A,B,C")
-        self.assertIn("--rule-selection-cutoffs: could not parse 'A' as an integer: "
-                      "invalid literal for int() with base 10: 'A'\n", errmsg)
+        self.assertIn("Error: Invalid value for '--rule-selection-cutoffs': could not parse A as an integer: "
+                          "invalid literal for int() with base 10: 'A'", errmsg)
         errmsg = transform_fail("--smiles", "c1cccnc1O", "--rule-selection-cutoffs", "20,10,-4")
-        self.assertIn("--rule-selection-cutoffs: threshold values must be non-negative\n", errmsg)
+        self.assertIn("Invalid value for '--rule-selection-cutoffs': threshold values must be non-negative", errmsg)
         errmsg = transform_fail("--smiles", "c1cccnc1O", "--rule-selection-cutoffs", "10,20")
-        self.assertIn("--rule-selection-cutoffs: threshold values must be in decreasing order\n", errmsg)
+        self.assertIn("Error: Invalid value for '--rule-selection-cutoffs': "
+                          "threshold values must be in decreasing order", errmsg)
 
     def test_bad_jobs(self):
         errmsg = transform_fail("--smiles", "c1cccnc1O", "--jobs", "-1")
-        self.assertIn("--jobs/-j: must be a positive integer\n", errmsg)
+        self.assertIn("Error: Invalid value for '--jobs' / '-j': must be a positive integer", errmsg)
         errmsg = transform_fail("--smiles", "c1cccnc1O", "--jobs", "0")
-        self.assertIn("--jobs/-j: must be a positive integer\n", errmsg)
+        self.assertIn("Error: Invalid value for '--jobs' / '-j': must be a positive integer", errmsg)
         errmsg = transform_fail("--smiles", "c1cccnc1O", "--jobs", "0 0")
-        self.assertIn("--jobs/-j: must be a positive integer\n", errmsg)
+        self.assertIn("Error: Invalid value for '--jobs' / '-j': must be a positive integer", errmsg)
 
     def test_bad_output(self):
         errmsg = transform_fail("--smiles", "c1cccnc1O", "--output", "/this/directory/does/not/at/all/exist/output.txt")
