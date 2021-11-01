@@ -13,7 +13,10 @@ def expect_pass(args, input=None):
     if result.exit_code:
         import shlex
         args_msg = " ".join(shlex.quote(word) for word in args)
-        raise AssertionError(f"SystemExit trying to run '{args_msg}': {result.exit_code}")
+        if result.exc_info:
+            import traceback
+            traceback.print_exception(*result.exc_info)
+        raise AssertionError(f"SystemExit trying to run '{args_msg}': {result.exit_code}: {result.stderr}")
     return result
 
 def expect_fail(args, input=None):
