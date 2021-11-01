@@ -39,7 +39,6 @@ import tempfile
 import unittest
 from contextlib import contextmanager
 
-from click.testing import CliRunner
 
 import mmpdblib
 from mmpdblib import cli
@@ -47,8 +46,11 @@ from mmpdblib.config import DEFAULT_FRAGMENT_OPTIONS
 from mmpdblib import fragment_db
 
 from support import (
-    redirect_stdin, capture_stdout, capture_stderr,
-    get_filename, create_testdir_and_filename, create_test_filename, StringIO)
+    get_filename,
+    create_test_filename,
+    expect_pass,
+    expect_fail,
+    )
 
 TAB_SMI = get_filename("tab.smi")
 TWO_TABS_SMI = get_filename("two_tabs.smi")
@@ -124,22 +126,6 @@ def fix_fragment_args(args):
     if salt_remover:
         args = ("--salt-remover", "<none>") + args
     return args
-
-def expect_pass(args, input=None):
-    runner = CliRunner(mix_stderr=False)
-    result = runner.invoke(cli.main, args, input=input)
-    if result.exit_code:
-        import shlex
-        args_msg = " ".join(shlex.quote(word) for word in args)
-        raise AssertionError(f"SystemExit trying to run '{args_msg}': {result.exit_code}")
-    return result
-
-def expect_fail(args, input=None):
-    runner = CliRunner(mix_stderr=False)
-    result = runner.invoke(cli.main, args, input=input)
-    if not result.exit_code:
-        raise AssertionError(f"Should have failed: {args!r}")
-    return result
 
 # Handle automatic naming
 _fragdb_name = {

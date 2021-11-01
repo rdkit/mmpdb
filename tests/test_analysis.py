@@ -36,8 +36,12 @@ import re
 
 from mmpdblib import cli
 
-from support import capture_stdout, capture_stderr
-from support import get_filename, create_test_filename
+from support import (
+    get_filename,
+    create_test_filename,
+    expect_pass,
+    expect_fail,
+    )
 
 from rdkit import Chem
 wildcard_atom = Chem.CanonSmiles("*")
@@ -62,25 +66,12 @@ def parse_table(output):
 
 def transform(*args):
     args = ("--quiet", "transform", TEST_DATA_MMPDB) + tuple(args)
-    with capture_stdout() as stdout:
-        try:
-            cli.main(args)
-        except SystemExit as err:
-            if err.code != 0:
-                raise AssertionError("SystemExit trying to run %r: %s" % (args, err))
-    return parse_table(stdout.value)
+    result = expect_pass(args)
+    return parse_table(result.output)
 
 def transform_fail(*args):
     args = ("--quiet", "transform", TEST_DATA_MMPDB) + tuple(args)
-    with capture_stderr() as stderr:
-        try:
-            cli.main(args)
-        except SystemExit as err:
-            if err.code == 0:
-                raise AssertionError("Should have failed: %r" % (args,))
-        else:
-            raise AssertionError("Should have failed: %r" % (args,))
-    return stderr.value
+    return expect_fail(args).stderr
     
 
 class TestTransformCommand(unittest.TestCase):
@@ -344,25 +335,12 @@ def parse_predict(text):
         
 def predict(*args):
     args = ("--quiet", "predict", TEST_DATA_MMPDB) + tuple(args)
-    with capture_stdout() as stdout:
-        try:
-            cli.main(args)
-        except SystemExit as err:
-            if err.code != 0:
-                raise AssertionError("SystemExit trying to run %r: %s" % (args, err))
-    return parse_predict(stdout.value)
+    result = expect_pass(args)
+    return parse_predict(result.output)
 
 def predict_fail(*args):
     args = ("--quiet", "predict", TEST_DATA_MMPDB) + tuple(args)
-    with capture_stderr() as stderr:
-        try:
-            cli.main(args)
-        except SystemExit as err:
-            if err.code == 0:
-                raise AssertionError("Should have failed: %r" % (args,))
-        else:
-            raise AssertionError("Should have failed: %r" % (args,))
-    return stderr.value
+    return expect_fail(args)
 
 def read_details(prefix):
     with open(prefix + "_rules.txt") as infile:
