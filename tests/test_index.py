@@ -55,10 +55,12 @@ class TestIndexCommandline(unittest.TestCase):
     
     def test_default_filters(self):
         dataset, options = self._get_options()
-        self.assertEqual(options,
-                         {u'max_variable_heavies': 10,
-                          u'smallest_transformation_only': False,
-                          u'symmetric': False})
+        self.assertEqual(options, {
+            'max_radius': 5,
+            'max_variable_heavies': 10,
+            'smallest_transformation_only': False,
+            'symmetric': False,
+            })
         self.assertEqual(dataset.get_num_rules(), 47)
         self.assertEqual(dataset.get_num_pairs(), 342)
         self.assertEqual(dataset.get_property_names(), [])
@@ -73,14 +75,15 @@ class TestIndexCommandline(unittest.TestCase):
             "--symmetric",
             "--max-frac-trans", "3")
         self.assertEqual(options, {
-            u'symmetric': True,
-            u'max_frac_trans': 3.0,
-            u'max_heavies_transf': 25,
-            u'max_variable_heavies': 29,
-            u'max_variable_ratio': 0.99,
-            u'min_variable_heavies': 1,
-            u'min_variable_ratio': 0.1,
-            u'smallest_transformation_only': False})
+            'symmetric': True,
+            'max_frac_trans': 3.0,
+            'max_heavies_transf': 25,
+            'max_radius': 5,
+            'max_variable_heavies': 29,
+            'max_variable_ratio': 0.99,
+            'min_variable_heavies': 1,
+            'min_variable_ratio': 0.1,
+            'smallest_transformation_only': False})
         self.assertEqual(dataset.get_num_rules(), 2*47) # because --symmetric
         self.assertEqual(dataset.get_num_pairs(), 2*342) 
         self.assertEqual(dataset.get_property_names(), [])
@@ -88,8 +91,9 @@ class TestIndexCommandline(unittest.TestCase):
     def test_max_variable_heavies_none(self):
         dataset, options = self._get_options("--max-variable-heavies", "none")
         self.assertEqual(options, {
-            u'symmetric': False,
-            u'smallest_transformation_only': False,
+            'max_radius': 5,
+            'symmetric': False,
+            'smallest_transformation_only': False,
             })
         
     def test_with_properties(self):
