@@ -50,21 +50,22 @@ from .. import smarts_aliases
 def callback_chain(*funcs):
     def caller(ctx, param, value):
         for func in funcs:
-            func(ctx, param, value)
+            value = func(ctx, param, value)
+        return value
     return caller
 
 
 EXCLUSION_CUTS = "mmpdblib.exclusion.cuts"
 def mutual_exclusion_cuts(ctx, param, value):
     if not value or ctx.resilient_parsing:
-        return
+        return value
     name = param.name
     prev_name = ctx.meta.get(EXCLUSION_CUTS, None)
     if prev_name is None:
         ctx.meta[EXCLUSION_CUTS] = name
-        return
+        return value
     if prev_name == name:
-        return
+        return value
     raise click.UsageError(
         "Cannot specify more than one of --cut-smarts, --cut-rgroup, or --cut-rgroup-file"
         )
@@ -76,8 +77,9 @@ FRAGMENTATION_OPTION_NAMES = "mmpdblib.fragment_option_names"
 def record_used_options(ctx, param, value):
     used_names = ctx.meta.setdefault(FRAGMENTATION_OPTION_NAMES, set())
     if not value:
-        return
+        return value
     used_names.add(param.name)
+    return value
     
 
 #### @add_fragment_options
@@ -176,22 +178,18 @@ def add_fragment_options(command):
 
     # Wrap the command to convert the fragment option parameters
     # into a single object
-
-    
     def make_fragment_options_wrapper(**kwargs):
-        popped_kwargs = {}
-
         # Fill in the defaults, or use None if there aren't defaults (eg, for
         # --cut-rgroups and --cut-rgroup-file).
         popped_kwargs = pop_known_args(param_names, kwargs, OPTS)
-            
+
         kwargs["fragment_options"] = make_fragment_options(**popped_kwargs)
 
         # Forward to the command
         return command(**kwargs)
 
     set_click_attrs(make_fragment_options_wrapper, command)
-    
+
     return make_fragment_options_wrapper
 
 ########
