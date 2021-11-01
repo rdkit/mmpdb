@@ -85,7 +85,7 @@ class positive_int_or_none(click.ParamType):
     name = "N"
     def convert(self, value, param, ctx):
         if value is None or value == "none":
-            return None
+            return value
 
         msg = "must be a positive integer or 'none'"
         if isinstance(value, str):
@@ -140,10 +140,19 @@ class nonnegative_int(click.IntRange):
     def __init__(self):
         super().__init__(0)
 
-class positive_int(click.IntRange):
+# Not using IntRange since I don't like the fail() message.
+class positive_int(click.ParamType):
     name = "N"
-    def __init__(self):
-        super().__init__(1)
+    def convert(self, value, param, ctx):
+        msg = "must be a positive integer"
+        if isinstance(value, str):
+            try:
+                value = int(value)
+            except ValueError:
+                self.fail(msg)
+        if not (value > 0):
+            self.fail(msg)
+        return value
 
 class radius_type(IntChoice):
     name = "R"
