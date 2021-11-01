@@ -137,7 +137,7 @@ def loadprops(
     num_missing = compound_ids.count(None)
     if num_missing:
         reporter.report(
-            f"{num_missing} compounds from {source!r} are not in the dataset at {args.databases[0]!r}"
+            f"{num_missing} compounds from {source!r} are not in the dataset at {database_options.database!r}"
             )
         ## missing = [public_id for public_id in properties.id_column if public_id not in public_id_to_id]
         ## del missing[6:]
