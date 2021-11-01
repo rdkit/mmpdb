@@ -42,6 +42,7 @@ from .click_utils import (
     die,
     name_to_command_line,
     ordered_group,
+    positive_int,
     )
 from . import fragment_click
 from . import smi_utils
@@ -156,7 +157,7 @@ def cannot_combine_with_fragment_options(ctx, cache):
     "--num-jobs",
     "-j",
     metavar = "N",
-    type = click.IntRange(1),
+    type = positive_int(),
     default = 4,
     help = "number of jobs to process in parallel (default: 4)")
 
