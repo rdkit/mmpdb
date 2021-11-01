@@ -135,10 +135,20 @@ class positive_float(click.ParamType):
             self.fail(msg)
         return value
             
-class nonnegative_int(click.IntRange):
+# Not using IntRange since I don't like the fail() message.
+class nonnegative_int(click.ParamType):
     name = "N"
-    def __init__(self):
-        super().__init__(0)
+    def convert(self, value, param, ctx):
+        msg = "must be a positive integer or zero"
+        if isinstance(value, str):
+            try:
+                value = int(value)
+            except ValueError:
+                self.fail(msg)
+        if not (value >= 0):
+            self.fail(msg)
+        return value
+
 
 # Not using IntRange since I don't like the fail() message.
 class positive_int(click.ParamType):
@@ -401,8 +411,6 @@ def add_rule_selection_options(command):
 ## Properties
 
 def get_property_names_or_error(dataset, *, property_names, no_properties=False, all_properties=False):
-    property_names = []
-
     if property_names:
         if no_properties:
             raise click.UsageError("Cannot specify --property and --no-properties")
@@ -418,6 +426,7 @@ def get_property_names_or_error(dataset, *, property_names, no_properties=False,
 
     known_names = set(known_names)
     seen = set()
+    unique_names = []
     for name in property_names:
         # If a property is specified multiple times, only use the first one.
         if name in seen:
@@ -426,5 +435,5 @@ def get_property_names_or_error(dataset, *, property_names, no_properties=False,
 
         if name not in known_names:
             die(f"--property {name!r} is not present in the database")
-        property_names.append(name)
-    return property_names
+        unique_names.append(name)
+    return unique_names
