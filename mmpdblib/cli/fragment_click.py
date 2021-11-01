@@ -227,7 +227,7 @@ def make_fragment_options(
     elif cut_rgroup:
         try:
             cut_smarts = rgroup2smarts.get_recursive_smarts_from_cut_rgroups(
-                args.cut_rgroup, source="--cut-rgroup", offset=1)
+                cut_rgroup, source="--cut-rgroup", offset=1)
         except rgroup2smarts.ConversionError as err:
             die(str(err))
 
@@ -238,6 +238,12 @@ def make_fragment_options(
     
     method = "chiral"
 
+    if max_heavies == "none":
+        max_heavies = None
+
+    if max_rotatable_bonds == "none":
+        max_rotatable_bonds = None
+    
     return fragment_types.FragmentOptions(
         max_heavies = max_heavies,
         max_rotatable_bonds = max_rotatable_bonds,
