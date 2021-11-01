@@ -197,7 +197,18 @@ def iter_fragment_records(record_c, fragmentation_c):
             *record_values,
             fragmentations = fragmentations,
             )
-    
+
+_select_fragmentations_error_sql = f"SELECT title, input_smiles, errmsg FROM error_record"
+def iter_fragment_error_records(record_c, fragmentation_c):
+    record_c.execute(_select_fragmentations_error_sql)
+    for row in record_c:
+        title, input_smiles, errmsg = row
+        yield FragmentErrorRecord(
+            id = title,
+            input_smiles = input_smiles,
+            errmsg = errmsg,
+            )
+        
 #### FragmentErrorRecord
 
 _error_record_attrs = ("id", "input_smiles", "errmsg")
@@ -319,6 +330,10 @@ class FragDB:
 
     def __iter__(self):
         return iter_fragment_records(self.db.cursor(), self.db.cursor())
+
+    def iter_error_records(self):
+        return iter_fragment_error_records(self.db.cursor(), self.db.cursor())
+        
     
 ### connect to the database and prepare for writing.
 
