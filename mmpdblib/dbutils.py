@@ -281,6 +281,7 @@ def reaggregate_properties(dataset, property_name_ids, compound_values_for_prope
                         continue
                     deltas.append(value2-value1)
                 if deltas:
+                    from . import index_algorithm
                     stats = index_algorithm.compute_aggregate_values(deltas)
                     yield (rule_environment_id, property_name_id, stats)
     stats_info = generate_stats()
