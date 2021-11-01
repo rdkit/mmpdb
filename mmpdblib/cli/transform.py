@@ -57,7 +57,7 @@ class parse_smarts(click.ParamType):
         from rdkit import Chem
         substructure_pat = Chem.MolFromSmarts(value)
         if substructure_pat is None:
-            raise self.fail(f"Unable to pase SMARTS: {value}", param, ctx)
+            raise self.fail(f"Unable to parse SMARTS: {value!r}", param, ctx)
         return substructure_pat
 
 
@@ -356,7 +356,7 @@ def transform(
     start_time = time.time()
     dataset = dbutils.open_dataset_from_options_or_exit(database_options)
     open_time = time.time()
-    
+
     property_names = get_property_names_or_error(
         dataset,
         property_names = property_names,
@@ -382,7 +382,7 @@ def transform(
     try:
         outfile = fileio.open_output(output_filename, output_filename)
     except IOError as err:
-        die("Cannot open --output file: {err}")
+        die(f"Cannot open --output file: {err}")
 
     query_prep_time = time.time()
     if num_jobs > 1:
