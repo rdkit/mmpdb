@@ -34,7 +34,6 @@ from __future__ import absolute_import
 
 #### Handle command-line arguments ####
 
-from collections import OrderedDict
 import argparse
 
 from . import smarts_aliases
