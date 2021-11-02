@@ -41,6 +41,7 @@ from .click_utils import (
     name_to_command_line,
     pop_known_args,
     positive_int_or_none,
+    nonnegative_int,
     set_click_attrs,
     )
 
@@ -168,7 +169,7 @@ def add_fragment_options(command):
 
     add_option(
         "--min-heavies-per-const-frag",
-        type = click.IntRange(0), # non-negative
+        type = nonnegative_int(),
         metavar = "N",
         help = (
             "Ignore fragmentations where one or more constant "
