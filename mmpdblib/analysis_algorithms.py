@@ -38,7 +38,6 @@ import copy
 
 from rdkit import Chem
 
-from . import command_support
 from . import fragment_algorithm
 from . import index_algorithm
 from . import environment
@@ -987,7 +986,7 @@ def make_transform(
         pool=None,
         cursor=None, explain=None):
     if explain is None:
-        explain = command_support.no_explain
+        explain = reporters.no_explain
     if cursor is None:
         cursor = dataset.get_cursor()
     assert min_radius in (0, 1, 2, 3, 4, 5)

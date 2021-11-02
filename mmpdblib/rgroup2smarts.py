@@ -50,7 +50,6 @@ import sys
 from rdkit import Chem
 import argparse
 
-from . import command_support
 from . import fileio
 
 # Match the atom terms. These are all in brackets.
