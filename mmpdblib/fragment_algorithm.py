@@ -760,17 +760,6 @@ def make_multiple_cuts(mol, atom_pairs, chiral_flags, fragment_filter):
 
 
 def fragment_mol(mol, fragment_filter, num_heavies=None):
-    try:
-        for x in _fragment_mol(mol, fragment_filter, num_heavies):
-            yield x
-    except:
-        ## import traceback
-        ## traceback.print_exc()
-        raise
-
-
-def _fragment_mol(mol, fragment_filter, num_heavies=None):
-
     cut_lists = fragment_filter.get_cut_lists(mol)
 
     if not cut_lists:
@@ -793,7 +782,7 @@ def _fragment_mol(mol, fragment_filter, num_heavies=None):
             fragmentations = make_single_cut(mol, cut_list[0], chiral_flags, fragment_filter)
         else:
             fragmentations = make_multiple_cuts(mol, cut_list, chiral_flags, fragment_filter)
-            if fragmentations == None:  # Fragmentation has been filtered out
+            if fragmentations is None:  # Fragmentation has been filtered out
                 continue
 
         for fragmentation in fragmentations:
