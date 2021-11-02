@@ -37,7 +37,6 @@ import click
 
 from .click_utils import (
     command,
-    die,
     add_multiple_databases_parameters,
 )
 

@@ -42,7 +42,6 @@ from .click_utils import (
     IntChoice,
     command,
     die,
-    name_to_command_line,
     nonnegative_float,
     nonnegative_int,
     pop_known_args,
@@ -411,6 +410,7 @@ def index(
 
     report_memory = False
     if memory:
+        psutil = get_psutil()
         if psutil is None:
             sys.stderr.write("WARNING: Cannot report memory because the 'psutil' module is not available.\n")
         else:
@@ -452,7 +452,7 @@ def index(
     try:
         fragment_reader = fragment_db.open_fragdb(fragment_filename)
     except fragment_types.FragmentFormatError as err:
-        parser.error(str(err))
+        die(str(err))
 
     with fragment_reader:
         with reporter.progress(fragment_reader, "Loaded fragment record") as report_fragment_reader:

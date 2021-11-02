@@ -126,7 +126,6 @@ def rgroup2smarts(
     reporter.set_explain(explain)
     explain = reporter.explain
 
-    filename = "<unknown>"
     close = None
 
     if cut_rgroup:
@@ -201,7 +200,3 @@ def rgroup2smarts(
             outfile.write(smarts + "\n")
 
     outfile.flush()
-
-
-if __name__ == "__main__":
-    main()

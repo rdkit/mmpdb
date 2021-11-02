@@ -373,6 +373,7 @@ def transform(
 
     query_prep_time = time.time()
     if num_jobs > 1:
+        import multiprocessing
         pool = multiprocessing.Pool(processes=num_jobs)
     else:
         pool = None

@@ -34,13 +34,11 @@
 #
 
 
-import sys
-
 import click
 
-from .click_utils import ordered_group
+from .click_utils import OrderedGroup
 
-help_group = click.Group()
+help_group = OrderedGroup
 
 
 def add_help(name, about, text):

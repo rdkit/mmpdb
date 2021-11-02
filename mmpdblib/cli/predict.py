@@ -39,11 +39,9 @@ import click
 from .click_utils import (
     command,
     die,
-    radius_type,
     add_single_database_parameters,
     add_single_property,
     add_rule_selection_options,
-    nonnegative_int,
 )
 
 # predict a property for a structure given the known property for
@@ -225,11 +223,11 @@ def predict(
 
     reference_record = predict_tool.fragment_reference_smiles(reference_smiles)
     if reference_record.errmsg:
-        die(f"Unable to fragment --reference {reference!r}: {reference_record.errmsg}")
+        die(f"Unable to fragment --reference {reference_smiles!r}: {reference_record.errmsg}")
 
     smiles_record = predict_tool.fragment_predict_smiles(smiles)
     if smiles_record.errmsg:
-        parser.error(f"Unable to fragment --smiles {smiles!r}: {reference_record.errmsg}")
+        die(f"Unable to fragment --smiles {smiles!r}: {reference_record.errmsg}")
 
     query_prep_time = time.time()
 
@@ -272,7 +270,7 @@ def predict(
         try:
             property_rules_file = open(prefix + "_rules.txt", "w")
         except Exception as err:
-            parser.error("Unable to open output rules file: %s" % (err,))
+            die("Unable to open output rules file: %s" % (err,))
 
         with property_rules_file:
             predict_result.write_property_rules(
@@ -304,7 +302,7 @@ def predict(
         try:
             property_rule_pairs_file = open(prefix + "_pairs.txt", "w")
         except Exception as err:
-            parser.error("Unable to open output rules file: %s" % (err,))
+            die("Unable to open output rules file: %s" % (err,))
 
         with property_rule_pairs_file:
             predict_result.write_property_rule_pairs(

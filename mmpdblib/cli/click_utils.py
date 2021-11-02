@@ -37,7 +37,6 @@
 import click
 
 from .. import config
-from .. import smarts_aliases
 
 
 class FormatEpilog:

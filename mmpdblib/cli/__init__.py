@@ -35,6 +35,7 @@
 
 from .. import __version__
 
+import sys
 import click
 
 from .click_utils import ordered_group

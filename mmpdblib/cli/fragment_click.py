@@ -38,7 +38,6 @@ import click
 from .click_utils import (
     IntChoice,
     die,
-    name_to_command_line,
     pop_known_args,
     positive_int_or_none,
     nonnegative_int,
@@ -227,10 +226,10 @@ def make_fragment_options(
             die(f"Cannot use --cut-rgroup-file: {cut_rgroup_file!r}: {err}")
 
         except rgroup2smarts.ParseError as err:
-            die(f"Cannot parse --cut-rgroup-file: {cut_rgroup_file!r}")
+            die(f"Cannot parse --cut-rgroup-file: {cut_rgroup_file!r}: {err}")
 
         except rgroup2smarts.ConversionError as err:
-            die(f"Error in --cut-rgroup-file: {cut_rgroup_file!r}")
+            die(f"Error in --cut-rgroup-file: {cut_rgroup_file!r}: {err}")
 
     elif cut_rgroup:
         try:

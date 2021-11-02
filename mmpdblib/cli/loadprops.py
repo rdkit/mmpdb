@@ -38,6 +38,7 @@ import click
 
 from .click_utils import (
     command,
+    die,
     add_single_database_parameters,
 )
 
