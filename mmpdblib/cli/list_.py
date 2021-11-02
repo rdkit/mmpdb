@@ -122,11 +122,11 @@ from the database contents.
     help = "count the table sizes directly, instead of using cached data",
     )
 
-@add_multiple_databases_parameters
+@add_multiple_databases_parameters()
 @click.pass_obj
 def list_(
         reporter,
-        database_options,
+        databases_options,
         all_option,
         recount,
         ):
@@ -157,8 +157,8 @@ def list_(
 
     all_fragment_options = []
     all_index_options = []
-    for dbinfo in dbutils.iter_dbinfo(database_options.databases, reporter):
-        reporter.update("Opening %r ... " % (dbinfo.get_human_name(),))
+    for dbinfo in dbutils.iter_dbinfo(databases_options.databases, reporter):
+        reporter.update("Opening %s ... " % (dbinfo.get_human_name(),))
         database = None
         try:
             database = dbinfo.open_database(quiet=reporter.quiet)
