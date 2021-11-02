@@ -593,12 +593,12 @@ class TestSmiFrag(unittest.TestCase):
 
     def test_max_heavies(self):
         errmsg = smifrag_fail("c1ccccc1O", "--max-heavies", "5")
-        self.assertIn("Cannot parse --smiles: too many heavy atoms", errmsg)
+        self.assertIn("Cannot parse smiles: too many heavy atoms", errmsg)
     
     def test_rotatable_bonds(self):
         errmsg = smifrag_fail("c1ccccc1O", "--max-rotatable-bonds", "3",
                               "--rotatable-smarts", "**")
-        self.assertIn("Cannot parse --smiles: too many rotatable bonds", errmsg)
+        self.assertIn("Cannot parse smiles: too many rotatable bonds", errmsg)
         
     def test_cut_smarts_using_cut_AlkylChains(self):
         result = smifrag("CCCC")
@@ -717,7 +717,7 @@ class TestFragmentCutRGroups(unittest.TestCase):
         
     def test_missing_rgroup_filename(self):
         filename = create_test_filename(self, "rgroups.txt")
-        stderr = fragment_fail([SPACE_SMI, "--cut-rgroup-file", filename])
+        stderr = fragment_fail(SPACE_SMI, ["--cut-rgroup-file", filename])
         self.assertIn("Cannot use --cut-rgroup-file", stderr)
         self.assertIn(repr(filename), stderr)
         self.assertIn("No such file or directory", stderr)
