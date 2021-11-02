@@ -37,16 +37,14 @@ import click
 from .click_utils import (
     command,
     die,
+    name_to_command_line,
 )
 
 from .. import smarts_aliases
-from .. import fileio
 
 from . import fragment_click
-from . import fragment
-
-from .. import reporters
 from .. import fragment_records
+from .. import fragment_types
 
 
 ########
@@ -114,9 +112,7 @@ def smifrag(ctx, fragment_options, smiles):
         "left",
     ]
 
-    has_rows = False
     for frag in record.fragmentations:
-        has_rows = True
         items = [
             str(frag.num_cuts),
             frag.enumeration_label,
