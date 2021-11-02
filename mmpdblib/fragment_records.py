@@ -32,7 +32,6 @@
 #
 
 from . import fragment_types
-from . import fragment_algorithm
 from . import fileio
 
 def _as_list(method, normalized_mol, fragment_filter, num_normalized_heavies):
@@ -55,6 +54,8 @@ class ParsedSmilesRecord(object):
 
 def parse_record(id, smiles, fragment_filter):
     from rdkit import Chem
+    from . import fragment_algorithm
+    
     mol = Chem.MolFromSmiles(smiles)
     if mol is None:
         return "invalid smiles", ParsedSmilesRecord(id, smiles, mol, None, None, 0)
@@ -79,6 +80,7 @@ def parse_record(id, smiles, fragment_filter):
 
 
 def make_hydrogen_fragment_record(id, input_smiles, fragment_filter):
+    from . import fragment_algorithm
     errmsg, record = parse_record(id, input_smiles, fragment_filter)
     if errmsg:
         return fragment_types.FragmentErrorRecord(id, input_smiles, errmsg)

@@ -48,15 +48,12 @@
 #   *-O  -> *!@[OH1v2]
 
 import sys
-from rdkit import Chem
 
 import click
 from .click_utils import (
     command,
     die
     )
-
-from .. import rgroup2smarts as _rgroup2smarts
 
 rgroup2smarts_epilog="""
 
@@ -124,6 +121,10 @@ def rgroup2smarts(
 
     FILENAME: file containing one or more R-group SMILES (use stdin if not specified)
     """
+    from rdkit import Chem
+    from .. import rgroup2smarts as _rgroup2smarts
+
+    
     reporter.set_explain(explain)
     explain = reporter.explain
 
