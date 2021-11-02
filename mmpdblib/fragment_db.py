@@ -34,6 +34,7 @@
 import os
 import sqlite3
 import dataclasses
+import importlib.resources
 
 from .fragment_types import (
     FragmentOptions,
@@ -58,8 +59,10 @@ _schema_template = None
 def get_schema_template():
     global _schema_template
     if _schema_template is None:
-        with open(SCHEMA_FILENAME) as infile:
-            _schema_template = infile.read()
+        _schema_template = importlib.resources.read_text(
+            "mmpdblib",
+            "fragment_schema.sql",
+        )
     return _schema_template
 
 

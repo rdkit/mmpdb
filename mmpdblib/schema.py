@@ -34,6 +34,7 @@ import sys
 import os.path
 import datetime
 
+import importlib.resources
 
 SCHEMA_FILENAME = os.path.join(os.path.dirname(__file__), "schema.sql")
 CREATE_INDEX_FILENAME = os.path.join(os.path.dirname(__file__), "create_index.sql")
@@ -46,8 +47,7 @@ _schema_template = None
 def get_schema_template():
     global _schema_template
     if _schema_template is None:
-        with open(SCHEMA_FILENAME) as infile:
-            _schema_template = infile.read()
+        _schema_template = importlib.resources.read_text("mmpdblib", "schema.sql")
     return _schema_template
 
 
@@ -57,8 +57,7 @@ _create_index_sql = None
 def get_create_index_sql():
     global _create_index_sql
     if _create_index_sql is None:
-        with open(CREATE_INDEX_FILENAME) as infile:
-            _create_index_sql = infile.read()
+        _create_index_sql = importlib.resources.read_text("mmpdblib", "create_index.sql")
     return _create_index_sql
 
 
@@ -68,8 +67,7 @@ _drop_index_sql = None
 def get_drop_index_sql():
     global _drop_index_sql
     if _drop_index_sql is None:
-        with open(DROP_INDEX_FILENAME) as infile:
-            _drop_index_sql = infile.read()
+        _drop_index_sql = importlib.resources.read_text("mmpdblib", "drop_index.sql")
     return _drop_index_sql
 
 
