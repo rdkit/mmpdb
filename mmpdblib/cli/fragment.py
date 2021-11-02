@@ -117,6 +117,7 @@ input SMILES filename):
 
 2) Do the same, but with an explicit output filename:
 
+\b
   % mmpdb fragment CHEMBL_thrombin_Ki_IC50.smi \\
       -o CHEMBL_thrombin_Ki_IC50.fragdb
 
