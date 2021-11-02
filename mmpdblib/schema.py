@@ -36,10 +36,6 @@ import datetime
 
 import importlib.resources
 
-SCHEMA_FILENAME = os.path.join(os.path.dirname(__file__), "schema.sql")
-CREATE_INDEX_FILENAME = os.path.join(os.path.dirname(__file__), "create_index.sql")
-DROP_INDEX_FILENAME = os.path.join(os.path.dirname(__file__), "drop_index.sql")
-
 
 _schema_template = None
 

@@ -52,7 +52,6 @@ from . import schema
 # 3) fragment_db.py -- (this file) defines the mapping from SQL to the data types
 
 
-SCHEMA_FILENAME = os.path.join(os.path.dirname(__file__), "fragment_schema.sql")
 _schema_template = None
 
 
