@@ -97,7 +97,7 @@ class TableIndexWriter(object):
 
     # Added to account for parents in indexing (only has an effect on SQLite Tables)
     def add_environment_fingerprint_parent(self, fp_idx, environment_fingerprint, parent_idx):
-        self._W("FINGERPRINT\t%d\t%s\n" % (fp_idx, environment_fingerprint, parent_idx))
+        self._W("FINGERPRINT\t%d\t%s\t%d\n" % (fp_idx, environment_fingerprint, parent_idx))
 
     def add_rule_environment(self, rule_env_idx, rule_idx, env_fp_idx, radius):
         self._W("RULEENV\t%d\t%d\t%d\t%d\n" % (rule_env_idx, rule_idx, env_fp_idx, radius))
