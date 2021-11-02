@@ -51,9 +51,6 @@ from .. import fragment_records
 
 ########
 smifrag_epilog = """
-Fragment a SMILES and print details about each variable and constant
-fragment and how they are connected.
-
 \b
 """ + smarts_aliases.get_epilog("--cut-smarts", smarts_aliases.cut_smarts_aliases)
 
@@ -69,9 +66,13 @@ def smifrag(
         fragment_options,
         smiles
         ):
-    """fragment a SMILES into variable and constant parts
+    """fragment a single SMILES string
 
     SMILES: the SMILES string of the structure to fragment
+
+    Fragment a SMILES and print details about each variable and constant
+    fragment and how they are connected.
+
     """
 
     reporter = ctx.obj
