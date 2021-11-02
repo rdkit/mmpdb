@@ -44,6 +44,8 @@ from . import index_algorithm
 from . import environment
 from . import smiles_syntax
 from . import schema
+from . import reporters
+
 from .config import DEFAULT_RULE_SELECTION_OPTIONS
 
 ####
@@ -244,7 +246,7 @@ class RuleSelectionFunction(object):
         self.where_function = where_function
         self.rule_key_function = rule_key_function
 
-    def __call__(self, property_rules, explain=command_support.no_explain):
+    def __call__(self, property_rules, explain=reporters.no_explain):
         if not property_rules:
             explain("    No rule environment statistics has enough pairs.")
             return None
@@ -462,7 +464,7 @@ def make_prediction(
         cursor=None,
         ):
     if explain is None:
-        explain = command_support.no_explain
+        explain = reporters.no_explain
         using_explain = False
     else:
         using_explain = True
@@ -1221,8 +1223,7 @@ def test_transform():
     dataset = db.get_dataset()
     transform_tool = get_transform_tool(dataset)
     transform_record = transform_tool.fragment_transform_smiles("c1ccccc1C(=O)N(C)C")
-    result = transform_tool.transform(transform_record.fragmentations, ["MP"],
-                                      explain=command_support.get_explain(False))
+    result = transform_tool.transform(transform_record.fragmentations, ["MP"])
     result.write_products(sys.stdout, include_empty=True)
     
     

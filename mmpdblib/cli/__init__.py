@@ -91,10 +91,7 @@ the full list of options for the command.
 def explain(msg, *args):
     full_msg = (msg % args) + "\n"
     sys.stderr.write(full_msg)
-
-
-def no_explain(msg, *args):
-    pass
+    sys.stderr.flush()
 
 
 def get_explain(use_explain, reporter=None):
@@ -103,6 +100,8 @@ def get_explain(use_explain, reporter=None):
             return explain
         else:
             return reporter.explain
+
+    from ..reporters import no_explain
     return no_explain
 
 class CmdConfig:

@@ -199,3 +199,8 @@ class MultiStageReporter(object):
         return value
 
     next = __next__
+
+# the 'no_explain' function. I needed somewhere to put it, and this seemed okay.
+
+def no_explain(msg, *args):
+    pass
