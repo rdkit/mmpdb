@@ -873,7 +873,7 @@ _hydrogen_cut_pat = Chem.MolFromSmarts("[!#1]-[0#1v1!+!-]")
 
 def fragment_molecule_on_explicit_hydrogens(smiles):
     num_heavies = get_num_heavies_from_smiles(smiles)
-    #smiles_with_H = Chem.CanonSmiles(smiles)
+    # smiles_with_H = Chem.CanonSmiles(smiles)
     input_mol = Chem.MolFromSmiles(smiles, sanitize=False)  # use santize=False to preserve explicit hydrogens
     Chem.SanitizeMol(input_mol, Chem.SANITIZE_ALL)
 

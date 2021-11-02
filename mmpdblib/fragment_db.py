@@ -295,7 +295,6 @@ class FragDBWriter:
             insert_fragment_record(c, rec, record_id)
 
 
-
 ###
 
 
