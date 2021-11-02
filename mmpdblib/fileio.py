@@ -93,7 +93,7 @@ def open_output(filename, format_hint):
     if filename is None:
         if is_compressed:
             outfile = gzip.GzipFile(fileobj=_get_binary_stdout(), mode="w")
-            outfile = Strings(outfile)
+            outfile = TextIOWrapper(outfile)
             return Outfile("<stdout>", outfile, outfile.close)
         else:
             return Outfile("<stdout>", sys.stdout, None)
@@ -589,8 +589,6 @@ if __name__ == "__main__":
     parser.add_argument("--has-header", action="store_true", default=False)
     parser.add_argument("--delimiter", default=None)
     parser.add_argument("filename", default=None, nargs="?")
-
-    import sys
 
     args = parser.parse_args()
     with read_smiles_file(args.filename, args.format, args.delimiter, args.has_header) as reader:

@@ -50,11 +50,9 @@ from . import config
 from . import environment
 from . import fileio, reporters
 from . import fragment_algorithm
-from . import fragment_db
 from . import fragment_records
 from . import index_writers
 
-import rdkit
 from rdkit import Chem
 
 ###
@@ -409,9 +407,6 @@ _wildcard_pat = re.compile(re.escape("[*]") + "|" + re.escape("*"))
 
 
 def relabel(smiles, order=None):
-    input_smiles = smiles
-    input_order = order
-
     if order is None:
         order = list(range(smiles.count("*")))
     else:
@@ -862,8 +857,6 @@ def find_matched_molecular_pairs(
     max_radius=5,
     reporter=None,
 ):
-
-    from rdkit import Chem
 
     symmetric = index_options.symmetric
     max_heavies_transf = index_options.max_heavies_transf

@@ -33,26 +33,15 @@
 
 from __future__ import print_function, absolute_import
 
-import sys
-import json
-import re
-import itertools
 import os
 import sqlite3
 import dataclasses
 
-from . import __version__ as mmpdblib_version
-
-from . import config
-from . import fileio
-from . import fragment_algorithm
-from . import reporters
 from .fragment_types import (
     FragmentOptions,
     FragmentRecord,
     FragmentErrorRecord,
     Fragmentation,
-    FragmentFormatError,
 )
 from . import schema
 
@@ -108,11 +97,11 @@ def open_fragdb(filename):
     # See if this is a database
     try:
         c.execute("SELECT COUNT(*) FROM record")
-    except sqlite3.OperationalError as err:
+    except sqlite3.OperationalError:
         raise ValueError(f"{filename!r} does not appear to be a fragdb")
     try:
         c.execute("SELECT COUNT(*) FROM options")
-    except sqlite3.OperationalError as err:
+    except sqlite3.OperationalError:
         raise ValueError(f"{filename!r} does not appear to be a fragdb")
 
     for (count,) in c:
@@ -145,7 +134,7 @@ def select_options(c):
     for row in c.execute(sql):
         version, *values = row
         if version != 3:
-            raise ValueError(f"Expected version 3 options, not version {version}")
+            raise ValueError(f"Expected a version 3 database, not version {version}")
         return FragmentOptions(*values)
     raise AssertionError("Missing options in fragdb")
 
@@ -221,7 +210,7 @@ def iter_fragment_records(record_c, fragmentation_c):
         )
 
 
-_select_fragmentations_error_sql = f"SELECT title, input_smiles, errmsg FROM error_record"
+_select_fragmentations_error_sql = "SELECT title, input_smiles, errmsg FROM error_record"
 
 
 def iter_fragment_error_records(record_c, fragmentation_c):
@@ -305,40 +294,6 @@ class FragDBWriter:
             self._record_id = record_id = self._record_id + 1
             insert_fragment_record(c, rec, record_id)
 
-
-def _get_fragdb_options(c):
-    try:
-        c.execute("SELECT count(*) FROM record")
-    except sqlite3.OperationalError as err:
-        raise ValueError(f"{filename!r} does not appear to be a fragdb file: {err}")
-
-    fields = [
-        "cut_smarts",
-        "max_heavies",
-        "max_rotatable_bonds",
-        "method",
-        "num_cuts",
-        "rotatable_smarts",
-        "salt_remover",
-        "min_heavies_per_const_frag",
-    ]
-    field_str = ", ".join(f'"{name}"' for name in fields)
-    try:
-        c.execute(
-            f"""
-SELECT version, {field_str}
-  FROM config
-        """
-        )
-    except sqlite3.OperationalError as err:
-        raise ValueError(f"{filename!r} does not appear to be a fragdb file: {err}")
-
-    version, *field_values = next(c)
-    if version != 3:
-        raise ValueError(f"{filename!r} is a version {version} fragdb database. Only version 2 is supported.")
-
-    kwargs = dict(zip(fields, field_values))
-    return FragmentOptions(**kwargs)
 
 
 ###

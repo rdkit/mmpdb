@@ -46,9 +46,7 @@
 #   *-O  -> *!@[OH1v2]
 
 import re
-import sys
 from rdkit import Chem
-import argparse
 
 from . import fileio
 

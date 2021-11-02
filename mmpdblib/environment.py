@@ -42,8 +42,6 @@ import binascii
 from rdkit import Chem
 from rdkit.Chem import AllChem
 
-from collections import namedtuple
-
 if sys.version_info.major == 2:
 
     def fingerprint_to_text(s):
@@ -125,8 +123,6 @@ def iter_num_atoms_for_radii(centers, max_radius):
 
 # My thought is to use this for testing.
 def _iter_num_atoms_for_radii(mol, max_radius, start_atoms):
-    atom_objs = list(mol.GetAtoms())
-
     unique_atoms = set(start_atoms)
     assert len(start_atoms) == len(unique_atoms), "duplicate start atom"
     ignore_atoms = set(a for a in start_atoms if not is_heavy_atom(mol.GetAtomWithIdx(a)))

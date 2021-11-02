@@ -35,10 +35,6 @@ from __future__ import print_function, absolute_import, division
 import sys
 import os.path
 import datetime
-import json
-import itertools
-
-from . import config
 
 
 SCHEMA_FILENAME = os.path.join(os.path.dirname(__file__), "schema.sql")
