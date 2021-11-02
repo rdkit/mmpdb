@@ -42,11 +42,6 @@ import os
 import sqlite3
 import datetime
 import json
-import collections
-import itertools
-import tempfile
-import atexit
-import shutil
 
 # To install apsw, do:
 # pip install --user https://github.com/rogerbinns/apsw/releases/download/3.16.2-r1/apsw-3.16.2-r1.zip \
@@ -60,7 +55,6 @@ except ImportError:
     ## The speedup is only about 10%. Not enough to make a firm suggestion.
     ## import sys
     ## sys.stderr.write("You should install apsw.\n")
-    import sqlite3
 
 from . import schema
 from .fragment_algorithm import get_num_heavies_from_smiles
