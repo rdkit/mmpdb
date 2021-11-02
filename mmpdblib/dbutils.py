@@ -43,7 +43,7 @@ import itertools
 
 from urllib.parse import urlparse  # Python 3
 
-from .playhouse import db_url as playhouse_db_url
+from playhouse import db_url as playhouse_db_url
 
 from . import schema
 
@@ -69,7 +69,7 @@ def _get_default_sqlite_adapter(quiet):
 
 
 def open_as_schema_database(playhouse_db):
-    c = playhouse_db.get_cursor()
+    c = playhouse_db.cursor()
     try:
         c.execute("SELECT id, mmpdb_version from dataset LIMIT 2")
     except Exception:
@@ -106,7 +106,7 @@ def _apsw_copy_to_memory(db, quiet):
         sys.stderr.write("WARNING: 'copy_to_memory' requires the apsw module. Keeping on-disk.\n")
         return db
 
-    from .playhouse.apsw_ext import APSWDatabase
+    from playhouse.apsw_ext import APSWDatabase
 
     if not isinstance(db, APSWDatabase):
         sys.stderr.write(

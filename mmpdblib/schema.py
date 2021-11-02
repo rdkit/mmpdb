@@ -192,12 +192,12 @@ class MMPDatabase(object):
         self._dataset = None
 
     def SQL(self, sql):
-        return sql.replace("?", self.db.interpolation)
+        return sql.replace("?", self.db.param)
 
     def execute(self, sql, args=(), cursor=None):
         if cursor is None:
-            cursor = self.db.get_cursor()
-        sql = sql.replace("?", self.db.interpolation)
+            cursor = self.db.cursor()
+        sql = sql.replace("?", self.db.param)
         if 0:
             import time
 
@@ -221,7 +221,7 @@ class MMPDatabase(object):
 
     def get_cursor(self, cursor=None):
         if cursor is None:
-            return self.db.get_cursor()
+            return self.db.cursor()
         return cursor
 
     def get_dataset(self, cursor=None):
