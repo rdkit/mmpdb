@@ -37,12 +37,13 @@ import click
 
 from .click_utils import set_click_attrs
 
+
 class SmiInputOptions:
     def __init__(self, format, delimiter, has_header):
         self.format = format
         self.delimiter = delimiter
         self.has_header = has_header
-        
+
 
 def add_input_options(command):
     def add_option(*args, **kwargs):
@@ -52,43 +53,41 @@ def add_input_options(command):
         "--in",
         "-i",
         "in_format",
-        type = click.Choice(["smi", "smi.gz"]),
-        help = (
+        type=click.Choice(["smi", "smi.gz"]),
+        help=(
             "input structuture format (one of 'smi', 'smi.gz'). "
             "If not specified, use the filename extension or default to 'smi'."
-            ),
-        )
-    
+        ),
+    )
+
     add_option(
         "--delimiter",
         default="whitespace",
-        type = click.Choice(["whitespace", "to-eol", "comma", "tab", "space", "native"]),
-        help = (
+        type=click.Choice(["whitespace", "to-eol", "comma", "tab", "space", "native"]),
+        help=(
             "SMILES file delimiter style (one of 'whitespace' (default), 'to-eol', "
             "'comma', 'tab', 'space', or 'native')"
-            ),
-        )
-    
+        ),
+    )
+
     add_option(
         "--has-header",
-        is_flag = True,
-        default = False,
-        help = "skip the first line, which is the header line",
-        )
+        is_flag=True,
+        default=False,
+        help="skip the first line, which is the header line",
+    )
 
     # Wrap the command to convert the fragment option parameters
     # into a single object
-    
+
     def make_input_options_wrapper(**kwargs):
         kwargs["input_options"] = SmiInputOptions(
-            format = kwargs.pop("in_format"),
-            
-            delimiter = kwargs.pop("delimiter"),
-            has_header = kwargs.pop("has_header")
-            )
+            format=kwargs.pop("in_format"),
+            delimiter=kwargs.pop("delimiter"),
+            has_header=kwargs.pop("has_header"),
+        )
         return command(**kwargs)
 
     set_click_attrs(make_input_options_wrapper, command)
 
     return make_input_options_wrapper
-    

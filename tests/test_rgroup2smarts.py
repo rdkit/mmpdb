@@ -39,6 +39,7 @@ from mmpdblib import rgroup2smarts
 
 import support
 
+
 def run(cmd, stderr_ok=False, input=None):
     if isinstance(cmd, str):
         cmd = cmd.split()
@@ -49,39 +50,37 @@ def run(cmd, stderr_ok=False, input=None):
         raise AssertionError(("unexpected stderr", cmd, stderr.value))
     return result.output, result.stderr
 
+
 def run_fail(cmd):
     if isinstance(cmd, str):
         cmd = cmd.split()
 
     return support.expect_fail(cmd).stderr
-    
+
 
 class TestSmilesOnCommandline(unittest.TestCase):
     def test_one_smiles(self):
         stdout, stderr = run("rgroup2smarts --cut-rgroup *c1ccccc1O")
-        self.assertEqual(
-            stdout,
-            '*-!@[$([cH0v4]1:[cHv4]:[cHv4]:[cHv4]:[cHv4]:[cH0v4]:1-[OHv2])]\n'
-            )
+        self.assertEqual(stdout, "*-!@[$([cH0v4]1:[cHv4]:[cHv4]:[cHv4]:[cHv4]:[cH0v4]:1-[OHv2])]\n")
+
     def test_two_smiles(self):
         stdout, stderr = run("rgroup2smarts --cut-rgroup *c1ccccc1O --cut-rgroup *F")
-        self.assertEqual(
-            stdout,
-            '*-!@[$([cH0v4]1:[cHv4]:[cHv4]:[cHv4]:[cHv4]:[cH0v4]:1-[OHv2]),$([FH0v1])]\n'
-            )
+        self.assertEqual(stdout, "*-!@[$([cH0v4]1:[cHv4]:[cHv4]:[cHv4]:[cHv4]:[cH0v4]:1-[OHv2]),$([FH0v1])]\n")
+
     def test_four_smiles(self):
-        stdout, stderr = run("rgroup2smarts --cut-rgroup *c1ccccc1O --cut-rgroup *F "
-                                 "--cut-rgroup *Cl --cut-rgroup *[OH]")
+        stdout, stderr = run(
+            "rgroup2smarts --cut-rgroup *c1ccccc1O --cut-rgroup *F " "--cut-rgroup *Cl --cut-rgroup *[OH]"
+        )
         self.assertEqual(
-            stdout,
-            '*-!@[$([cH0v4]1:[cHv4]:[cHv4]:[cHv4]:[cHv4]:[cH0v4]:1-[OHv2]),$([FH0v1]),$([ClH0v1]),$([OHv2])]\n'
-            )
+            stdout, "*-!@[$([cH0v4]1:[cHv4]:[cHv4]:[cHv4]:[cHv4]:[cH0v4]:1-[OHv2]),$([FH0v1]),$([ClH0v1]),$([OHv2])]\n"
+        )
+
     def test_smiles_with_isotope_and_charge(self):
         stdout, stderr = run("rgroup2smarts --cut-rgroup *c1ccccc1[16O] --cut-rgroup *-[C+](=O)[O-]")
         self.assertEqual(
-            stdout,
-            '*-!@[$([cH0v4]1:[cHv4]:[cHv4]:[cHv4]:[cHv4]:[cH0v4]:1-[16OH0v1]),$([C+H0v4](=[OH0v2])-[O-H0v1])]\n'
-            )
+            stdout, "*-!@[$([cH0v4]1:[cHv4]:[cHv4]:[cHv4]:[cHv4]:[cH0v4]:1-[16OH0v1]),$([C+H0v4](=[OH0v2])-[O-H0v1])]\n"
+        )
+
 
 def fix_stderr(test_case, stderr, filename):
     first_line, mid, rest = stderr.partition("\n")
@@ -89,27 +88,31 @@ def fix_stderr(test_case, stderr, filename):
     first_line = first_line.replace(repr(filename), "frags.smi")
 
     return first_line + mid + rest
-        
+
 
 merged_test_cases = (
-    (["*c1ccccc1O"], '*-!@[$([cH0v4]1:[cHv4]:[cHv4]:[cHv4]:[cHv4]:[cH0v4]:1-[OHv2])]'),
-    (["*c1ccccc1O", "*F"], '*-!@[$([cH0v4]1:[cHv4]:[cHv4]:[cHv4]:[cHv4]:[cH0v4]:1-[OHv2]),$([FH0v1])]'),
-    (["*c1ccccc1O", "*F", "*Cl", "*[OH]"],
-         '*-!@[$([cH0v4]1:[cHv4]:[cHv4]:[cHv4]:[cHv4]:[cH0v4]:1-[OHv2]),$([FH0v1]),$([ClH0v1]),$([OHv2])]'),
-    (["*c1ccccc1[16O]", "*-[C+](=O)[O-]"],
-         '*-!@[$([cH0v4]1:[cHv4]:[cHv4]:[cHv4]:[cHv4]:[cH0v4]:1-[16OH0v1]),$([C+H0v4](=[OH0v2])-[O-H0v1])]'),
-         )
-    
+    (["*c1ccccc1O"], "*-!@[$([cH0v4]1:[cHv4]:[cHv4]:[cHv4]:[cHv4]:[cH0v4]:1-[OHv2])]"),
+    (["*c1ccccc1O", "*F"], "*-!@[$([cH0v4]1:[cHv4]:[cHv4]:[cHv4]:[cHv4]:[cH0v4]:1-[OHv2]),$([FH0v1])]"),
+    (
+        ["*c1ccccc1O", "*F", "*Cl", "*[OH]"],
+        "*-!@[$([cH0v4]1:[cHv4]:[cHv4]:[cHv4]:[cHv4]:[cH0v4]:1-[OHv2]),$([FH0v1]),$([ClH0v1]),$([OHv2])]",
+    ),
+    (
+        ["*c1ccccc1[16O]", "*-[C+](=O)[O-]"],
+        "*-!@[$([cH0v4]1:[cHv4]:[cHv4]:[cHv4]:[cHv4]:[cH0v4]:1-[16OH0v1]),$([C+H0v4](=[OH0v2])-[O-H0v1])]",
+    ),
+)
+
 simple_test_cases = {
-    "*c1ccccc1O": '*-!@[cH0v4]1:[cHv4]:[cHv4]:[cHv4]:[cHv4]:[cH0v4]:1-[OHv2]',
-    "*F": '*-!@[FH0v1]',
-    "*Cl": '*-!@[ClH0v1]',
-    "*[OH]": '*-!@[OHv2]',
-    "*c1ccccc1[16O]": '*-!@[cH0v4]1:[cHv4]:[cHv4]:[cHv4]:[cHv4]:[cH0v4]:1-[16OH0v1]',
-    "*-[C+](=O)[O-]": '*-!@[C+H0v4](=[OH0v2])-[O-H0v1]',
-         }
-    
-        
+    "*c1ccccc1O": "*-!@[cH0v4]1:[cHv4]:[cHv4]:[cHv4]:[cHv4]:[cH0v4]:1-[OHv2]",
+    "*F": "*-!@[FH0v1]",
+    "*Cl": "*-!@[ClH0v1]",
+    "*[OH]": "*-!@[OHv2]",
+    "*c1ccccc1[16O]": "*-!@[cH0v4]1:[cHv4]:[cHv4]:[cHv4]:[cHv4]:[cH0v4]:1-[16OH0v1]",
+    "*-[C+](=O)[O-]": "*-!@[C+H0v4](=[OH0v2])-[O-H0v1]",
+}
+
+
 class TestSmilesOnCommandline(unittest.TestCase):
     def _test_merged(self, check):
         for inputs, output in merged_test_cases:
@@ -119,14 +122,14 @@ class TestSmilesOnCommandline(unittest.TestCase):
             for smiles in inputs:
                 args.extend(["--cut-rgroup", smiles])
             stdout, stderr = run(args)
-            self.assertEqual(stdout, output+"\n", repr(inputs))
+            self.assertEqual(stdout, output + "\n", repr(inputs))
 
     def test_merged(self):
         self._test_merged(False)
-        
+
     def test_merged_check(self):
         self._test_merged(True)
-    
+
     def _test_single(self, check):
         for inputs, _ in merged_test_cases:
             args = ["rgroup2smarts", "--single"]
@@ -143,7 +146,7 @@ class TestSmilesOnCommandline(unittest.TestCase):
 
     def test_single(self):
         self._test_single(False)
-        
+
     def test_single_check(self):
         self._test_single(True)
 
@@ -151,26 +154,34 @@ class TestSmilesOnCommandline(unittest.TestCase):
         args = ["rgroup2smarts", "--explain"]
         if check:
             args.append("--check")
-        args.extend([
-                    "--cut-rgroup", "c1ccccc1*",
-                    "--cut-rgroup", "O*",
-            ])
+        args.extend(
+            [
+                "--cut-rgroup",
+                "c1ccccc1*",
+                "--cut-rgroup",
+                "O*",
+            ]
+        )
         stdout, stderr = run(args, True)
-        self.assertEqual(stdout,
-                         "*-!@[$([cH0v4]1:[cHv4]:[cHv4]:[cHv4]:[cHv4]:[cHv4]:1),$([OHv2])]\n")
+        self.assertEqual(stdout, "*-!@[$([cH0v4]1:[cHv4]:[cHv4]:[cHv4]:[cHv4]:[cHv4]:1),$([OHv2])]\n")
         return stderr
-    
+
     def test_explain(self):
         stderr = self._test_explain(check=False)
-        self.assertEqual(stderr, """\
+        self.assertEqual(
+            stderr,
+            """\
 Using --cut-rgroup SMILES from the command-line
 #1: converted SMILES 'c1ccccc1*' to SMARTS '*-!@[cH0v4]1:[cHv4]:[cHv4]:[cHv4]:[cHv4]:[cHv4]:1'
 #2: converted SMILES 'O*' to SMARTS '*-!@[OHv2]'
-""")
+""",
+        )
 
     def test_explain_check(self):
         stderr = self._test_explain(check=True)
-        self.assertEqual(stderr, """\
+        self.assertEqual(
+            stderr,
+            """\
 Using --cut-rgroup SMILES from the command-line
 #1: converted SMILES 'c1ccccc1*' to SMARTS '*-!@[cH0v4]1:[cHv4]:[cHv4]:[cHv4]:[cHv4]:[cHv4]:1'
 #1 passed the self-check
@@ -179,33 +190,34 @@ Using --cut-rgroup SMILES from the command-line
 Checking that the SMARTS matches all of the input molecules
 checked #0
 checked #1
-""")
+""",
+        )
 
 
 class TestSmilesFromFile(unittest.TestCase):
     def _test_merged(self, check):
         filename = support.create_test_filename(self, "groups.txt")
-        
+
         for inputs, output in merged_test_cases:
             with open(filename, "w") as f:
                 for smiles in inputs:
                     f.write(smiles + "\n")
-            
+
             args = ["rgroup2smarts", filename]
             if check:
                 args.append("--check")
             stdout, stderr = run(args)
-            self.assertEqual(stdout, output+"\n", repr(inputs))
+            self.assertEqual(stdout, output + "\n", repr(inputs))
 
     def test_merged(self):
         self._test_merged(False)
-        
+
     def test_merged_check(self):
         self._test_merged(True)
-        
+
     def _test_single(self, check):
         filename = support.create_test_filename(self, "rgroups.txt")
-        
+
         for inputs, _ in merged_test_cases:
             expected_output_lines = []
             with open(filename, "w") as f:
@@ -214,7 +226,7 @@ class TestSmilesFromFile(unittest.TestCase):
                     output = simple_test_cases[smiles]
                     expected_output_lines.append(output + "\n")
             expected_output = "".join(expected_output_lines)
-                    
+
             args = ["rgroup2smarts", "--single", filename]
             if check:
                 args.append("--check")
@@ -223,7 +235,7 @@ class TestSmilesFromFile(unittest.TestCase):
 
     def test_single(self):
         self._test_single(False)
-        
+
     def test_single_check(self):
         self._test_single(True)
 
@@ -235,22 +247,26 @@ class TestSmilesFromFile(unittest.TestCase):
         if check:
             args.append("--check")
         stdout, stderr = run(args, True)
-        self.assertEqual(stdout,
-                         "*-!@[$([cH0v4]1:[cHv4]:[cHv4]:[cHv4]:[cHv4]:[cHv4]:1),$([OHv2])]\n")
+        self.assertEqual(stdout, "*-!@[$([cH0v4]1:[cHv4]:[cHv4]:[cHv4]:[cHv4]:[cHv4]:1),$([OHv2])]\n")
 
         return fix_stderr(self, stderr, filename)
-    
+
     def test_explain(self):
         stderr = self._test_explain(check=False)
-        self.assertEqual(stderr, """\
+        self.assertEqual(
+            stderr,
+            """\
 Reading R-group SMILES from frags.smi
 #1: converted SMILES 'c1ccccc1*' to SMARTS '*-!@[cH0v4]1:[cHv4]:[cHv4]:[cHv4]:[cHv4]:[cHv4]:1'
 #2: converted SMILES 'O*' to SMARTS '*-!@[OHv2]'
-""")
+""",
+        )
 
     def test_explain_check(self):
         stderr = self._test_explain(check=True)
-        self.assertEqual(stderr, """\
+        self.assertEqual(
+            stderr,
+            """\
 Reading R-group SMILES from frags.smi
 #1: converted SMILES 'c1ccccc1*' to SMARTS '*-!@[cH0v4]1:[cHv4]:[cHv4]:[cHv4]:[cHv4]:[cHv4]:1'
 #1 passed the self-check
@@ -259,24 +275,24 @@ Reading R-group SMILES from frags.smi
 Checking that the SMARTS matches all of the input molecules
 checked #0
 checked #1
-""")
+""",
+        )
 
     def test_different_whitespace(self):
         filename = support.create_test_filename(self, "rgroups.txt")
         with open(filename, "w") as outfile:
-            outfile.write("*Cl\tchlorine\n"
-                          "*Br bromine\n"
-                          "*F  and more\n")
+            outfile.write("*Cl\tchlorine\n" "*Br bromine\n" "*F  and more\n")
         stdout, stderr = run(["rgroup2smarts", filename])
         self.assertEqual(stderr, "")
         self.assertEqual(stdout, "*-!@[$([ClH0v1]),$([BrH0v1]),$([FH0v1])]\n")
-        
+
 
 # Basic burn-test that stdin works
 class TestSmilesFromStdin(unittest.TestCase):
     def test_merged(self):
         stdout, stderr = run(["rgroup2smarts"], input="*c1ccccc1O\n*F\n")
         self.assertEqual(stdout, "*-!@[$([cH0v4]1:[cHv4]:[cHv4]:[cHv4]:[cHv4]:[cH0v4]:1-[OHv2]),$([FH0v1])]\n")
+
 
 ######
 
@@ -285,15 +301,22 @@ _bad_smiles_inputs = [
     ("*C *Q", "Cannot parse SMILES ('*Q') at --cut-rgroup SMILES #2\n"),
     ("c1ccccc1", "Cannot convert SMILES ('c1ccccc1') at --cut-rgroup SMILES #1: no wildcard atom found\n"),
     ("*CN*", "Cannot convert SMILES ('*CN*') at --cut-rgroup SMILES #1: more than one wildcard atom\n"),
-    ("*N[CH3:1]", "Cannot convert SMILES ('*N[CH3:1]') at --cut-rgroup SMILES #1: atom maps are not supported (atom 2 has atom map '1')\n"),
+    (
+        "*N[CH3:1]",
+        "Cannot convert SMILES ('*N[CH3:1]') at --cut-rgroup SMILES #1: atom maps are not supported (atom 2 has atom map '1')\n",
+    ),
     ("*", "Cannot convert SMILES ('*') at --cut-rgroup SMILES #1: wildcard atom not bonded to anything\n"),
     ("*N *=O", "Cannot convert SMILES ('*=O') at --cut-rgroup SMILES #2: wildcard atom not bonded via a single bond\n"),
-    ("[*H]F", "Cannot convert SMILES ('[*H]F') at --cut-rgroup SMILES #1: wildcard atom must not have implicit hydrogens\n"),
+    (
+        "[*H]F",
+        "Cannot convert SMILES ('[*H]F') at --cut-rgroup SMILES #1: wildcard atom must not have implicit hydrogens\n",
+    ),
     ("[*-]F", "Cannot convert SMILES ('[*-]F') at --cut-rgroup SMILES #1: wildcard atom must be uncharged\n"),
     ("[*+2]F", "Cannot convert SMILES ('[*+2]F') at --cut-rgroup SMILES #1: wildcard atom must be uncharged\n"),
     ("Cl*F", "Cannot convert SMILES ('Cl*F') at --cut-rgroup SMILES #1: wildcard atom must only have one bond\n"),
     ("*Cl.F", "Cannot convert SMILES ('*Cl.F') at --cut-rgroup SMILES #1: more than one fragment found\n"),
-    ]
+]
+
 
 class TestCommandlineFailures(unittest.TestCase):
     def test_bad_smiles(self):
@@ -305,11 +328,12 @@ class TestCommandlineFailures(unittest.TestCase):
             stderr = run_fail(args)
             self.assertEqual(errmsg, stderr)
 
+
 class TestFilenameFailures(unittest.TestCase):
     def test_bad_smiles(self):
         filename = support.create_test_filename(self, "rgroups.dat")
         args = ["rgroup2smarts", filename]
-        
+
         for smiles_list, errmsg in _bad_smiles_inputs:
             with open(filename, "w") as outfile:
                 for smiles in smiles_list.split():
@@ -362,11 +386,12 @@ class TestFilenameFailures(unittest.TestCase):
         stderr = fix_stderr(self, stderr, filename)
         self.assertEqual(stderr, "Cannot open input file: [Errno 2] No such file or directory: frags.smi\n")
 
+
 class TestOtherErrors(unittest.TestCase):
     def test_both_cut_rgroup_and_filename(self):
         stderr = run_fail(["rgroup2smarts", "rgroups.dat", "--cut-rgroup", "*F"])
         self.assertIn("Cannot specify both an R-group filename and a --cut-rgroup\n", stderr)
 
+
 if __name__ == "__main__":
     unittest.main()
-    

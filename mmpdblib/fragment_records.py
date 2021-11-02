@@ -34,6 +34,7 @@
 from . import fragment_types
 from . import fileio
 
+
 def _as_list(method, normalized_mol, fragment_filter, num_normalized_heavies):
     return list(method(normalized_mol, fragment_filter, num_normalized_heavies))
 
@@ -42,7 +43,15 @@ def _as_list(method, normalized_mol, fragment_filter, num_normalized_heavies):
 
 
 class ParsedSmilesRecord(object):
-    __slots__ = ("id", "smiles", "mol", "normalized_mol", "normalized_smiles", "num_normalized_heavies")
+    __slots__ = (
+        "id",
+        "smiles",
+        "mol",
+        "normalized_mol",
+        "normalized_smiles",
+        "num_normalized_heavies",
+    )
+
     def __init__(self, id, smiles, mol, normalized_mol, normalized_smiles, num_normalized_heavies):
         self.id = id
         self.smiles = smiles
@@ -55,7 +64,7 @@ class ParsedSmilesRecord(object):
 def parse_record(id, smiles, fragment_filter):
     from rdkit import Chem
     from . import fragment_algorithm
-    
+
     mol = Chem.MolFromSmiles(smiles)
     if mol is None:
         return "invalid smiles", ParsedSmilesRecord(id, smiles, mol, None, None, 0)
@@ -78,19 +87,21 @@ def parse_record(id, smiles, fragment_filter):
     return None, record
 
 
-
 def make_hydrogen_fragment_record(id, input_smiles, fragment_filter):
     from . import fragment_algorithm
+
     errmsg, record = parse_record(id, input_smiles, fragment_filter)
     if errmsg:
         return fragment_types.FragmentErrorRecord(id, input_smiles, errmsg)
 
     fragments = fragment_algorithm.fragment_molecule_on_explicit_hydrogens(input_smiles)
     return fragment_types.FragmentRecord(
-        id, input_smiles,
-        record.num_normalized_heavies, record.normalized_smiles,
-        fragments)
-
+        id,
+        input_smiles,
+        record.num_normalized_heavies,
+        record.normalized_smiles,
+        fragments,
+    )
 
 
 # Adapater to emulate the multiprocessing pool without using any threads/processes
@@ -119,6 +130,7 @@ class SyncResult(object):
         # this code needs.
         return self.f(*self.args)
 
+
 def make_fragment_records(smiles_reader, fragment_filter, cache=None, pool=None, reporter=None):
     jobs = []
 
@@ -129,8 +141,7 @@ def make_fragment_records(smiles_reader, fragment_filter, cache=None, pool=None,
     #   1) establish what needs to be fragmented vs. what is available from
     #       cache or could not be parsed
     #   2) fragment the unfragmented
-    for recno, terms in reporter.progress(
-            enumerate(smiles_reader), "Preparing record"):
+    for recno, terms in reporter.progress(enumerate(smiles_reader), "Preparing record"):
         input_smiles = terms[0]
         id = terms[1]
         where = smiles_reader.location.where()
@@ -140,22 +151,26 @@ def make_fragment_records(smiles_reader, fragment_filter, cache=None, pool=None,
             record = cache.get(id)
             if record is not None:
                 if record.input_smiles == input_smiles:
-                    jobs.append( (id, input_smiles, where, None, record) )
+                    jobs.append((id, input_smiles, where, None, record))
                     continue
 
         # If I can't parse it then record the error messages
         errmsg, record = parse_record(id, input_smiles, fragment_filter)
         if errmsg:
             result = fragment_types.FragmentErrorRecord(id, input_smiles, errmsg)
-            jobs.append( (id, input_smiles, where, None, result) )
+            jobs.append((id, input_smiles, where, None, result))
             continue
 
         # Submit it as something to work on
-        args = (fragment_filter.method, record.normalized_mol, fragment_filter,
-                record.num_normalized_heavies)
-        result = pool.apply_async(_as_list, args)   # fragment_filter.method calls the actual fragmentation algorithm
+        args = (
+            fragment_filter.method,
+            record.normalized_mol,
+            fragment_filter,
+            record.num_normalized_heavies,
+        )
+        result = pool.apply_async(_as_list, args)  # fragment_filter.method calls the actual fragmentation algorithm
 
-        jobs.append( (id, input_smiles, where, record, result) )
+        jobs.append((id, input_smiles, where, record, result))
 
     # I'll a bit cautious. I'll process the jobs in order, yield
     # the result, then throw it away. This keeps the job list from
@@ -164,8 +179,7 @@ def make_fragment_records(smiles_reader, fragment_filter, cache=None, pool=None,
         while jobs:
             yield jobs.pop(0)
 
-    with reporter.progress(pop_iter(jobs),
-                           "Fragmented record", len(jobs)) as job_iter:
+    with reporter.progress(pop_iter(jobs), "Fragmented record", len(jobs)) as job_iter:
         for (id, input_smiles, where, record, result) in job_iter:
             if record is None:
                 # use a pre-computed result (from cache, or an error record)
@@ -188,12 +202,16 @@ def make_fragment_records(smiles_reader, fragment_filter, cache=None, pool=None,
                 raise
 
             yield fragment_types.FragmentRecord(
-                id, input_smiles,
-                record.num_normalized_heavies, record.normalized_smiles,
-                fragments)
+                id,
+                input_smiles,
+                record.num_normalized_heavies,
+                record.normalized_smiles,
+                fragments,
+            )
 
 
 ########
+
 
 class SingleSmilesReader(object):
     def __init__(self, smiles, id="query"):
@@ -208,6 +226,7 @@ class SingleSmilesReader(object):
 
 def make_fragment_record_from_smiles(smiles, fragment_filter, reporter=None):
     from . import reporters
+
     reporter = reporters.get_reporter(reporter)
 
     reader = SingleSmilesReader(smiles)
@@ -215,4 +234,3 @@ def make_fragment_record_from_smiles(smiles, fragment_filter, reporter=None):
     for record in records:
         return record
     raise AssertionError("how can there not be any records?")
-            

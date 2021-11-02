@@ -39,10 +39,10 @@ from .click_utils import (
     command,
     die,
     add_multiple_databases_parameters,
-    )
+)
 
 
-list_epilog="""
+list_epilog = """
 
 In the simplest case, look in the current directory for files matching
 '*.mmpdb', open each one, and print a terse summary of the information
@@ -104,32 +104,30 @@ from the database contents.
 
 """
 
-@command(name = "list", epilog = list_epilog)
 
+@command(name="list", epilog=list_epilog)
 @click.option(
     "--all",
     "-a",
     "all_option",
-    is_flag = True,
-    default = False,
-    help = "list all information about the dataset",
-    )
-
+    is_flag=True,
+    default=False,
+    help="list all information about the dataset",
+)
 @click.option(
     "--recount",
-    is_flag = True,
-    default = False,
-    help = "count the table sizes directly, instead of using cached data",
-    )
-
+    is_flag=True,
+    default=False,
+    help="count the table sizes directly, instead of using cached data",
+)
 @add_multiple_databases_parameters()
 @click.pass_obj
 def list_(
-        reporter,
-        databases_options,
-        all_option,
-        recount,
-        ):
+    reporter,
+    databases_options,
+    all_option,
+    recount,
+):
     """summarize the contents of zero or more databases
 
     DATABASES: the mmpdb database files to list (default looks files named '*.mmpdb')
@@ -137,7 +135,7 @@ def list_(
 
     import json
     from .. import dbutils
-    
+
     name_list = []
     num_compounds_list = []
     num_rules_list = []
@@ -165,8 +163,7 @@ def list_(
             dataset = database.get_dataset()
         except dbutils.DBError as err:
             reporter.update("")
-            reporter.report("Skipping %s: %s"
-                            % (dbinfo.get_human_name(), err))
+            reporter.report("Skipping %s: %s" % (dbinfo.get_human_name(), err))
             if database is not None:
                 database.close()
             continue
@@ -177,7 +174,7 @@ def list_(
         name_list.append(name)
 
         table_sizes = dataset.get_table_sizes(recount)
-        
+
         num_compounds = table_sizes.num_compounds
         num_compounds_width = max(num_compounds_width, len(str(num_compounds)))
         num_compounds_list.append(num_compounds)
@@ -193,11 +190,11 @@ def list_(
         num_envs = table_sizes.num_rule_environments
         num_envs_width = max(num_envs_width, len(str(num_envs)))
         num_envs_list.append(num_envs)
-        
+
         num_stats = table_sizes.num_rule_environment_stats
         num_stats_width = max(num_stats_width, len(str(num_stats)))
         num_stats_list.append(num_stats)
-    
+
         title = dataset.title
         title_width = max(title_width, len(title))
         titles.append(title)
@@ -213,28 +210,81 @@ def list_(
         all_index_options.append(dataset.index_options_str)
 
     fmt = "%-{}s %-{}s %-{}s %-{}s %-{}s %-{}s  %-{}s Properties".format(
-        name_width, num_compounds_width, num_rules_width, num_pairs_width,
-        num_envs_width, num_stats_width, title_width)
+        name_width,
+        num_compounds_width,
+        num_rules_width,
+        num_pairs_width,
+        num_envs_width,
+        num_stats_width,
+        title_width,
+    )
     fancy_title = " Title ".center(title_width, "-")
     fancy_title = "|" + fancy_title[1:-1] + "|"
-    print(fmt % ("Name".center(name_width), "#cmpds".center(num_compounds_width), "#rules".center(num_rules_width),
-                 "#pairs".center(num_pairs_width), "#envs".center(num_envs_width), "#stats".center(num_stats_width),
-                 fancy_title))
-    
+    print(
+        fmt
+        % (
+            "Name".center(name_width),
+            "#cmpds".center(num_compounds_width),
+            "#rules".center(num_rules_width),
+            "#pairs".center(num_pairs_width),
+            "#envs".center(num_envs_width),
+            "#stats".center(num_stats_width),
+            fancy_title,
+        )
+    )
+
     fmt = "%{}s %{}d %{}d %{}d %{}d %{}d  %-{}s %s".format(
-        name_width, num_compounds_width, num_rules_width, num_pairs_width, num_envs_width, num_stats_width, title_width)
-    
-    prefix = " "*num_compounds_width
-    for (name, num_compounds, num_rules, num_pairs, num_envs, num_stats, title,
-         names_and_counts, fragment_options, index_options) in zip(
-            name_list, num_compounds_list, num_rules_list, num_pairs_list, num_envs_list, num_stats_list, titles,
-            property_names, all_fragment_options, all_index_options):
-        print(fmt % (name, num_compounds, num_rules, num_pairs, num_envs, num_stats, title, names_and_counts))
+        name_width,
+        num_compounds_width,
+        num_rules_width,
+        num_pairs_width,
+        num_envs_width,
+        num_stats_width,
+        title_width,
+    )
+
+    prefix = " " * num_compounds_width
+    for (
+        name,
+        num_compounds,
+        num_rules,
+        num_pairs,
+        num_envs,
+        num_stats,
+        title,
+        names_and_counts,
+        fragment_options,
+        index_options,
+    ) in zip(
+        name_list,
+        num_compounds_list,
+        num_rules_list,
+        num_pairs_list,
+        num_envs_list,
+        num_stats_list,
+        titles,
+        property_names,
+        all_fragment_options,
+        all_index_options,
+    ):
+        print(
+            fmt
+            % (
+                name,
+                num_compounds,
+                num_rules,
+                num_pairs,
+                num_envs,
+                num_stats,
+                title,
+                names_and_counts,
+            )
+        )
         if all_option:
             creation_date = dataset.creation_date
             creation_date_str = creation_date.isoformat(" ")
             print(prefix + "Created:", creation_date_str)
-            
+
             s = " "  # Always have a trailing space
             for property_name, count in dataset.get_property_names_and_counts():
                 s += "%s/%s " % (count, property_name)
@@ -243,15 +293,18 @@ def list_(
             else:
                 s = s[:-1]  # strip the trailing space
             print(prefix + "  #compounds/property:", s)
-            
-            print(prefix + "  #smiles for rules: %d  for constants: %d"
-                  % (dataset.get_num_rule_smiles(), dataset.get_num_constant_smiles()))
+
+            print(
+                prefix
+                + "  #smiles for rules: %d  for constants: %d"
+                % (dataset.get_num_rule_smiles(), dataset.get_num_constant_smiles())
+            )
 
             options = json.loads(fragment_options)
             print(prefix + "  Fragment options:")
             for k, v in sorted(options.items()):
                 print(prefix + "    %s: %s" % (k, v))
-    
+
             options = json.loads(index_options)
             print(prefix + "  Index options:")
             for k, v in sorted(options.items()):

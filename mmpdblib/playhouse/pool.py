@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+
 """
 Lightweight connection pooling for peewee.
 
@@ -66,12 +67,11 @@ import time
 from ..peewee import MySQLDatabase
 from ..peewee import PostgresqlDatabase
 
-logger = logging.getLogger('peewee.pool')
+logger = logging.getLogger("peewee.pool")
 
 
 class PooledDatabase(object):
-    def __init__(self, database, max_connections=20, stale_timeout=None,
-                 **kwargs):
+    def __init__(self, database, max_connections=20, stale_timeout=None, **kwargs):
         self.max_connections = max_connections
         self.stale_timeout = stale_timeout
         self._connections = []
@@ -88,28 +88,27 @@ class PooledDatabase(object):
                 key = self.conn_key(conn)
             except IndexError:
                 ts = conn = None
-                logger.debug('No connection available in pool.')
+                logger.debug("No connection available in pool.")
                 break
             else:
                 if self.stale_timeout and self._is_stale(ts):
-                    logger.debug('Connection %s was stale, closing.', key)
+                    logger.debug("Connection %s was stale, closing.", key)
                     self._close(conn, True)
                     ts = conn = None
                 elif self._is_closed(key, conn):
-                    logger.debug('Connection %s was closed.', key)
+                    logger.debug("Connection %s was closed.", key)
                     ts = conn = None
                     self._closed.discard(key)
                 else:
                     break
 
         if conn is None:
-            if self.max_connections and (
-                    len(self._in_use) >= self.max_connections):
-                raise ValueError('Exceeded maximum connections.')
+            if self.max_connections and (len(self._in_use) >= self.max_connections):
+                raise ValueError("Exceeded maximum connections.")
             conn = super(PooledDatabase, self)._connect(*args, **kwargs)
             ts = time.time()
             key = self.conn_key(conn)
-            logger.debug('Created new connection %s.', key)
+            logger.debug("Created new connection %s.", key)
 
         self._in_use[key] = ts
         return conn
@@ -129,10 +128,10 @@ class PooledDatabase(object):
             ts = self._in_use[key]
             del self._in_use[key]
             if self.stale_timeout and self._is_stale(ts):
-                logger.debug('Closing stale connection %s.', key)
+                logger.debug("Closing stale connection %s.", key)
                 self._close(conn, close_conn=True)
             else:
-                logger.debug('Returning %s to pool.', key)
+                logger.debug("Returning %s to pool.", key)
                 heapq.heappush(self._connections, (ts, conn))
 
     def manual_close(self):
@@ -150,11 +149,12 @@ class PooledDatabase(object):
         for _, conn in self._connections:
             self._close(conn, close_conn=True)
 
+
 class PooledMySQLDatabase(PooledDatabase, MySQLDatabase):
     def _is_closed(self, key, conn):
         is_closed = super(PooledMySQLDatabase, self)._is_closed(key, conn)
         if not is_closed:
-            if hasattr(conn, 'open'):
+            if hasattr(conn, "open"):
                 # MySQLdb `ping()` seems to always return `None` in my testing.
                 # So the `open` attribute will be used instead.
                 is_closed = not bool(conn.open)
@@ -167,6 +167,7 @@ class PooledMySQLDatabase(PooledDatabase, MySQLDatabase):
                     is_closed = True
         return is_closed
 
+
 class _PooledPostgresqlDatabase(PooledDatabase):
     def _is_closed(self, key, conn):
         closed = super(_PooledPostgresqlDatabase, self)._is_closed(key, conn)
@@ -174,13 +175,17 @@ class _PooledPostgresqlDatabase(PooledDatabase):
             closed = bool(conn.closed)
         return closed
 
+
 class PooledPostgresqlDatabase(_PooledPostgresqlDatabase, PostgresqlDatabase):
     pass
+
 
 try:
     from .postgres_ext import PostgresqlExtDatabase
 
     class PooledPostgresqlExtDatabase(_PooledPostgresqlDatabase, PostgresqlExtDatabase):
         pass
+
+
 except ImportError:
     pass

@@ -39,7 +39,7 @@ from .click_utils import (
     command,
     die,
     add_single_database_parameters,
-    )
+)
 
 create_index_epilog = """
 
@@ -47,13 +47,12 @@ Create the database indices for DATABASE. This is mostly used during
 development.
 """
 
+
 @command(
-    name = "create_index",
-    epilog = create_index_epilog,
-    )
-
+    name="create_index",
+    epilog=create_index_epilog,
+)
 @add_single_database_parameters()
-
 def create_index(database_options):
     """create the database indices
 
@@ -63,10 +62,10 @@ def create_index(database_options):
     from .. import (
         dbutils,
         schema,
-        )
-    
+    )
+
     mmpdb = dbutils.open_database_from_options_or_exit(database_options)
-    
+
     with mmpdb.atomic():
         try:
             schema.create_index(mmpdb)

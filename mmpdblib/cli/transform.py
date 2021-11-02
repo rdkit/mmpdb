@@ -41,20 +41,22 @@ from .click_utils import (
     nonnegative_int,
     positive_int,
     radius_type,
-    
     add_single_database_parameters,
     add_multiple_properties,
     add_rule_selection_options,
     get_property_names_or_error,
-    )
+)
+
 
 class parse_smarts(click.ParamType):
     name = "SMARTS"
+
     def convert(self, value, param, ctx):
         if not isinstance(value, str):
             return value
-        
+
         from rdkit import Chem
+
         substructure_pat = Chem.MolFromSmarts(value)
         if substructure_pat is None:
             raise self.fail(f"Unable to parse SMARTS: {value!r}", param, ctx)
@@ -73,7 +75,7 @@ def get_time_delta_formatter(max_dt):
         return fmt % (dt,)
 
     return format_dt
-    
+
 
 transform_epilog = """
 
@@ -229,115 +231,103 @@ normal cutoffs. The --score here matches the default scoring function.
       --property MP
 """
 
-@command(epilog = transform_epilog)
 
+@command(epilog=transform_epilog)
 @add_single_database_parameters()
-
 @click.option(
     "--smiles",
     "-s",
-    required = True,
-    help = "the base structure to transform",
-    )
-
+    required=True,
+    help="the base structure to transform",
+)
 @click.option(
     "--min-variable-size",
-    type = nonnegative_int(), metavar="N",
-    default = 0,
-    help = "require at least N atoms in the variable fragment (default: 0)"
-    )
-
+    type=nonnegative_int(),
+    metavar="N",
+    default=0,
+    help="require at least N atoms in the variable fragment (default: 0)",
+)
 @click.option(
     "--max-variable-size",
-    type = nonnegative_int(),
-    default = 9999,
-    help = "allow at most N atoms in the variable fragment (default: 9999)",
-    )
-
+    type=nonnegative_int(),
+    default=9999,
+    help="allow at most N atoms in the variable fragment (default: 9999)",
+)
 @click.option(
     "--min-constant-size",
-    type = nonnegative_int(),
-    default = 0,
-    help = "require at least N atoms in the constant fragment (default: 0)",
-    )
-
+    type=nonnegative_int(),
+    default=0,
+    help="require at least N atoms in the constant fragment (default: 0)",
+)
 @click.option(
     "--min-radius",
     "-r",
-    type = radius_type(),
-    default = 0,
-    help = "fingerprint radius (default: 0)",
-    )
-
+    type=radius_type(),
+    default=0,
+    help="fingerprint radius (default: 0)",
+)
 @click.option(
     "--min-pairs",
-    type = nonnegative_int(),
-    default = 0,
-    help = "require at least N pairs in the transformation to report a product (default: 0)",
-    )
-
+    type=nonnegative_int(),
+    default=0,
+    help="require at least N pairs in the transformation to report a product (default: 0)",
+)
 @click.option(
     "--substructure",
     "-S",
     "substructure_pat",
-    type = parse_smarts(),
-    help = "require the substructure pattern in the product"
-    )
-
+    type=parse_smarts(),
+    help="require the substructure pattern in the product",
+)
 @add_multiple_properties
-
 @add_rule_selection_options
-
 @click.option(
     "--jobs",
     "-j",
     "num_jobs",
-    type = positive_int(),
-    default = 1,
-    help  = "number of jobs to run in parallel (default: 1)",
-    )
-
+    type=positive_int(),
+    default=1,
+    help="number of jobs to run in parallel (default: 1)",
+)
 @click.option(
     "--explain",
-    is_flag = True,
-    default = False,
-    help = "explain each of the steps in the transformation process",
-    )
-
+    is_flag=True,
+    default=False,
+    help="explain each of the steps in the transformation process",
+)
 @click.option(
     "--output",
     "-o",
     "output_filename",
-    metavar = "FILENAME",
-    help = "save the output to FILENAME (default=stdout)",
-    )
-
+    metavar="FILENAME",
+    help="save the output to FILENAME (default=stdout)",
+)
 @click.option(
     "--times",
-    is_flag = True,
-    default = False,
-    help = "report timing information for each step",
-    )
+    is_flag=True,
+    default=False,
+    help="report timing information for each step",
+)
 @click.pass_obj
 def transform(
-        reporter,
-        explain,
-        min_radius,
-        min_pairs,
-        min_variable_size,
-        max_variable_size,
-        min_constant_size,
-        database_options,
-        property_names,
-        no_properties,
-        substructure_pat,
-        rule_selection_options,
-        smiles,
-        num_jobs,
-        output_filename,
-        times,
-        #**kwargs
-    ):
+    reporter,
+    explain,
+    min_radius,
+    min_pairs,
+    min_variable_size,
+    max_variable_size,
+    min_constant_size,
+    database_options,
+    property_names,
+    no_properties,
+    substructure_pat,
+    rule_selection_options,
+    smiles,
+    num_jobs,
+    output_filename,
+    times,
+    # **kwargs
+):
     """transform a structure
 
     DATABASE: a mmpdb database
@@ -347,8 +337,8 @@ def transform(
         dbutils,
         analysis_algorithms,
         fileio,
-        )
-    
+    )
+
     assert max_variable_size > min_variable_size, "max-variable-size must be greater than min-variable-size"
 
     reporter.set_explain(explain)
@@ -357,11 +347,8 @@ def transform(
     dataset = dbutils.open_dataset_from_options_or_exit(database_options)
     open_time = time.time()
 
-    property_names = get_property_names_or_error(
-        dataset,
-        property_names = property_names,
-        no_properties = no_properties)
-        
+    property_names = get_property_names_or_error(dataset, property_names=property_names, no_properties=no_properties)
+
     if not property_names:
         include_empty = True
     else:
@@ -375,9 +362,9 @@ def transform(
 
     if transform_record.errmsg:
         die(f"Unable to fragment --smiles {smiles!r}: {transform_record.errmsg}")
-        
+
     transform_record = transform_tool.expand_variable_symmetry(transform_record)
-    
+
     # Make sure I can open the output file before I start doing heavy work.
     try:
         outfile = fileio.open_output(output_filename, output_filename)
@@ -389,10 +376,11 @@ def transform(
         pool = multiprocessing.Pool(processes=num_jobs)
     else:
         pool = None
-    
+
     try:
         result = transform_tool.transform(
-            transform_record.fragmentations, property_names,
+            transform_record.fragmentations,
+            property_names,
             min_radius=min_radius,
             min_pairs=min_pairs,
             min_variable_size=min_variable_size,
@@ -401,26 +389,42 @@ def transform(
             substructure_pat=substructure_pat,
             pool=pool,
             explain=reporter.explain,
-            )
+        )
     except analysis_algorithms.EvalError as err:
         sys.stderr.write("ERROR: %s\nExiting.\n" % (err,))
         raise SystemExit(1)
 
     transform_time = time.time()
-    
+
     with outfile:
         result.write_products(
             outfile,
-            field_names = (
-#                "rule_environment_statistics_id",),
-                "from_smiles", "to_smiles", "radius", "fingerprint", "rule_environment_id",
-                "count", "avg", "std", "kurtosis", "skewness",
-                "min", "q1", "median", "q3", "max", "paired_t", "p_value"),
-            #column_aliases = {"from_smiles": "FROM"}, # use this to change the column name for a field
-            include_empty=include_empty)
+            field_names=(
+                #                "rule_environment_statistics_id",),
+                "from_smiles",
+                "to_smiles",
+                "radius",
+                "fingerprint",
+                "rule_environment_id",
+                "count",
+                "avg",
+                "std",
+                "kurtosis",
+                "skewness",
+                "min",
+                "q1",
+                "median",
+                "q3",
+                "max",
+                "paired_t",
+                "p_value",
+            ),
+            # column_aliases = {"from_smiles": "FROM"}, # use this to change the column name for a field
+            include_empty=include_empty,
+        )
 
     output_time = time.time()
-    
+
     if times:
         sys.stderr.write("Elapsed time (in seconds):\n")
         format_dt = get_time_delta_formatter(output_time - start_time)
@@ -429,5 +433,3 @@ def transform(
         sys.stderr.write("      transform: %s\n" % format_dt(transform_time - query_prep_time))
         sys.stderr.write("   write output: %s\n" % format_dt(output_time - transform_time))
         sys.stderr.write("         TOTAL = %s\n" % format_dt(output_time - start_time))
-
-

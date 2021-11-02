@@ -50,10 +50,13 @@ except ImportError:
     # ("typing.Literal" was added in Python 3.8)
     # Make Literai[x] return Any
     from typing import Any
+
     class LiteralClass(dict):
         def __missing__(self, x):
             return Any
+
     Literal = LiteralClass()
+
 
 @dataclass
 class FragmentOptions:
@@ -62,14 +65,14 @@ class FragmentOptions:
     rotatable_smarts: str
     cut_smarts: str
 
-    num_cuts: Literal[1,2,3]
+    num_cuts: Literal[1, 2, 3]
     method: Literal["chiral"]
     salt_remover: str
     min_heavies_per_const_frag: int
 
     def to_dict(self):
         return dataclasses.asdict(self)
-    
+
     ## # For backwards compatability (still needed?) -- TODO: remove
     ## def to_text_settings(self):
     ##     def _none(x):
@@ -79,7 +82,8 @@ class FragmentOptions:
 
     def get_fragment_filter(self):
         return get_fragment_filter(self)
-    
+
+
 @dataclass
 class Fragmentation:
     num_cuts: int
@@ -94,11 +98,17 @@ class Fragmentation:
     constant_with_H_smiles: Optional[str]
 
     def get_unique_key(self):
-        return "%s.%s.%s" % (self.attachment_order, self.variable_smiles, self.constant_smiles)
-    
+        return "%s.%s.%s" % (
+            self.attachment_order,
+            self.variable_smiles,
+            self.constant_smiles,
+        )
+
+
 @dataclass
 class FragmentRecord:
     """An input structure record which could be parsed and fragmented, and its fragmentations"""
+
     id: str
     input_smiles: str
     num_normalized_heavies: int
@@ -110,12 +120,14 @@ class FragmentRecord:
 @dataclass
 class FragmentErrorRecord(object):
     """An input structure record which could not be parsed and fragmented"""
+
     id: str
     input_smiles: str
     errmsg: str
 
 
 ## Exceptions
+
 
 class FragmentValueError(ValueError):
     def __init__(self, name, value, reason):
@@ -127,8 +139,7 @@ class FragmentValueError(ValueError):
         return "Error with %s (%r): %s" % (self.name, self.value, self.reason)
 
     def __repr__(self):
-        return "FragmentValueError(%r, %r, %r)" % (
-            self.name, self.value, self.reason)
+        return "FragmentValueError(%r, %r, %r)" % (self.name, self.value, self.reason)
 
 
 class FragmentFormatError(ValueError):
@@ -137,18 +148,18 @@ class FragmentFormatError(ValueError):
         self.location = location
 
     def __repr__(self):
-        return "FragmentFormatError(%r, %r)" % (
-            self.reason, self.location)
-    
+        return "FragmentFormatError(%r, %r)" % (self.reason, self.location)
+
     def __str__(self):
         return "%s, %s" % (self.reason, self.location.where())
 
+
 ## FragmentFilter
 
-    
+
 def parse_rotatable_smarts(smarts):
     from rdkit import Chem
-    
+
     pattern = Chem.MolFromSmarts(smarts)
     if pattern is None:
         raise ValueError("unable to parse SMARTS")
@@ -156,14 +167,14 @@ def parse_rotatable_smarts(smarts):
         raise ValueError("rotatable SMARTS must match exactly two atoms")
     if pattern.GetNumBonds() != 1:
         raise ValueError("rotatable SMARTS must connect both atoms")
-    
+
     return pattern
 
 
 def parse_cut_smarts(smarts):
     from rdkit import Chem
     from . import smarts_aliases
-    
+
     if smarts in smarts_aliases.cut_smarts_aliases_by_name:
         smarts = smarts_aliases.cut_smarts_aliases_by_name[smarts].smarts
     pattern = Chem.MolFromSmarts(smarts)
@@ -178,6 +189,7 @@ def parse_cut_smarts(smarts):
 
 def parse_salt_remover(salt_remover_filename):
     from rdkit.Chem import SaltRemover
+
     if salt_remover_filename == "<none>":
         # Don't use a salt remover
         return None
@@ -195,28 +207,37 @@ def parse_salt_remover(salt_remover_filename):
             raise ValueError("SMARTS pattern #%d is invalid" % (i,))
     return remover
 
+
 def parse_method(method):
     from . import fragment_algorithm
-    
+
     if method in ("", None, "chiral"):
         return fragment_algorithm.fragment_mol
     raise ValueError("must be 'chiral'")
+
 
 def parse_num_cuts(num_cuts):
     if num_cuts in (1, 2, 3):
         return num_cuts
     raise ValueError("must be 1, 2, or 3")
 
+
 class FragmentFilter(object):
     def __init__(
-            self, max_heavies, max_rotatable_bonds,
-            rotatable_pattern, salt_remover,
-            cut_pattern, num_cuts, method,
-            options, min_heavies_per_const_frag
-            ):
+        self,
+        max_heavies,
+        max_rotatable_bonds,
+        rotatable_pattern,
+        salt_remover,
+        cut_pattern,
+        num_cuts,
+        method,
+        options,
+        min_heavies_per_const_frag,
+    ):
         if rotatable_pattern is None:
             max_rotatable_bonds = None
-            
+
         self.max_heavies = max_heavies
         self.max_rotatable_bonds = max_rotatable_bonds
         self.rotatable_pattern = rotatable_pattern
@@ -237,7 +258,7 @@ class FragmentFilter(object):
             desalted_mol = mol
 
         return None, desalted_mol
-        
+
     def apply_filters(self, mol):
         num_heavies = 0
         for atom in mol.GetAtoms():
@@ -253,7 +274,7 @@ class FragmentFilter(object):
 
         if num_heavies < 2:
             return "not enough heavy atoms"
-                
+
         max_heavies = self.max_heavies
         if max_heavies is not None and num_heavies > max_heavies:
             return "too many heavy atoms"
@@ -265,8 +286,11 @@ class FragmentFilter(object):
             # are filtered to remove duplicates. It's possible that up to
             # 1/2 of the bonds will be removed, so the limit must be twice
             # the max requested, plus 1
-            matches = mol.GetSubstructMatches(self.rotatable_pattern, uniquify=True,
-                                              maxMatches=max_rotatable_bonds*2+1)
+            matches = mol.GetSubstructMatches(
+                self.rotatable_pattern,
+                uniquify=True,
+                maxMatches=max_rotatable_bonds * 2 + 1,
+            )
             if len(matches) > max_rotatable_bonds:
                 return "too many rotatable bonds"
 
@@ -274,63 +298,59 @@ class FragmentFilter(object):
 
     def get_cut_atom_pairs(self, mol):
         return mol.GetSubstructMatches(self.cut_pattern, uniquify=True)
-                    
+
     def get_cut_lists(self, mol):
         atom_pairs = self.get_cut_atom_pairs(mol)
 
         # Generate all of the atoms lists with 1, 2, or 3 cuts
         cut_lists = []
         for i, first_pair in enumerate(atom_pairs):
-            cut_lists.append( [first_pair] )
-            
+            cut_lists.append([first_pair])
+
             if self.num_cuts >= 2:
-                for j, second_pair in enumerate(atom_pairs[i+1:], i+1):
-                    cut_lists.append( [first_pair, second_pair] )
-                    
+                for j, second_pair in enumerate(atom_pairs[i + 1 :], i + 1):
+                    cut_lists.append([first_pair, second_pair])
+
                     if self.num_cuts >= 3:
-                        for k, third_pair in enumerate(atom_pairs[j+1:], j+1):
-                            cut_lists.append( [first_pair, second_pair, third_pair] )
+                        for k, third_pair in enumerate(atom_pairs[j + 1 :], j + 1):
+                            cut_lists.append([first_pair, second_pair, third_pair])
         return cut_lists
 
 
-    
 def get_fragment_filter(fragment_options):
     options = fragment_options
-    
+
     def call(parse, name):
         value = getattr(options, name)
         try:
             return parse(value)
         except ValueError as err:
             raise FragmentValueError(name, value, str(err))
-    
+
     max_heavies = options.max_heavies
     max_rotatable_bonds = options.max_rotatable_bonds
     rotatable_pattern = call(parse_rotatable_smarts, "rotatable_smarts")
     cut_pattern = call(parse_cut_smarts, "cut_smarts")
-        
+
     num_cuts = call(parse_num_cuts, "num_cuts")
     method = call(parse_method, "method")
     min_heavies_per_const_frag = options.min_heavies_per_const_frag
     try:
         salt_remover = call(parse_salt_remover, "salt_remover")
     except IOError as err:
-        raise FragmentValueError(
-            "salt_remover", options.salt_remover, f"Cannot open salt file: {err}"
-            )
-                                 
-    
+        raise FragmentValueError("salt_remover", options.salt_remover, f"Cannot open salt file: {err}")
+
     return FragmentFilter(
-        max_heavies = max_heavies,
-        max_rotatable_bonds = max_rotatable_bonds,
-        rotatable_pattern = rotatable_pattern,
-        salt_remover = salt_remover,
-        cut_pattern = cut_pattern,
-        num_cuts = num_cuts,
-        method = method,
-        options = fragment_options,
-        min_heavies_per_const_frag = min_heavies_per_const_frag,
-        )
+        max_heavies=max_heavies,
+        max_rotatable_bonds=max_rotatable_bonds,
+        rotatable_pattern=rotatable_pattern,
+        salt_remover=salt_remover,
+        cut_pattern=cut_pattern,
+        num_cuts=num_cuts,
+        method=method,
+        options=fragment_options,
+        min_heavies_per_const_frag=min_heavies_per_const_frag,
+    )
+
 
 ####
-

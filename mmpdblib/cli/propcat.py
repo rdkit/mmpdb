@@ -41,7 +41,7 @@ from .click_utils import (
     add_single_database_parameters,
     add_multiple_properties,
     get_property_names_or_error,
-    )
+)
 
 propcat_epilog = """
 
@@ -83,27 +83,24 @@ Examples:
 
 """
 
-@command(epilog = propcat_epilog)
 
+@command(epilog=propcat_epilog)
 @add_single_database_parameters()
-
 @add_multiple_properties
-
 @click.option(
     "--all",
     "show_all",
-    is_flag = True,
-    default = False,
-    help = "include compounds which have no properties",
-    )    
-
+    is_flag=True,
+    default=False,
+    help="include compounds which have no properties",
+)
 @click.option(
     "--output",
     "-o",
     "output_filename",
-    metavar = "FILENAME",
-    help = "output filename (default is stdout)",
-    )
+    metavar="FILENAME",
+    help="output filename (default is stdout)",
+)
 @click.pass_obj
 def propcat(
     reporter,
@@ -112,7 +109,7 @@ def propcat(
     property_names,
     no_properties,
     output_filename,
-    ):
+):
     """write the database properties to a properties file
 
     DATABASE: an mmpdb file
@@ -120,17 +117,17 @@ def propcat(
     from .. import (
         dbutils,
         fileio,
-        )
-    
+    )
+
     db = dbutils.open_database_from_options_or_exit(database_options)
     c = db.get_cursor()
     dataset = db.get_dataset()
 
     property_names = get_property_names_or_error(
         dataset,
-        property_names = property_names,
-        no_properties = no_properties,
-        )
+        property_names=property_names,
+        no_properties=no_properties,
+    )
 
     property_values_list = []
     for property_name in property_names:
@@ -141,7 +138,7 @@ def propcat(
         outfile = fileio.open_output(output_filename, output_filename)
     except IOError as err:
         die(f"Cannot open --output: {err}")
-        
+
     with outfile:
         print("ID", *property_names, sep="\t", file=outfile)
         for compound_row in dataset.iter_compounds(cursor=c):
@@ -156,4 +153,3 @@ def propcat(
                     is_empty = False
             if show_all or not is_empty:
                 print(*columns, sep="\t", file=outfile)
-    

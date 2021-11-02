@@ -39,10 +39,10 @@ import click
 from .click_utils import (
     command,
     add_single_database_parameters,
-    )
+)
 
 
-loadprops_epilog="""
+loadprops_epilog = """
 Load structure property values from a CSV into a data set.
 
 The property file contains a data table. Here is an example:
@@ -72,23 +72,22 @@ Example:
   
 """
 
-@command(epilog = loadprops_epilog)
 
+@command(epilog=loadprops_epilog)
 @click.option(
     "--properties",
     "-p",
     "properties_filename",
     metavar="FILENAME",
-    help = "File containing the identifiers to use and optional physical properties",
-    )
-
+    help="File containing the identifiers to use and optional physical properties",
+)
 @add_single_database_parameters()
 @click.pass_obj
 def loadprops(
-        reporter,
-        properties_filename,
-        database_options,
-        ):
+    reporter,
+    properties_filename,
+    database_options,
+):
     """load properties for existing structures
 
     DATABASE: the mmpdb database to update with the new properties
@@ -99,7 +98,7 @@ def loadprops(
     c = db.get_cursor()
     dataset = db.get_dataset()
     reporter.report(f"Using dataset: {dataset.title}")
-        
+
     if properties_filename is None:
         reporter.report("Reading properties from stdin")
         properties_file = sys.stdin
@@ -119,9 +118,7 @@ def loadprops(
             with properties_file:
                 properties = properties_io.load_properties(properties_file, reporter)
         except ValueError as err:
-            die(
-                f"Problem reading --properties file {properties_filename}: {err}"
-                )
+            die(f"Problem reading --properties file {properties_filename}: {err}")
     finally:
         if close is not None:
             close()
@@ -130,50 +127,49 @@ def loadprops(
         f"Read {len(properties.property_columns)} properties for "
         f"{len(properties.id_column)} compounds "
         f"from {source!r}"
-        )
+    )
     public_id_to_id = dataset.get_public_id_to_id_table(c)
-    
+
     compound_ids = [public_id_to_id.get(public_id, None) for public_id in properties.id_column]
     num_missing = compound_ids.count(None)
     if num_missing:
         reporter.report(
             f"{num_missing} compounds from {source!r} are not in the dataset at {database_options.database!r}"
-            )
+        )
         ## missing = [public_id for public_id in properties.id_column if public_id not in public_id_to_id]
         ## del missing[6:]
         ## if len(missing) > 5:
         ##     reporter.warning("First five missing records: %r" % (missing[:5],))
         ## else:
         ##     reporter.warning("Missing records: %r" % (missing,))
-            
 
     UPDATE_COMPOUND_PROPERTY_SQL = db.SQL(
         "UPDATE compound_property "
         "      SET value = ?"
         "       WHERE compound_id = ?"
-        "         AND property_name_id = ?")
+        "         AND property_name_id = ?"
+    )
     INSERT_COMPOUND_PROPERTY_SQL = db.SQL(
-        "INSERT INTO compound_property (compound_id, property_name_id, value) "
-        " VALUES (?, ?, ?)")
-    
+        "INSERT INTO compound_property (compound_id, property_name_id, value) " " VALUES (?, ?, ?)"
+    )
+
     with db.atomic():
         # Remember which compound properties exist, so I can tell if a
         # value should replace an existing value or create a new value.
-        c.execute(db.SQL(
-            "SELECT compound_id, property_name_id from compound_property"))
+        c.execute(db.SQL("SELECT compound_id, property_name_id from compound_property"))
         seen_properties = dict((key, False) for key in c)
 
         compound_values_for_property_name_id = {}
         property_name_ids = []
-        
+
         for property_name, property_values in properties.iter_properties():
             property_name_id = dataset.get_or_add_property_name(property_name)
             property_name_ids.append(property_name_id)
-            #reporter.report("Loading property %r (id %d)" % (property_name.name, property_name.id))
+            # reporter.report("Loading property %r (id %d)" % (property_name.name, property_name.id))
 
             num_created = num_updated = 0
             compound_values_for_property_name_id[property_name_id] = compound_values = {}
-            
+
             for compound_id, value in zip(compound_ids, property_values):
                 if compound_id is None:
                     # Property specified but not in database
@@ -185,32 +181,37 @@ def loadprops(
                 if key in seen_properties:
                     seen_properties[key] = True
                     num_updated += 1
-                    c.execute(UPDATE_COMPOUND_PROPERTY_SQL,
-                              (value, compound_id, property_name_id))
+                    c.execute(
+                        UPDATE_COMPOUND_PROPERTY_SQL,
+                        (value, compound_id, property_name_id),
+                    )
                 else:
                     num_created += 1
-                    c.execute(INSERT_COMPOUND_PROPERTY_SQL,
-                              (compound_id, property_name_id, value))
+                    c.execute(
+                        INSERT_COMPOUND_PROPERTY_SQL,
+                        (compound_id, property_name_id, value),
+                    )
                 compound_values[compound_id] = value
             reporter.report(
                 f"Imported {num_updated + num_created} {property_name!r} records "
                 f"({num_created} new, {num_updated} updated)."
-                )
+            )
 
         # Remove existing compound properties where the property name was in the
         # properties file but the where the file did not specify a value.
-        properties_to_delete = [key for key, was_updated in seen_properties.items()
-                                if not was_updated and key[1] in property_name_ids]
+        properties_to_delete = [
+            key for key, was_updated in seen_properties.items() if not was_updated and key[1] in property_name_ids
+        ]
         if properties_to_delete:
             dataset.delete_compound_properties(properties_to_delete)
-        
+
         dbutils.reaggregate_properties(
             dataset,
             property_name_ids,
             compound_values_for_property_name_id,
             cursor=c,
             reporter=reporter,
-            )
+        )
 
         # Check if any of the properties are completely gone
         if properties_to_delete:
@@ -223,7 +224,7 @@ def loadprops(
         reporter.update("Updating environment statistics count ...")
         num = schema._get_one(c.execute("SELECT count(*) from rule_environment_statistics"))
         c.execute("UPDATE dataset SET num_rule_environment_stats=?", (num,))
-        
+
         reporter.update("Commiting changed ...")
-                
+
     reporter.report("Loaded all properties and re-computed all rule statistics.")

@@ -47,36 +47,41 @@ class IndexOptions(object):
         "max_heavies_transf",
         "max_frac_trans",
         "smallest_transformation_only",
-        )
+    )
+
     def __init__(
-            self,
-            min_variable_heavies,
-            max_variable_heavies,
-            min_variable_ratio,
-            max_variable_ratio,
-            max_heavies_transf,
-            max_frac_trans,
-            max_radius,
-            symmetric,
-            smallest_transformation_only,
-            ):
+        self,
+        min_variable_heavies,
+        max_variable_heavies,
+        min_variable_ratio,
+        max_variable_ratio,
+        max_heavies_transf,
+        max_frac_trans,
+        max_radius,
+        symmetric,
+        smallest_transformation_only,
+    ):
 
         assert min_variable_heavies is None or min_variable_heavies >= 0, min_variable_heavies
         self.min_variable_heavies = min_variable_heavies
 
-        assert (    (max_variable_heavies is None)
-                 or (min_variable_heavies is None and max_variable_heavies >= 0)
-                 or (min_variable_heavies <= max_variable_heavies)), max_variable_heavies
+        assert (
+            (max_variable_heavies is None)
+            or (min_variable_heavies is None and max_variable_heavies >= 0)
+            or (min_variable_heavies <= max_variable_heavies)
+        ), max_variable_heavies
         self.max_variable_heavies = max_variable_heavies
 
         assert min_variable_ratio is None or 0.0 <= min_variable_ratio <= 1.0, min_variable_ratio
         self.min_variable_ratio = min_variable_ratio
-        
-        assert (   (max_variable_ratio is None)
-                or (min_variable_ratio is not None and max_variable_ratio <= 1.0)
-                or (min_variable_ratio <= max_variable_ratio <= 1.0) )
+
+        assert (
+            (max_variable_ratio is None)
+            or (min_variable_ratio is not None and max_variable_ratio <= 1.0)
+            or (min_variable_ratio <= max_variable_ratio <= 1.0)
+        )
         self.max_variable_ratio = max_variable_ratio
-        
+
         assert max_heavies_transf is None or max_heavies_transf >= 0, max_heavies_transf
         self.max_heavies_transf = max_heavies_transf
 
@@ -91,7 +96,7 @@ class IndexOptions(object):
 
         assert isinstance(smallest_transformation_only, bool)
         self.smallest_transformation_only = smallest_transformation_only
-    
+
     def to_dict(self):
         d = {}
         for name in IndexOptions.__slots__:
@@ -99,7 +104,6 @@ class IndexOptions(object):
             if value is not None:
                 d[name] = value
         return d
-
 
     def get_fragment_filter(self):
         from . import index_algorithm

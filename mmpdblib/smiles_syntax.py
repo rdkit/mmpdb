@@ -37,19 +37,38 @@ import re
 
 # Match a '*' in the different forms that might occur,
 # including with directional single bonds inside of ()s.
-_wildcard_regex = " |\n".join(re.escape(regex) for regex in
-  ("*", "[*]", "(*)", "([*])", "(/*)", "(/[*])", "/*", "/[*]", "(\\*)", "(\\[*])", "\\*", "\\[*]"))
+_wildcard_regex = " |\n".join(
+    re.escape(regex)
+    for regex in (
+        "*",
+        "[*]",
+        "(*)",
+        "([*])",
+        "(/*)",
+        "(/[*])",
+        "/*",
+        "/[*]",
+        "(\\*)",
+        "(\\[*])",
+        "\\*",
+        "\\[*]",
+    )
+)
 _wildcard_pattern = re.compile(_wildcard_regex, re.X)
 
 # Match the SMILES for an atom, followed by its closures
-_atom_pattern = re.compile(r"""
+_atom_pattern = re.compile(
+    r"""
 (
  Cl? |             # Cl and Br are part of the organic subset
  Br? |
  [NOSPFIbcnosp*] |  # as are these single-letter elements
  \[[^]]*\]         # everything else must be in []s
 )
-""", re.X)
+""",
+    re.X,
+)
+
 
 def convert_wildcards_to_closures(smiles, offsets=None):
     # This is designed for RDKit's canonical SMILES output. It does
@@ -60,10 +79,9 @@ def convert_wildcards_to_closures(smiles, offsets=None):
     closure_terms = []
     for offset in offsets:
         if not (0 <= offset <= 9):
-            raise ValueError("offset %d out of range (must be from 0 to 9)"
-                             % (offset,))
+            raise ValueError("offset %d out of range (must be from 0 to 9)" % (offset,))
         closure_terms.append("%%%02d" % (90 + offset))
-    
+
     new_smiles = smiles
     while 1:
         # Find the first '*'. If none are left, stop.
@@ -72,9 +90,9 @@ def convert_wildcards_to_closures(smiles, offsets=None):
             break
 
         closure_term = closure_terms.pop(0)
-        
+
         wildcard_start = wildcard_match.start()
-        if wildcard_start == 0 or new_smiles[wildcard_start-1] == ".":
+        if wildcard_start == 0 or new_smiles[wildcard_start - 1] == ".":
             # At the start of the molecule or after a ".". Need to
             # put the closure after the second atom. Find the second
             # atom. Since we only ever break on single non-ring bonds,
@@ -87,7 +105,7 @@ def convert_wildcards_to_closures(smiles, offsets=None):
                 # There was no atom. Is it a "/" or "\"? If so,
                 # we'll need to swap the direction when we move
                 # to a closure after the second atom.
-                bond_dir = new_smiles[wildcard_end:wildcard_end+1]
+                bond_dir = new_smiles[wildcard_end : wildcard_end + 1]
                 if bond_dir == "/":
                     direction = "\\"
                 elif bond_dir == "\\":
@@ -95,7 +113,7 @@ def convert_wildcards_to_closures(smiles, offsets=None):
                 else:
                     raise AssertionError(new_smiles)
                 # Look for the second atom, which must exist
-                second_atom_match = _atom_pattern.match(new_smiles, wildcard_end+1)
+                second_atom_match = _atom_pattern.match(new_smiles, wildcard_end + 1)
                 if second_atom_match is None:
                     raise AssertionError((new_smiles, new_smiles[wildcard_end:]))
             else:
@@ -112,23 +130,30 @@ def convert_wildcards_to_closures(smiles, offsets=None):
             # Reassemble the string with the wildcard term deleted and
             # the new closure inserted directly after the second atom
             # (and before any of its closures).
-            new_smiles = (new_smiles[:wildcard_start] + second_atom_term
-                          + direction + closure_term
-                          + new_smiles[second_atom_match.end():])
-                    
+            new_smiles = (
+                new_smiles[:wildcard_start]
+                + second_atom_term
+                + direction
+                + closure_term
+                + new_smiles[second_atom_match.end() :]
+            )
+
         else:
             # The match is somewhere inside of a molecule, so we attach
             # assign the closure to the atom it's bonded to on the left
-            c = new_smiles[wildcard_start-1]
+            c = new_smiles[wildcard_start - 1]
             if c == "(" or c == ")":
-                # In principle, this could be something like "CCC(F)(Cl)[*]", 
+                # In principle, this could be something like "CCC(F)(Cl)[*]",
                 # where I would need to count the number of groups back to
                 # the main atom, and flip chirality accordingly. Thankfully,
                 # RDKit always puts the "[*]" terms immediately after the
                 # preceeding atom, so I don't need to worry.
-                raise NotImplementedError("intermediate groups not supported",
-                                          new_smiles, new_smiles[wildcard_start-1:])
-            
+                raise NotImplementedError(
+                    "intermediate groups not supported",
+                    new_smiles,
+                    new_smiles[wildcard_start - 1 :],
+                )
+
             elif c in "CNcnOS]Pos0123456789ABDEFGHIJKLMQRTUVWXYZabdefghijklmpqrtuvwxyz":
                 # Double-check the the previous character looks like part of an atom.
                 wildcard_term = wildcard_match.group()
@@ -139,11 +164,10 @@ def convert_wildcards_to_closures(smiles, offsets=None):
                     direction = "\\"
                 else:
                     direction = ""
-                new_smiles = (new_smiles[:wildcard_start] + direction + closure_term
-                              + new_smiles[wildcard_match.end():])
+                new_smiles = new_smiles[:wildcard_start] + direction + closure_term + new_smiles[wildcard_match.end() :]
 
             else:
-                raise AssertionError((new_smiles, c, new_smiles[wildcard_start-1:]))
+                raise AssertionError((new_smiles, c, new_smiles[wildcard_start - 1 :]))
 
     return new_smiles
 
@@ -161,10 +185,10 @@ def convert_labeled_wildcards_to_closures(smiles):
         return "*"
 
     new_smiles = _labeled_wildcard_pattern.sub(sub_function, smiles)
-    #print("convert_labeled_wildcards_to_closures:", smiles, new_smiles, offsets)
+    # print("convert_labeled_wildcards_to_closures:", smiles, new_smiles, offsets)
     return convert_wildcards_to_closures(new_smiles, offsets)
 
 
 if __name__ == "__main__":
     for smiles in ("*C", "*/CO.*CN", "C*.C(*)N"):
-        print(smiles, convert_wildcards_to_closures(smiles, (0,)*smiles.count("*")))
+        print(smiles, convert_wildcards_to_closures(smiles, (0,) * smiles.count("*")))

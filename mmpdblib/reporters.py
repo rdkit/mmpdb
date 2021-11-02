@@ -81,6 +81,7 @@ class Quiet(BaseReporter):
 # This lets me do things like:
 class StatusContext(object):
     """Adapter to treat an iterator as a context manger"""
+
     def __init__(self, it):
         self._it = it
 
@@ -96,9 +97,10 @@ class StatusContext(object):
 
 class Verbose(BaseReporter):
     "This reporter sends report and status information to stderr."
+
     def __init__(self):
         self._erase = ""  # how to erase the last status message
-        
+
     def warning(self, msg):
         "Clear any status message and report the warning"
         self.update("")
@@ -111,17 +113,20 @@ class Verbose(BaseReporter):
             self.update("")
         sys.stderr.write(msg + "\n")
         sys.stderr.flush()
-        
+
     def progress(self, it, text, n=None):
         # Used in iterators
 
         def iterate():
             if n is None or n == 0:
+
                 def get_text(i):
                     return text + " " + str(i)
+
             else:
+
                 def get_text(i):
-                    return text + " %d/%d (%.1f%%)" % (i, n, 100.0*i/n)
+                    return text + " %d/%d (%.1f%%)" % (i, n, 100.0 * i / n)
 
             i = 0
             self.update(get_text(i))
@@ -141,13 +146,14 @@ class Verbose(BaseReporter):
         if hasattr(it, "location"):
             obj.location = getattr(it, "location")
         return obj
-            
+
     def update(self, msg):
         "Update the status line (erase the previous status message and display the new one)"
         sys.stderr.write(self._erase)
         sys.stderr.write(msg)
         sys.stderr.flush()
-        self._erase = "\r" + " "*len(msg) + "\r"
+        self._erase = "\r" + " " * len(msg) + "\r"
+
 
 # This is a bit of a hack that was developed at the very end of the project.
 # It's used during the database load process, from an ".mmpa" file.
@@ -168,16 +174,16 @@ class MultiStageReporter(object):
 
     def set_iter(self, template, container):
         """A string template (must have the '%' terms in the right order) and the container to iterator over
-        
+
         This must be called to start each stage.
         """
         self.template = template
         self._it = enumerate(container)  # enumerate() so I can track progress for the stage
         self._n = len(container)
-        msg = self.template % (100.0*self._row_count/self.num_rows, 0, self._n)
+        msg = self.template % (100.0 * self._row_count / self.num_rows, 0, self._n)
         self.reporter.update(msg)
         self._prev_time = time.time()
-                 
+
     def __iter__(self):
         return self
 
@@ -193,14 +199,16 @@ class MultiStageReporter(object):
         if now - self._prev_time > 0.5:
             # Show the progress. Template '%' terms must be: overall percentage,
             # element number in the stage, total number of elements in the stage.
-            self.reporter.update(self.template % (100.0*row_count/self.num_rows, i, self._n))
+            self.reporter.update(self.template % (100.0 * row_count / self.num_rows, i, self._n))
             self._prev_time = now
-        
+
         return value
 
     next = __next__
 
+
 # the 'no_explain' function. I needed somewhere to put it, and this seemed okay.
+
 
 def no_explain(msg, *args):
     pass

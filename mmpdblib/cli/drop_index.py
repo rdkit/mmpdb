@@ -39,7 +39,7 @@ from .click_utils import (
     command,
     die,
     add_single_database_parameters,
-    )
+)
 
 drop_index_epilog = """
 
@@ -49,26 +49,23 @@ if you need to save space for data exchange or archival purposes then
 you might drop the indices, and re-create them later when needed.
 """
 
-@command(
-    name = "drop_index",
-    epilog = drop_index_epilog)
 
+@command(name="drop_index", epilog=drop_index_epilog)
 @add_single_database_parameters()
-
 def drop_index(
     database_options,
-    ):
+):
     """drop the database indices
 
-    DATABASE: the mmpdb database 
+    DATABASE: the mmpdb database
     """
     from .. import (
         dbutils,
         schema,
-        )
-    
+    )
+
     mmpdb = dbutils.open_database_from_options_or_exit(database_options)
-    
+
     with mmpdb.atomic():
         schema.drop_index(mmpdb)
     mmpdb.execute("VACUUM")

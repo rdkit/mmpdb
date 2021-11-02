@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+
 """
 Peewee integration with APSW, "another python sqlite wrapper".
 
@@ -39,7 +40,7 @@ from .sqlite_ext import VirtualModel
 
 
 class transaction(_transaction):
-    def __init__(self, db, lock_type='deferred'):
+    def __init__(self, db, lock_type="deferred"):
         self.db = db
         self.lock_type = lock_type
 
@@ -57,15 +58,15 @@ class APSWDatabase(SqliteExtDatabase):
         self._modules[mod_name] = mod_inst
 
     def unregister_module(self, mod_name):
-        del(self._modules[mod_name])
+        del self._modules[mod_name]
 
     def _connect(self, database, **kwargs):
         conn = apsw.Connection(database, **kwargs)
         if self.timeout is not None:
             conn.setbusytimeout(self.timeout)
-        conn.createscalarfunction('date_part', _sqlite_date_part, 2)
-        conn.createscalarfunction('date_trunc', _sqlite_date_trunc, 2)
-        conn.createscalarfunction('regexp', _sqlite_regexp, 2)
+        conn.createscalarfunction("date_part", _sqlite_date_part, 2)
+        conn.createscalarfunction("date_trunc", _sqlite_date_trunc, 2)
+        conn.createscalarfunction("regexp", _sqlite_regexp, 2)
         self._load_aggregates(conn)
         self._load_collations(conn)
         self._load_functions(conn)
@@ -79,9 +80,11 @@ class APSWDatabase(SqliteExtDatabase):
 
     def _load_aggregates(self, conn):
         for name, (klass, num_params) in self._aggregates.items():
+
             def make_aggregate():
                 instance = klass()
                 return (instance, instance.step, instance.finalize)
+
             conn.createaggregatefunction(name, make_aggregate)
 
     def _load_collations(self, conn):
@@ -113,16 +116,16 @@ class APSWDatabase(SqliteExtDatabase):
     def rows_affected(self, cursor):
         return cursor.getconnection().changes()
 
-    def begin(self, lock_type='deferred'):
-        self.get_cursor().execute('begin %s;' % lock_type)
+    def begin(self, lock_type="deferred"):
+        self.get_cursor().execute("begin %s;" % lock_type)
 
     def commit(self):
-        self.get_cursor().execute('commit;')
+        self.get_cursor().execute("commit;")
 
     def rollback(self):
-        self.get_cursor().execute('rollback;')
+        self.get_cursor().execute("rollback;")
 
-    def transaction(self, lock_type='deferred'):
+    def transaction(self, lock_type="deferred"):
         return transaction(self, lock_type)
 
     def savepoint(self, sid=None):
@@ -133,20 +136,25 @@ def nh(s, v):
     if v is not None:
         return str(v)
 
+
 class BooleanField(_BooleanField):
     def db_value(self, v):
         v = super(BooleanField, self).db_value(v)
         if v is not None:
             return v and 1 or 0
 
+
 class DateField(_DateField):
     db_value = nh
+
 
 class TimeField(_TimeField):
     db_value = nh
 
+
 class DateTimeField(_DateTimeField):
     db_value = nh
+
 
 class DecimalField(_DecimalField):
     db_value = nh

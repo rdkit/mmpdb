@@ -43,16 +43,15 @@ from .click_utils import (
     name_to_command_line,
     ordered_group,
     positive_int,
-    )
+)
 from . import fragment_click
 from . import smi_utils
-
-
 
 
 # Make it so that ^C works in the main thread
 def init_worker():
     import signal
+
     signal.signal(signal.SIGINT, signal.SIG_IGN)
 
 
@@ -65,9 +64,8 @@ def create_pool(num_jobs):
     else:
         pool = fragment_records.SingleProcessPool()
     return pool
-    
 
-            
+
 ############ The fragment cli
 
 
@@ -139,8 +137,9 @@ computing the fragments from scratch each time. Save the results to
       -o new_dataset.fragdb
 
 \b
-""" + smarts_aliases.get_epilog("--cut-smarts", smarts_aliases.cut_smarts_aliases)
-
+""" + smarts_aliases.get_epilog(
+    "--cut-smarts", smarts_aliases.cut_smarts_aliases
+)
 
 
 def cannot_combine_with_fragment_options(ctx, cache):
@@ -156,54 +155,52 @@ def cannot_combine_with_fragment_options(ctx, cache):
         *first, last = names
         first_str = ", ".join(first)
         raise click.UsageError(f"Cannot combine {first_str} or {last} with --cache")
-    
 
-@command(epilog = fragment_epilog)
+
+@command(epilog=fragment_epilog)
 @fragment_click.add_fragment_options
 @click.option(
     "--cache",
-    metavar = "FRAGDB",
-    help = "get fragment parameters and previous fragment information the FRAGDB file",
-    )
+    metavar="FRAGDB",
+    help="get fragment parameters and previous fragment information the FRAGDB file",
+)
 @click.option(
     "--num-jobs",
     "-j",
-    metavar = "N",
-    type = positive_int(),
-    default = 4,
-    help = "number of jobs to process in parallel (default: 4)")
-
+    metavar="N",
+    type=positive_int(),
+    default=4,
+    help="number of jobs to process in parallel (default: 4)",
+)
 @smi_utils.add_input_options
-
 @click.option(
     "--output",
     "-o",
-    metavar = "FILENAME",
-    help = "save the fragment data to FILENAME (default: based on the structure filename)",
-    )
-
+    metavar="FILENAME",
+    help="save the fragment data to FILENAME (default: based on the structure filename)",
+)
 @click.argument(
     "structure_filename",
-    default = None,
-    required = False,
-    metavar = "FILENAME",
-    #help = "SMILES filename (default: read from stdin)",
-    )
+    default=None,
+    required=False,
+    metavar="FILENAME",
+    # help = "SMILES filename (default: read from stdin)",
+)
 @click.pass_context
 def fragment(
-        ctx,
-        # from add_fragment_options
-        fragment_options,
-        # 'fragment'-specific arguments
-        cache,
-        num_jobs,
-        # SMILES input options
-        input_options,
-        # output options
-        output,
-        # input
-        structure_filename,
-        ):
+    ctx,
+    # from add_fragment_options
+    fragment_options,
+    # 'fragment'-specific arguments
+    cache,
+    num_jobs,
+    # SMILES input options
+    input_options,
+    # output options
+    output,
+    # input
+    structure_filename,
+):
     """fragment SMILES file structures on rotatable bonds
 
     FILENAME: SMILES file (default: read from stdin)
@@ -218,11 +215,11 @@ def fragment(
         fragment_algorithm,
         fragment_records,
         fileio,
-        )
-    
+    )
+
     config = ctx.obj
     cannot_combine_with_fragment_options(ctx, cache)
-    
+
     output_filename = output
     if output_filename is None:
         if structure_filename is None:
@@ -230,7 +227,7 @@ def fragment(
         else:
             output_filename = fileio.remove_suffixes(structure_filename) + ".fragdb"
         config.report(f"Using {output_filename!r} as the default --output file.")
-    
+
     # Use a cache?
     cache_db = None
     if cache is not None:
@@ -244,38 +241,36 @@ def fragment(
         try:
             fragment_filter = cache_db.options.get_fragment_filter()
         except fragment_types.FragmentValueError as err:
-            die(
-                f"Error in cache option {err.name!r} ({err.value}!r) from {cache!r}: {err.reason}"
-                )
+            die(f"Error in cache option {err.name!r} ({err.value}!r) from {cache!r}: {err.reason}")
     else:
         try:
             fragment_filter = fragment_options.get_fragment_filter()
         except fragment_types.FragmentValueError as err:
-            die("Error in command-line option %r (%r): %s" % (
-                name_to_command_line(err.name), err.value, err.reason))
+            die("Error in command-line option %r (%r): %s" % (name_to_command_line(err.name), err.value, err.reason))
 
     pool = create_pool(num_jobs)
-    
+
     try:
         try:
             with fileio.read_smiles_file(
-                    structure_filename,
-                    input_options.format,
-                    input_options.delimiter,
-                    input_options.has_header) as reader:
+                structure_filename,
+                input_options.format,
+                input_options.delimiter,
+                input_options.has_header,
+            ) as reader:
 
                 with fragment_db.open_fragment_writer(
-                        output_filename,
-                        options = fragment_filter.options,
-                        ) as writer:
-                    
+                    output_filename,
+                    options=fragment_filter.options,
+                ) as writer:
+
                     records = fragment_records.make_fragment_records(
                         reader,
                         fragment_filter,
                         cache_db,
                         pool=pool,
                         reporter=config,
-                        )
+                    )
                     writer.write_records(records)
 
         except fileio.FileFormatError as err:
@@ -292,9 +287,10 @@ def fragment(
         pool.close()
         pool.join()
         config.update("")
-    
+
 
 ####### "fragdb_utils" group
+
 
 @ordered_group()
 def fragdb_utils():
@@ -305,7 +301,7 @@ def fragdb_utils():
 def fragdb_ls():
     pass
 
+
 @fragdb_utils.command()
 def fragdb_constant_stats():
     pass
-

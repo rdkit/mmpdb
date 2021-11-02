@@ -52,11 +52,13 @@ from . import (
     drop_index,
     create_index,
     help_,
-    )
+)
+
 
 def add_commands(group):
     for name, cmd in group.commands.items():
         main.add_command(cmd, name=name)
+
 
 epilog = """\
 The 'mmpdb' program implements a set of subcommands to work with
@@ -88,6 +90,7 @@ In addition, pass the "--help" option to a given command to see
 the full list of options for the command.
 """
 
+
 def explain(msg, *args):
     full_msg = (msg % args) + "\n"
     sys.stderr.write(full_msg)
@@ -102,12 +105,15 @@ def get_explain(use_explain, reporter=None):
             return reporter.explain
 
     from ..reporters import no_explain
+
     return no_explain
+
 
 class CmdConfig:
     def __init__(self, quiet):
         self.quiet = quiet
         from .. import reporters
+
         if quiet:
             reporter = reporters.get_reporter("quiet")
         else:
@@ -122,23 +128,17 @@ class CmdConfig:
 
     def set_explain(self, use_explain):
         self.explain = get_explain(use_explain, self.reporter)
-        
-    
-    
-        
-@ordered_group(epilog = epilog)
-@click.option(
-    "--quiet",
-    "-q",
-    is_flag=True,
-    help="do not show progress or status information"
-    )
-@click.version_option(version = __version__)
+
+
+@ordered_group(epilog=epilog)
+@click.option("--quiet", "-q", is_flag=True, help="do not show progress or status information")
+@click.version_option(version=__version__)
 @click.pass_context
 def main(ctx, quiet):
     "Matched-molecular pair database loader"
     if ctx.obj is None:
         ctx.obj = CmdConfig(quiet)
+
 
 main.add_command(fragment.fragment)
 main.add_command(smifrag.smifrag)

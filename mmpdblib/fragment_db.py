@@ -47,8 +47,13 @@ from . import config
 from . import fileio
 from . import fragment_algorithm
 from . import reporters
-from .fragment_types import (FragmentOptions, FragmentRecord, FragmentErrorRecord,
-                                 Fragmentation, FragmentFormatError)
+from .fragment_types import (
+    FragmentOptions,
+    FragmentRecord,
+    FragmentErrorRecord,
+    Fragmentation,
+    FragmentFormatError,
+)
 from . import schema
 
 #### "fragdb" -- SQLite-based fragment file
@@ -60,13 +65,16 @@ from . import schema
 
 
 SCHEMA_FILENAME = os.path.join(os.path.dirname(__file__), "fragment_schema.sql")
-_schema_template = None    
+_schema_template = None
+
+
 def get_schema_template():
     global _schema_template
     if _schema_template is None:
         with open(SCHEMA_FILENAME) as infile:
             _schema_template = infile.read()
     return _schema_template
+
 
 def init_fragdb(c, options):
     # Ensure SQL can read the file, and that no records exist
@@ -85,14 +93,15 @@ def init_fragdb(c, options):
     c.execute("PRAGMA synchronous=off")
     # My WAL attempt left a couple of temp files in the local directory.
     # Perhaps I didn't close things?
-    
+
     # Create the schema
     schema._execute_sql(c, get_schema_template())
 
     insert_options(c, options)
 
+
 def open_fragdb(filename):
-    with open(filename, "rb"): # Let Python raise any IOErrors
+    with open(filename, "rb"):  # Let Python raise any IOErrors
         pass
     db = sqlite3.connect(filename)
     c = db.cursor()
@@ -110,10 +119,11 @@ def open_fragdb(filename):
         if count != 1:
             raise ValueError(f"{filename!r} does not appear to be a fragdb")
         break
-    
+
     options = select_options(c)
     return FragDB(None, options, db, c)
-    
+
+
 #### options
 
 _option_attrs = [field.name for field in dataclasses.fields(FragmentOptions)]
@@ -124,9 +134,11 @@ _option_qs = ",".join("?" * len(_option_cols))
 
 _insert_options_sql = f"INSERT INTO options({_option_fields}) VALUES({_option_qs})"
 
+
 def insert_options(c, options):
     values = [3] + [getattr(options, attr) for attr in _option_attrs]
     c.execute(_insert_options_sql, values)
+
 
 def select_options(c):
     sql = f"SELECT {_option_fields} FROM options"
@@ -137,6 +149,7 @@ def select_options(c):
         return FragmentOptions(*values)
     raise AssertionError("Missing options in fragdb")
 
+
 #### FragmentRecord
 
 _record_attrs = ("id", "input_smiles", "num_normalized_heavies", "normalized_smiles")
@@ -145,6 +158,8 @@ _record_fields = ", ".join(_record_cols)
 _record_qs = ",".join("?" * len(_record_cols))
 
 _insert_record_sql = f"INSERT INTO record (id, {_record_fields}) VALUES (?, {_record_qs})"
+
+
 def insert_fragment_record(c, rec, record_id):
     record_values = [getattr(rec, attr) for attr in _record_attrs]
     c.execute(_insert_record_sql, [record_id] + record_values)
@@ -153,10 +168,12 @@ def insert_fragment_record(c, rec, record_id):
         c.execute(
             _insert_fragmentation_sql,
             [record_id] + [getattr(frag, attr) for attr in _fragmentation_attrs],
-            )
+        )
 
 
 _select_record_by_title_sql = f"SELECT id,{_record_fields} FROM record WHERE title = ?"
+
+
 def select_fragment_record_by_title(c, title):
     c.execute(_select_record_by_title_sql, (title,))
     for row in c:
@@ -168,8 +185,9 @@ def select_fragment_record_by_title(c, title):
 
     return FragmentRecord(
         *record_values,
-        fragmentations = list(select_fragmentations_by_record_id(c, record_id)),
-        )
+        fragmentations=list(select_fragmentations_by_record_id(c, record_id)),
+    )
+
 
 _fragmentation_attrs = [field.name for field in dataclasses.fields(Fragmentation)]
 _fragmentation_cols = _fragmentation_attrs[:]
@@ -181,12 +199,17 @@ INSERT INTO fragmentation (record_id, {_fragmentation_fields}) VALUES (?, {_frag
 """
 
 _select_fragmentation_by_record_id_sql = f"SELECT {_fragmentation_fields} FROM fragmentation WHERE record_id = ?"
+
+
 def select_fragmentations_by_record_id(c, record_id):
     c.execute(_select_fragmentation_by_record_id_sql, (record_id,))
     for row in c:
         yield Fragmentation(*row)
 
+
 _select_fragmentations_sql = f"SELECT id,{_record_fields} FROM record"
+
+
 def iter_fragment_records(record_c, fragmentation_c):
     record_c.execute(_select_fragmentations_sql)
     for row in record_c:
@@ -194,20 +217,24 @@ def iter_fragment_records(record_c, fragmentation_c):
         fragmentations = list(select_fragmentations_by_record_id(fragmentation_c, record_id))
         yield FragmentRecord(
             *record_values,
-            fragmentations = fragmentations,
-            )
+            fragmentations=fragmentations,
+        )
+
 
 _select_fragmentations_error_sql = f"SELECT title, input_smiles, errmsg FROM error_record"
+
+
 def iter_fragment_error_records(record_c, fragmentation_c):
     record_c.execute(_select_fragmentations_error_sql)
     for row in record_c:
         title, input_smiles, errmsg = row
         yield FragmentErrorRecord(
-            id = title,
-            input_smiles = input_smiles,
-            errmsg = errmsg,
-            )
-        
+            id=title,
+            input_smiles=input_smiles,
+            errmsg=errmsg,
+        )
+
+
 #### FragmentErrorRecord
 
 _error_record_attrs = ("id", "input_smiles", "errmsg")
@@ -218,10 +245,15 @@ _error_record_qs = ",".join("?" * len(_error_record_cols))
 _insert_fragment_error_sql = f"""
 INSERT INTO error_record ({_error_record_fields}) VALUES ({_error_record_qs})
 """
+
+
 def insert_fragment_error_record(c, rec):
     c.execute(_insert_fragment_error_sql, [getattr(rec, attr) for attr in _error_record_attrs])
 
+
 _select_error_record_by_title_sql = f"SELECT {_error_record_fields} FROM error_record WHERE title = ?"
+
+
 def select_fragment_error_record_by_title(c, title):
     c.execute(_select_error_record_by_title_sql, (title,))
     for row in c:
@@ -229,14 +261,16 @@ def select_fragment_error_record_by_title(c, title):
 
     return None
 
+
 ####
+
 
 class FragDBWriter:
     def __init__(self, filename, db, c, options):
         self.filename = filename
         self.db = db
         self.c = c
-        self._record_id = 0 # Manage the record ids myself
+        self._record_id = 0  # Manage the record ids myself
 
     def close(self):
         db, c = self.db, self.c
@@ -271,6 +305,7 @@ class FragDBWriter:
             self._record_id = record_id = self._record_id + 1
             insert_fragment_record(c, rec, record_id)
 
+
 def _get_fragdb_options(c):
     try:
         c.execute("SELECT count(*) FROM record")
@@ -278,16 +313,23 @@ def _get_fragdb_options(c):
         raise ValueError(f"{filename!r} does not appear to be a fragdb file: {err}")
 
     fields = [
-        "cut_smarts", "max_heavies", "max_rotatable_bonds",
-        "method", "num_cuts", "rotatable_smarts",
-        "salt_remover", "min_heavies_per_const_frag",
-        ]
+        "cut_smarts",
+        "max_heavies",
+        "max_rotatable_bonds",
+        "method",
+        "num_cuts",
+        "rotatable_smarts",
+        "salt_remover",
+        "min_heavies_per_const_frag",
+    ]
     field_str = ", ".join(f'"{name}"' for name in fields)
     try:
-        c.execute(f"""
+        c.execute(
+            f"""
 SELECT version, {field_str}
   FROM config
-        """)
+        """
+        )
     except sqlite3.OperationalError as err:
         raise ValueError(f"{filename!r} does not appear to be a fragdb file: {err}")
 
@@ -297,8 +339,10 @@ SELECT version, {field_str}
 
     kwargs = dict(zip(fields, field_values))
     return FragmentOptions(**kwargs)
-                
+
+
 ###
+
 
 class FragDB:
     def __init__(self, metadata, options, db, c):
@@ -311,7 +355,7 @@ class FragDB:
         obj = select_fragment_record_by_title(self.c, id)
         if obj is not None:
             return obj
-        
+
         return select_fragment_error_record_by_title(self.c, id)
 
     def __enter__(self):
@@ -332,9 +376,10 @@ class FragDB:
 
     def iter_error_records(self):
         return iter_fragment_error_records(self.db.cursor(), self.db.cursor())
-        
-    
+
+
 ### connect to the database and prepare for writing.
+
 
 def open_fragment_writer(filename, options):
     assert filename is not None

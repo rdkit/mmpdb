@@ -51,6 +51,8 @@ from .playhouse import db_url as playhouse_db_url
 from . import schema
 
 _sqlite_adapter = None
+
+
 def get_default_sqlite_adapter(quiet):
     global _sqlite_adapter
     if _sqlite_adapter is None:
@@ -61,12 +63,13 @@ def get_default_sqlite_adapter(quiet):
 def _get_default_sqlite_adapter(quiet):
     try:
         import apsw
+
         return "apsw"
     except ImportError:
         if not quiet:
             sys.stderr.write("WARNING: APSW not installed. Falling back to Python's sqlite3 module.\n")
         return "sqlite"
-        
+
 
 def open_as_schema_database(playhouse_db):
     c = playhouse_db.get_cursor()
@@ -84,9 +87,9 @@ def open_as_schema_database(playhouse_db):
         raise DBError("The dataset has the wrong id")
     if mmpdb_version != 2:
         raise DBError("Expecting mmpdb version 2, not %d" % (mmpdb_version,))
-    
+
     return schema.MMPDatabase(playhouse_db)
-    
+
 
 class DBError(Exception):
     def __init__(self, text):
@@ -107,17 +110,20 @@ def _apsw_copy_to_memory(db, quiet):
         return db
 
     from .playhouse.apsw_ext import APSWDatabase
+
     if not isinstance(db, APSWDatabase):
-        sys.stderr.write("WARNING: 'copy_to_memory' requires an APSW database, not '%s'. Keeping on-disk.\n"
-                         % (db.__class__,))
+        sys.stderr.write(
+            "WARNING: 'copy_to_memory' requires an APSW database, not '%s'. Keeping on-disk.\n" % (db.__class__,)
+        )
         return db
 
     disk_conn = db.get_conn()  # the low-level APSW connection
-    
+
     memory_db = APSWDatabase(":memory:", **db.connect_kwargs)
     memory_conn = memory_db.get_conn()  # the low-level APSW connection
 
     import time
+
     if not quiet:
         t1 = time.time()
         sys.stderr.write("Copying database to memory...")
@@ -126,11 +132,11 @@ def _apsw_copy_to_memory(db, quiet):
         backup.step()
     if not quiet:
         t2 = time.time()
-        sys.stderr.write("\rDatabase copy took %.1f seconds.\n" % (t2-t1,))
+        sys.stderr.write("\rDatabase copy took %.1f seconds.\n" % (t2 - t1,))
 
     return memory_db
 
-    
+
 # Base class
 class DBInfo(object):
     def __init__(self, name):
@@ -161,7 +167,7 @@ class DBFile(DBInfo):
         if copy_to_memory:
             db = _apsw_copy_to_memory(db, quiet)
         return open_as_schema_database(db)
-    
+
 
 class DBUrl(DBInfo):
     def __repr__(self):
@@ -169,7 +175,7 @@ class DBUrl(DBInfo):
 
     def get_human_name(self):
         return "database url %r" % (self.name,)
-    
+
     def open_database(self, copy_to_memory, quiet=False):
         try:
             db = playhouse_db_url.connect(self.name)
@@ -192,25 +198,29 @@ def get_dbinfo(dburl):
     if is_valid_dburl(dburl):
         return DBUrl(dburl)
     return DBFile(dburl)
-    
+
 
 # just the filenames. Does not join with the dirname
 def _get_mmpdb_filenames(dirname):
-    return [filename for filename in os.listdir(dirname) if filename.lower().endswith(".mmpdb")]    
+    return [filename for filename in os.listdir(dirname) if filename.lower().endswith(".mmpdb")]
+
 
 # files in ".", without the leaing "./"
 def get_mmpdb_filenames_in_current_directory():
     return _get_mmpdb_filenames(".")
 
+
 # Files including the path to the directory
 def get_mmpdb_filenames_in_directory(dirname):
     return [os.path.join(dirname, filename) for filename in _get_mmpdb_filenames(dirname)]
+
 
 # Get a list of all of the databases:
 #   - if it's a directory, look for *.mmpdb files in that directory
 #   - if it looks like a databse URL then use playhouse to open it
 #   - if it's a file, use apsw/sqlite to open it
 #   - otherwise, no clue.
+
 
 def iter_dbinfo(databases, reporter):
     if not databases:
@@ -230,8 +240,7 @@ def iter_dbinfo(databases, reporter):
             yield DBFile(database)
 
         else:
-            reporter.report("Not a file, directory, or supported database URL: %r"
-                            % (database,))
+            reporter.report("Not a file, directory, or supported database URL: %r" % (database,))
 
 
 def open_database(dburl, copy_to_memory=False, quiet=False):
@@ -251,21 +260,23 @@ def open_dataset_from_options_or_exit(db_options, quiet=False):
     db = open_database_from_options_or_exit(db_options, quiet)
     return db.get_dataset()
 
+
 #####
 
-def reaggregate_properties(dataset, property_name_ids, compound_values_for_property_name_id,
-                           cursor, reporter):
+
+def reaggregate_properties(dataset, property_name_ids, compound_values_for_property_name_id, cursor, reporter):
     # Mapping from rule environment id to rule environment statistics id
-    
+
     reporter.update("Computing aggregate statistics")
     num_pairs = dataset.get_num_pairs(cursor=cursor)
-    
+
     all_pairs = dataset.iter_pairs(cursor=cursor)
     all_pairs = reporter.progress(all_pairs, "Computing and updating aggregate statistics", num_pairs)
 
     def generate_stats():
         for rule_environment_id, rule_environment_pairs in itertools.groupby(
-                all_pairs, (lambda pair: pair.rule_environment_id)):
+            all_pairs, (lambda pair: pair.rule_environment_id)
+        ):
 
             rule_environment_pairs = list(rule_environment_pairs)  # now a list, not iterator
 
@@ -279,16 +290,17 @@ def reaggregate_properties(dataset, property_name_ids, compound_values_for_prope
                     value2 = compound_values.get(pair.compound2_id, None)
                     if value2 is None:
                         continue
-                    deltas.append(value2-value1)
+                    deltas.append(value2 - value1)
                 if deltas:
                     from . import index_algorithm
+
                     stats = index_algorithm.compute_aggregate_values(deltas)
                     yield (rule_environment_id, property_name_id, stats)
+
     stats_info = generate_stats()
 
     reporter.update("Getting information about which rule statistics exist...")
-    existing_stats_ids = dataset.get_rule_environment_statistics_mapping(
-        property_name_ids, cursor=cursor)
+    existing_stats_ids = dataset.get_rule_environment_statistics_mapping(property_name_ids, cursor=cursor)
 
     seen_stats_ids = set()
     num_updated = num_added = 0
@@ -306,13 +318,13 @@ def reaggregate_properties(dataset, property_name_ids, compound_values_for_prope
     to_delete = set(existing_stats_ids.values()) - seen_stats_ids
     num_deleted = len(to_delete)
     if to_delete:
-        delete_report = reporter.progress(
-            iter(to_delete), "Deleting rule statistics", num_deleted)
+        delete_report = reporter.progress(iter(to_delete), "Deleting rule statistics", num_deleted)
         while 1:
             ids = list(itertools.islice(delete_report, 0, 1000))
             if not ids:
                 break
             dataset.delete_rule_environment_statistics(ids)
 
-    reporter.report("Number of rule statistics added: %d updated: %d deleted: %d"
-                    % (num_added, num_updated, num_deleted))
+    reporter.report(
+        "Number of rule statistics added: %d updated: %d deleted: %d" % (num_added, num_updated, num_deleted)
+    )

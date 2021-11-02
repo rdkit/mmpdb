@@ -42,8 +42,8 @@ from .click_utils import ordered_group
 
 help_group = click.Group()
 
-def add_help(name, about, text):
 
+def add_help(name, about, text):
     def print_help():
         "print help"
         click.echo(text)
@@ -51,9 +51,8 @@ def add_help(name, about, text):
     print_help.__name__ = name
     print_help.__doc__ = about
 
-    help_group.add_command(
-        click.command(name = name)(print_help)
-    )
+    help_group.add_command(click.command(name=name)(print_help))
+
 
 #### mmpdb help-analysis
 
@@ -337,7 +336,8 @@ selected a given transformation, or use "`--save-details`" to save the
 list of possible rules to the file 'pred_detail_rules.txt' and to save 
 the list of rule pairs to "pred_detail_pairs.txt".
 
-""")
+""",
+)
 
 
 #### mmpdb help-admin
@@ -356,7 +356,8 @@ The administrative commands are:
   * create_index: (re)create the database indices
 
 See the --help options for each command for more details.
-""")
+""",
+)
 
 
 #### mmpdb help-smiles
@@ -410,7 +411,8 @@ Example command-line parameters:
    --delimiter to-eol           -- Daylight-style SMILES format
    --delimiter tab --has-header -- tab-delimited CSV, with a header line
 
-""")
+""",
+)
 
 #### mmpdb help-properties-format
 
@@ -451,5 +453,5 @@ identifiers. The MP value of GEJYOJ is 3, which is interpreted as
 has the MP property 5.0 but the "*" indicates that its CHR1 and CHR2
 properties are not known.
 
-""")
-
+""",
+)

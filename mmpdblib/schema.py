@@ -37,17 +37,18 @@ import os.path
 import datetime
 import json
 import itertools
-from collections import OrderedDict, defaultdict
 
-from . import reporters
 from . import config
+
 
 SCHEMA_FILENAME = os.path.join(os.path.dirname(__file__), "schema.sql")
 CREATE_INDEX_FILENAME = os.path.join(os.path.dirname(__file__), "create_index.sql")
 DROP_INDEX_FILENAME = os.path.join(os.path.dirname(__file__), "drop_index.sql")
 
 
-_schema_template = None    
+_schema_template = None
+
+
 def get_schema_template():
     global _schema_template
     if _schema_template is None:
@@ -56,7 +57,9 @@ def get_schema_template():
     return _schema_template
 
 
-_create_index_sql = None    
+_create_index_sql = None
+
+
 def get_create_index_sql():
     global _create_index_sql
     if _create_index_sql is None:
@@ -65,7 +68,9 @@ def get_create_index_sql():
     return _create_index_sql
 
 
-_drop_index_sql = None    
+_drop_index_sql = None
+
+
 def get_drop_index_sql():
     global _drop_index_sql
     if _drop_index_sql is None:
@@ -76,21 +81,21 @@ def get_drop_index_sql():
 
 class SQLiteConfig:
     PRIMARY_KEY = "INTEGER PRIMARY KEY"
-    COLLATE = ""     # default collation is binary so this isn't needed
+    COLLATE = ""  # default collation is binary so this isn't needed
 
 
 class MySQLConfig:
     PRIMARY_KEY = "INTEGER AUTO_INCREMENT"
     COLLATE = "COLLATE latin_bin"  # default is case-insensitive; force binary
-        
+
 
 def get_schema_for_database(db_config):
     template = get_schema_template()
-    
+
     # Handle some non-portable SQL
     text = template.replace("$PRIMARY_KEY$", db_config.PRIMARY_KEY)
     schema = text.replace("$COLLATE$", db_config.COLLATE)
-    
+
     return schema
 
 
@@ -98,8 +103,8 @@ def _get_sql_statements(bulk_sql):
     # Remove the license preamble, if it exists
     i = bulk_sql.find("END OF LICENSE")
     if i != -1:
-        newline_i = bulk_sql.index("\n",i)
-        bulk_sql = bulk_sql[newline_i+1:]
+        newline_i = bulk_sql.index("\n", i)
+        bulk_sql = bulk_sql[newline_i + 1 :]
 
     blocks = bulk_sql.split(";")
     # Can only execute one statement at a time,
@@ -108,13 +113,13 @@ def _get_sql_statements(bulk_sql):
         if not statement:
             continue
         statement += ";"
-        #print("execute", repr(statement))
+        # print("execute", repr(statement))
         yield statement
 
 
 def _execute_sql(c, bulk_sql):
     for statement in _get_sql_statements(bulk_sql):
-        try:            
+        try:
             c.execute(statement)
         except Exception:
             sys.stderr.write("Failed to execute the following SQL:\n")
@@ -127,8 +132,7 @@ def _execute_sql(c, bulk_sql):
 
 def create_schema_for_sqlite(sqlite_db):
     c = sqlite_db.cursor()
-    _execute_sql(c,
-                 get_schema_for_database(SQLiteConfig))
+    _execute_sql(c, get_schema_for_database(SQLiteConfig))
 
 
 def create_index(c):
@@ -141,11 +145,13 @@ def drop_index(c):
 
 INSERT_RULE_PROPERTY_SQL = (
     "insert into rule_property (rule_id, property_name_id, count, avg, std, kurtosis, "
-    " skewness, min, q1, median, q3, max, paired_t, p_value) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
-    
+    " skewness, min, q1, median, q3, max, paired_t, p_value) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+)
+
 UPDATE_RULE_PROPERTY_SQL = (
     "update rule_property set count=?, avg=?, std=?, kurtosis=?, "
-    " skewness=?, min=?, q1=?, median=?, q3=?, max=?, paired_t=?, p_value=? where id=?")
+    " skewness=?, min=?, q1=?, median=?, q3=?, max=?, paired_t=?, p_value=? where id=?"
+)
 
 ########## Work with an existing dataset via an ORM-like API
 
@@ -160,7 +166,7 @@ UPDATE_RULE_PROPERTY_SQL = (
 # independently. I could therefore merge the MMPDatabase and
 # MMPDataset into one class, but part of me thinks it's nicer to keep
 # them distinct.
-    
+
 
 class PropertyNameRow(object):
     def __init__(self, id, name):
@@ -169,15 +175,21 @@ class PropertyNameRow(object):
 
 
 class TableSizes(object):
-    def __init__(self, num_compounds, num_rules, num_pairs,
-                 num_rule_environments, num_rule_environment_stats):
+    def __init__(
+        self,
+        num_compounds,
+        num_rules,
+        num_pairs,
+        num_rule_environments,
+        num_rule_environment_stats,
+    ):
         self.num_compounds = num_compounds
         self.num_rules = num_rules
         self.num_pairs = num_pairs
         self.num_rule_environments = num_rule_environments
         self.num_rule_environment_stats = num_rule_environment_stats
-    
-        
+
+
 class MMPDatabase(object):
     def __init__(self, db):
         self.db = db
@@ -185,13 +197,14 @@ class MMPDatabase(object):
 
     def SQL(self, sql):
         return sql.replace("?", self.db.interpolation)
-    
+
     def execute(self, sql, args=(), cursor=None):
         if cursor is None:
             cursor = self.db.get_cursor()
         sql = sql.replace("?", self.db.interpolation)
         if 0:
             import time
+
             print("EXECUTE")
             print(sql)
             print(repr(args))
@@ -199,7 +212,7 @@ class MMPDatabase(object):
         cursor.execute(sql, args)
         if 0:
             t2 = time.time()
-            print("Elapsed1:", t2-t1)
+            print("Elapsed1:", t2 - t1)
             ## if "SELECT" in sql:
             ##     n = len(list(cursor))
             ##     t3 = time.time()
@@ -218,14 +231,26 @@ class MMPDatabase(object):
     def get_dataset(self, cursor=None):
         if self._dataset is None:
             cursor = self.get_cursor(cursor)
-            cursor.execute("SELECT id, mmpdb_version, title, creation_date, "
-                           "fragment_options, index_options, is_symmetric, "
-                           "num_compounds, num_rules, num_pairs, num_rule_environments, "
-                           "num_rule_environment_stats FROM dataset WHERE id = 1")
-            for (id, mmpdb_version, title, creation_date,
-                 fragment_options, index_options, is_symmetric,
-                 num_compounds, num_rules, num_pairs, num_rule_environments,
-                 num_rule_environment_stats) in cursor:
+            cursor.execute(
+                "SELECT id, mmpdb_version, title, creation_date, "
+                "fragment_options, index_options, is_symmetric, "
+                "num_compounds, num_rules, num_pairs, num_rule_environments, "
+                "num_rule_environment_stats FROM dataset WHERE id = 1"
+            )
+            for (
+                id,
+                mmpdb_version,
+                title,
+                creation_date,
+                fragment_options,
+                index_options,
+                is_symmetric,
+                num_compounds,
+                num_rules,
+                num_pairs,
+                num_rule_environments,
+                num_rule_environment_stats,
+            ) in cursor:
 
                 # The MySQL adapter returns a datetime object. The SQLite adapter
                 # returns a string. This bit of hack converts the datetime string
@@ -234,11 +259,23 @@ class MMPDatabase(object):
                     creation_date = creation_date.rstrip("Z")
                     creation_date = datetime.datetime.strptime(creation_date, "%Y-%m-%d %H:%M:%S.%f")
 
-                table_sizes = TableSizes(num_compounds, num_rules, num_pairs,
-                                         num_rule_environments, num_rule_environment_stats)
-                                         
-                self._dataset = MMPDataset(self, title, creation_date,
-                                           fragment_options, index_options, is_symmetric, table_sizes)
+                table_sizes = TableSizes(
+                    num_compounds,
+                    num_rules,
+                    num_pairs,
+                    num_rule_environments,
+                    num_rule_environment_stats,
+                )
+
+                self._dataset = MMPDataset(
+                    self,
+                    title,
+                    creation_date,
+                    fragment_options,
+                    index_options,
+                    is_symmetric,
+                    table_sizes,
+                )
                 break
             else:
                 raise AssertionError("Database missing dataset with id 1")
@@ -267,9 +304,16 @@ def _get_one_or_none(cursor):
 
 
 class MMPDataset(object):
-    def __init__(self, mmpa_db, title, creation_date,
-                 fragment_options_str, index_options_str,
-                 is_symmetric, table_sizes):
+    def __init__(
+        self,
+        mmpa_db,
+        title,
+        creation_date,
+        fragment_options_str,
+        index_options_str,
+        is_symmetric,
+        table_sizes,
+    ):
         self.mmpa_db = mmpa_db
         self.title = title
         self.creation_date = creation_date
@@ -289,21 +333,19 @@ class MMPDataset(object):
             return self.table_sizes
         cursor = self.get_cursor(cursor)
         return TableSizes(
-            num_compounds = self.get_num_compounds(cursor),
-            num_rules = self.get_num_rules(cursor),
-            num_pairs = self.get_num_pairs(cursor),
-            num_rule_environments = self.get_num_rule_environments(cursor),
-            num_rule_environment_stats = self.get_num_rule_environment_stats(cursor),
-            )
+            num_compounds=self.get_num_compounds(cursor),
+            num_rules=self.get_num_rules(cursor),
+            num_pairs=self.get_num_pairs(cursor),
+            num_rule_environments=self.get_num_rule_environments(cursor),
+            num_rule_environment_stats=self.get_num_rule_environment_stats(cursor),
+        )
 
     def get_property_name_rows(self, cursor=None):
-        c = self.mmpa_db.execute("SELECT id, name from property_name ORDER BY id",
-                                 cursor=cursor)
+        c = self.mmpa_db.execute("SELECT id, name from property_name ORDER BY id", cursor=cursor)
         return [PropertyNameRow(id, name) for (id, name) in c]
-    
+
     def get_property_names(self, cursor=None):
-        c = self.mmpa_db.execute("SELECT name from property_name ORDER BY id",
-                                 cursor=cursor)
+        c = self.mmpa_db.execute("SELECT name from property_name ORDER BY id", cursor=cursor)
         return [name for (name,) in c]
 
     def get_property_name_id(self, name, default=None):
@@ -312,7 +354,7 @@ class MMPDataset(object):
     def get_property_names_table(self, cursor=None):
         table = self._property_name_table
         if table is None:
-            table = OrderedDict()
+            table = {}
             for propname_row in self.get_property_name_rows(cursor):
                 table[propname_row.name] = propname_row.id
             self._property_name_table = table
@@ -322,37 +364,42 @@ class MMPDataset(object):
         return _get_one(self.mmpa_db.execute("SELECT count(*) from compound", cursor=cursor))
 
     def get_num_compound_properties(self, property_name_id, cursor=None):
-        return _get_one(self.mmpa_db.execute(
-            "SELECT count(*) from compound_property "
-            " WHERE property_name_id = ?",
-            (property_name_id,),
-            cursor=cursor))
+        return _get_one(
+            self.mmpa_db.execute(
+                "SELECT count(*) from compound_property " " WHERE property_name_id = ?",
+                (property_name_id,),
+                cursor=cursor,
+            )
+        )
 
     def get_num_rules(self, cursor=None):
         return _get_one(self.mmpa_db.execute("SELECT count(*) from rule", cursor=cursor))
-    
+
     def get_num_pairs(self, property_name_id=None, cursor=None):
         return _get_one(self.mmpa_db.execute("SELECT count(*) FROM pair", cursor=cursor))
 
     def get_num_rule_environments(self, cursor=None):
         return _get_one(self.mmpa_db.execute("SELECT count(*) from rule_environment", cursor=cursor))
-    
+
     def get_num_rule_environment_stats(self, cursor=None):
         return _get_one(self.mmpa_db.execute("SELECT count(*) from rule_environment_statistics", cursor=cursor))
-    
+
     def get_num_rule_smiles(self, cursor=None):
         return _get_one(self.mmpa_db.execute("SELECT count(*) from rule_smiles", cursor=cursor))
-    
+
     def get_num_constant_smiles(self, cursor=None):
         return _get_one(self.mmpa_db.execute("SELECT count(*) from constant_smiles", cursor=cursor))
-        
+
     def get_property_names_and_counts(self, cursor=None):
-        c = self.mmpa_db.execute("""
+        c = self.mmpa_db.execute(
+            """
 SELECT property_name.name, count(property_name_id)
   FROM compound_property, property_name
  WHERE compound_property.property_name_id = property_name.id
  GROUP BY property_name_id
- ORDER BY property_name.name""", cursor=cursor)
+ ORDER BY property_name.name""",
+            cursor=cursor,
+        )
         return list(c)
 
     def get_public_id_to_id_table(self, cursor=None):
@@ -366,22 +413,24 @@ SELECT property_name.name, count(property_name_id)
         if property_name_id is None:
             # Get the new id for the property name
             if table:
-                property_name_id = max(table.values())+1
+                property_name_id = max(table.values()) + 1
             else:
                 property_name_id = 0
             # Insert
             self.mmpa_db.execute(
                 "INSERT INTO property_name (id, name) VALUES (?, ?)",
-                (property_name_id, property_name), cursor=cursor)
+                (property_name_id, property_name),
+                cursor=cursor,
+            )
             # Add to my local cache
             self._property_name_table[property_name] = property_name_id
         return property_name_id
-    
+
     def get_fragment_options(self, cursor=None):
-        cursor = self.mmpa_db.execute("SELECT fragment_options FROM dataset WHERE id = 1", (),
-                                      cursor)
+        cursor = self.mmpa_db.execute("SELECT fragment_options FROM dataset WHERE id = 1", (), cursor)
         import json
         from . import fragment_types
+
         for (fragment_options,) in cursor:
             d = json.loads(fragment_options)
             # {"max_heavies": 100, "max_rotatable_bonds": 10,
@@ -389,71 +438,70 @@ SELECT property_name.name, count(property_name_id)
             #  "cut_smarts": "[#6+0;!$(*=,#[!#6])]!@!=!#[!#0;!#1;!$([CH2]);!$([CH3][CH2])]", "num_cuts": 3,
             #   "method": "dalke", "salt_remover": "<default>"
             return fragment_types.FragmentOptions(
-                max_heavies = d["max_heavies"],
-                max_rotatable_bonds = d["max_rotatable_bonds"],
-                rotatable_smarts = str(d["rotatable_smarts"]),  # otherwise it's unicode
-                cut_smarts = str(d["cut_smarts"]),   # otherwise it's unicode
-                num_cuts = d["num_cuts"],
-                salt_remover = d["salt_remover"],
-                method = d["method"],
-                min_heavies_per_const_frag = d["min_heavies_per_const_frag"]
-                )
+                max_heavies=d["max_heavies"],
+                max_rotatable_bonds=d["max_rotatable_bonds"],
+                rotatable_smarts=str(d["rotatable_smarts"]),  # otherwise it's unicode
+                cut_smarts=str(d["cut_smarts"]),  # otherwise it's unicode
+                num_cuts=d["num_cuts"],
+                salt_remover=d["salt_remover"],
+                method=d["method"],
+                min_heavies_per_const_frag=d["min_heavies_per_const_frag"],
+            )
         raise AssertionError("dataset 1 is supposed to exist")
 
     def get_rule_smiles_id(self, smiles, cursor=None):
-        c = self.mmpa_db.execute(
-            "SELECT id FROM rule_smiles WHERE smiles = ?",
-            (smiles,), cursor)
+        c = self.mmpa_db.execute("SELECT id FROM rule_smiles WHERE smiles = ?", (smiles,), cursor)
         return _get_one_or_none(c)
 
-    def find_rule_environments_for_transform(self, smiles_id, possible_env_fps, max_variable_size=9999,
-                                             cursor=None):
+    def find_rule_environments_for_transform(self, smiles_id, possible_env_fps, max_variable_size=9999, cursor=None):
         assert len(possible_env_fps) > 0, possible_env_fps
         cursor = self.mmpa_db.get_cursor(cursor)
 
-        test_fp_in = " OR ".join(("environment_fingerprint.fingerprint = ?",)*len(possible_env_fps))
-        
-        execute_args = (smiles_id, ) + tuple(possible_env_fps) + (max_variable_size,)
+        test_fp_in = " OR ".join(("environment_fingerprint.fingerprint = ?",) * len(possible_env_fps))
+
+        execute_args = (smiles_id,) + tuple(possible_env_fps) + (max_variable_size,)
 
         # Find the rule environments which use this SMILES on the LHS
-        sql = ("SELECT rule_environment.rule_id, rule_environment.id, rule_smiles.smiles, 0\n"  # 0 = forward
-               "  FROM rule_environment, rule, environment_fingerprint, rule_smiles\n"
-               " WHERE rule_environment.rule_id = rule.id\n"
-               "   AND rule.from_smiles_id = ?\n"  # NOTE: *from*_smiles_id
-               "   AND rule_environment.environment_fingerprint_id = environment_fingerprint.id\n"
-               "   AND (" + test_fp_in + ")\n"
-               "   AND rule.to_smiles_id = rule_smiles.id"  # NOTE: *to*_smiles_id
-               "   AND rule_smiles.num_heavies <= ?\n"
-               )
+        sql = (
+            "SELECT rule_environment.rule_id, rule_environment.id, rule_smiles.smiles, 0\n"  # 0 = forward
+            "  FROM rule_environment, rule, environment_fingerprint, rule_smiles\n"
+            " WHERE rule_environment.rule_id = rule.id\n"
+            "   AND rule.from_smiles_id = ?\n"  # NOTE: *from*_smiles_id
+            "   AND rule_environment.environment_fingerprint_id = environment_fingerprint.id\n"
+            "   AND (" + test_fp_in + ")\n"
+            "   AND rule.to_smiles_id = rule_smiles.id"  # NOTE: *to*_smiles_id
+            "   AND rule_smiles.num_heavies <= ?\n"
+        )
         if not self.is_symmetric:
             sql += (
-               "UNION\n"
-               "SELECT rule_environment.rule_id, rule_environment.id, rule_smiles.smiles, 1\n"  # 1 = reverse
-               "  FROM rule_environment, rule, environment_fingerprint, rule_smiles\n"
-               " WHERE rule_environment.rule_id = rule.id\n"
-               "   AND rule.to_smiles_id = ?\n"   # NOTE: *to*_smiles_id
-               "   AND rule_environment.environment_fingerprint_id = environment_fingerprint.id\n"
-               "   AND (" + test_fp_in + ")\n"
-               "   AND rule.from_smiles_id = rule_smiles.id\n"  # NOTE: *from*_smiles_id
-               "   AND rule_smiles.num_heavies <= ?"
-               )
+                "UNION\n"
+                "SELECT rule_environment.rule_id, rule_environment.id, rule_smiles.smiles, 1\n"  # 1 = reverse
+                "  FROM rule_environment, rule, environment_fingerprint, rule_smiles\n"
+                " WHERE rule_environment.rule_id = rule.id\n"
+                "   AND rule.to_smiles_id = ?\n"  # NOTE: *to*_smiles_id
+                "   AND rule_environment.environment_fingerprint_id = environment_fingerprint.id\n"
+                "   AND (" + test_fp_in + ")\n"
+                "   AND rule.from_smiles_id = rule_smiles.id\n"  # NOTE: *from*_smiles_id
+                "   AND rule_smiles.num_heavies <= ?"
+            )
             execute_args = execute_args + execute_args  # Double the args, one for each direction
 
-        #print("SQL", sql, execute_args)
+        # print("SQL", sql, execute_args)
         for x in self.mmpa_db.execute(sql, execute_args, cursor):
             yield x
-        
+
     def get_fingerprint_ids(self, fingerprints, cursor=None):
         fpids = set()
         if fingerprints:
             in_term = "', '".join(fingerprints)
-            c = self.mmpa_db.execute("SELECT id FROM environment_fingerprint "
-                                     "WHERE fingerprint IN ('""" + in_term + "')",
-                                     cursor=cursor)
+            c = self.mmpa_db.execute(
+                "SELECT id FROM environment_fingerprint " "WHERE fingerprint IN ('" "" + in_term + "')",
+                cursor=cursor,
+            )
             fpids.update(fpid for (fpid,) in c)
-            
+
         return fpids
-            
+
     def iter_selected_property_rules(self, from_smiles, to_smiles, property_id, cursor=None):
         assert from_smiles is not None
         assert to_smiles is not None
@@ -474,7 +522,7 @@ SELECT rule.id, 0, from_smiles.smiles, from_smiles.num_heavies, to_smiles.smiles
    AND rule_environment_statistics.property_name_id = ?
         """
         args = (from_smiles, to_smiles, property_id)
-        
+
         if not self.is_symmetric:
             sql += """\
 UNION
@@ -501,19 +549,63 @@ SELECT rule.id, 1, to_smiles.smiles, to_smiles.num_heavies, from_smiles.smiles, 
         # If this query is slow, and the indices are present, then you might
         # try running "analyze" in the SQLite terminal.
         c = self.mmpa_db.execute(sql, args, cursor=cursor)
-        for (rule_id, is_reversed, from_smiles, from_num_heavies, to_smiles, to_num_heavies,
-                 rule_environment_id, radius, fingerprint_id, fingerprint,
-                 rule_environment_statistics_id, count, avg, std, kurtosis, skewness, min, q1, median, q3, max, paired_t, p_value) in c:
+        for (
+            rule_id,
+            is_reversed,
+            from_smiles,
+            from_num_heavies,
+            to_smiles,
+            to_num_heavies,
+            rule_environment_id,
+            radius,
+            fingerprint_id,
+            fingerprint,
+            rule_environment_statistics_id,
+            count,
+            avg,
+            std,
+            kurtosis,
+            skewness,
+            min,
+            q1,
+            median,
+            q3,
+            max,
+            paired_t,
+            p_value,
+        ) in c:
             yield PropertyRule(
-                rule_id, is_reversed, from_smiles, from_num_heavies, to_smiles, to_num_heavies,
-                rule_environment_id, radius, fingerprint_id, fingerprint,
-                rule_environment_statistics_id, count, avg, std, kurtosis, skewness, min, q1, median, q3, max, paired_t, p_value)
-        
+                rule_id,
+                is_reversed,
+                from_smiles,
+                from_num_heavies,
+                to_smiles,
+                to_num_heavies,
+                rule_environment_id,
+                radius,
+                fingerprint_id,
+                fingerprint,
+                rule_environment_statistics_id,
+                count,
+                avg,
+                std,
+                kurtosis,
+                skewness,
+                min,
+                q1,
+                median,
+                q3,
+                max,
+                paired_t,
+                p_value,
+            )
+
     def get_property_values(self, property_name_id, cursor=None):
         c = self.mmpa_db.execute(
-            "SELECT compound_id, value FROM compound_property "
-            "   WHERE property_name_id = ?",
-            (property_name_id,), cursor=cursor)
+            "SELECT compound_id, value FROM compound_property " "   WHERE property_name_id = ?",
+            (property_name_id,),
+            cursor=cursor,
+        )
         return dict(c)
 
     def get_property_rule(self, property_name_id, rule_environment_id, is_reversed, cursor=None):
@@ -531,16 +623,44 @@ SELECT rule.id, 1, to_smiles.smiles, to_smiles.num_heavies, from_smiles.smiles, 
             "   AND rule_environment.environment_fingerprint_id = environment_fingerprint.id "
             "   AND rule.from_smiles_id = from_smiles.id "
             "   AND rule.to_smiles_id = to_smiles.id ",
-            (rule_environment_id, rule_environment_id, property_name_id), cursor=cursor)
+            (rule_environment_id, rule_environment_id, property_name_id),
+            cursor=cursor,
+        )
         rows = list(c)
         if not rows:
             # This can happen if the rule environment exists but there are no pairs for
             # the given property
             return None
-        assert len(rows) == 1, (property_name_id, rule_environment_id, is_reversed, rows)
-        
-        rule_id, from_smiles, from_num_heavies, to_smiles, to_num_heavies, radius, fingerprint_id, fingerprint, \
-             rule_environment_statistics_id, count, avg, std, kurtosis, skewness, min, q1, median, q3, max, paired_t, p_value = rows[0]
+        assert len(rows) == 1, (
+            property_name_id,
+            rule_environment_id,
+            is_reversed,
+            rows,
+        )
+
+        (
+            rule_id,
+            from_smiles,
+            from_num_heavies,
+            to_smiles,
+            to_num_heavies,
+            radius,
+            fingerprint_id,
+            fingerprint,
+            rule_environment_statistics_id,
+            count,
+            avg,
+            std,
+            kurtosis,
+            skewness,
+            min,
+            q1,
+            median,
+            q3,
+            max,
+            paired_t,
+            p_value,
+        ) = rows[0]
         if is_reversed:
             from_smiles, to_smiles = to_smiles, from_smiles
             from_num_heavies, to_num_heavies = to_num_heavies, from_num_heavies
@@ -548,17 +668,38 @@ SELECT rule.id, 1, to_smiles.smiles, to_smiles.num_heavies, from_smiles.smiles, 
             min, q1, median, q3, max = -max, -q3, -median, -q1, -min
 
         return PropertyRule(
-            rule_id, is_reversed, from_smiles, from_num_heavies, to_smiles, to_num_heavies,
-            rule_environment_id, radius, fingerprint_id, fingerprint,
-            rule_environment_statistics_id, count, avg, std, kurtosis, skewness, min, q1, median, q3, max, paired_t, p_value)
+            rule_id,
+            is_reversed,
+            from_smiles,
+            from_num_heavies,
+            to_smiles,
+            to_num_heavies,
+            rule_environment_id,
+            radius,
+            fingerprint_id,
+            fingerprint,
+            rule_environment_statistics_id,
+            count,
+            avg,
+            std,
+            kurtosis,
+            skewness,
+            min,
+            q1,
+            median,
+            q3,
+            max,
+            paired_t,
+            p_value,
+        )
 
     def get_rule_environment_statistics_mapping(self, property_name_ids=None, cursor=None):
         if property_name_ids is None:
             # Get all of them
             c = self.mmpa_db.execute(
-                "SELECT rule_environment_id, property_name_id, id "
-                "  FROM rule_environment_statistics",
-                cursor=cursor)
+                "SELECT rule_environment_id, property_name_id, id " "  FROM rule_environment_statistics",
+                cursor=cursor,
+            )
         elif not property_name_ids:
             # Get none of them
             return {}
@@ -569,77 +710,136 @@ SELECT rule.id, 1, to_smiles.smiles, to_smiles.num_heavies, from_smiles.smiles, 
                 "SELECT rule_environment_id, property_name_id, id "
                 "  FROM rule_environment_statistics "
                 " WHERE property_name_id IN (%s)" % (ids_str,),
-                cursor=cursor)
-            
+                cursor=cursor,
+            )
+
         d = {}
         for rule_environment_id, property_name_id, rule_environment_statistics_id in c:
             d[rule_environment_id, property_name_id] = rule_environment_statistics_id
         return d
 
-    def add_rule_environment_statistics(
-            self, rule_environment_id, property_name_id, statistics, cursor=None):
-        count, avg, std, kurtosis, skewness, min, q1, median, q3, max, paired_t, p_value = statistics
+    def add_rule_environment_statistics(self, rule_environment_id, property_name_id, statistics, cursor=None):
+        (
+            count,
+            avg,
+            std,
+            kurtosis,
+            skewness,
+            min,
+            q1,
+            median,
+            q3,
+            max,
+            paired_t,
+            p_value,
+        ) = statistics
         self.mmpa_db.execute(
             "INSERT INTO rule_environment_statistics "
             "  (rule_environment_id, property_name_id, count, avg, std, kurtosis, "
             "       skewness, min, q1, median, q3, max, paired_t, p_value) "
             "  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            (rule_environment_id, property_name_id, count, avg, std, kurtosis,
-             skewness, min, q1, median, q3, max, paired_t, p_value),
-            cursor=cursor)
+            (
+                rule_environment_id,
+                property_name_id,
+                count,
+                avg,
+                std,
+                kurtosis,
+                skewness,
+                min,
+                q1,
+                median,
+                q3,
+                max,
+                paired_t,
+                p_value,
+            ),
+            cursor=cursor,
+        )
 
-    def update_rule_environment_statistics(
-            self, rule_environment_statistics_id, statistics, cursor=None):
-        count, avg, std, kurtosis, skewness, min, q1, median, q3, max, paired_t, p_value = statistics
+    def update_rule_environment_statistics(self, rule_environment_statistics_id, statistics, cursor=None):
+        (
+            count,
+            avg,
+            std,
+            kurtosis,
+            skewness,
+            min,
+            q1,
+            median,
+            q3,
+            max,
+            paired_t,
+            p_value,
+        ) = statistics
         self.mmpa_db.execute(
             "UPDATE rule_environment_statistics "
             " SET count=?, avg=?, std=?, kurtosis=?, skewness=?, "
             "     min=?, q1=?, median=?, q3=?, max=?, paired_t=?, p_value=? "
             " WHERE id = ?",
-            (count, avg, std, kurtosis, skewness,
-             min, q1, median, q3, max, paired_t, p_value,
-             rule_environment_statistics_id),
-            cursor=cursor)
+            (
+                count,
+                avg,
+                std,
+                kurtosis,
+                skewness,
+                min,
+                q1,
+                median,
+                q3,
+                max,
+                paired_t,
+                p_value,
+                rule_environment_statistics_id,
+            ),
+            cursor=cursor,
+        )
 
     def delete_property_name_id(self, property_name_id, cursor=None):
         c = self.mmpa_db.get_cursor(cursor)
-        self.mmpa_db.execute("DELETE FROM property_name "
-                             " WHERE id = ?",
-                             (property_name_id,), cursor=c)
-        self.mmpa_db.execute("DELETE FROM compound_property "
-                             " WHERE property_name_id = ?",
-                             (property_name_id,), cursor=c)
-        self.mmpa_db.execute("DELETE FROM rule_environment_statistics "
-                             " WHERE property_name_id = ?",
-                             (property_name_id,), cursor=c)
-        
+        self.mmpa_db.execute("DELETE FROM property_name " " WHERE id = ?", (property_name_id,), cursor=c)
+        self.mmpa_db.execute(
+            "DELETE FROM compound_property " " WHERE property_name_id = ?",
+            (property_name_id,),
+            cursor=c,
+        )
+        self.mmpa_db.execute(
+            "DELETE FROM rule_environment_statistics " " WHERE property_name_id = ?",
+            (property_name_id,),
+            cursor=c,
+        )
+
     def delete_compound_properties(self, compound_properties_to_delete, cursor=None):
         to_delete = sorted(compound_properties_to_delete)
         cursor = self.mmpa_db.get_cursor(cursor)
-        cursor.executemany("DELETE FROM compound_property "
-                           " WHERE compound_id = ? AND property_name_id = ?",
-                           to_delete)
-        
+        cursor.executemany(
+            "DELETE FROM compound_property " " WHERE compound_id = ? AND property_name_id = ?",
+            to_delete,
+        )
+
     def delete_rule_environment_statistics(self, ids_to_delete, cursor=None):
         ids_to_delete = [(id,) for id in sorted(ids_to_delete)]
         cursor = self.mmpa_db.get_cursor(cursor)
         while ids_to_delete:
             # Process 10,000 at a time because I don't know how many
             # I can really pass to it. (XXX Is this really a problem?)
-            cursor.executemany("DELETE FROM rule_environment_statistics "
-                               " WHERE id = ?",
-                               ids_to_delete[:10000])
+            cursor.executemany(
+                "DELETE FROM rule_environment_statistics " " WHERE id = ?",
+                ids_to_delete[:10000],
+            )
             del ids_to_delete[:10000]
 
     def iter_pairs(self, cursor=None):
-        c = self.mmpa_db.execute("""
+        c = self.mmpa_db.execute(
+            """
 SELECT id, rule_environment_id, compound1_id, compound2_id, constant_id
   FROM pair
  ORDER BY rule_environment_id""",
-                                cursor=cursor)
+            cursor=cursor,
+        )
         for id, rule_environment_id, compound1_id, compound2_id, constant_id in c:
             yield Pair(id, rule_environment_id, compound1_id, compound2_id, constant_id)
-    
+
     def get_property_rule_pairs(self, rule, property_name_id, cursor=None):
         sql = """
 SELECT pair.id,
@@ -659,35 +859,72 @@ SELECT pair.id,
    AND rhs_property.property_name_id = ?
         """
         c = self.mmpa_db.execute(
-            sql, (rule.rule_environment_id, property_name_id, property_name_id),
-            cursor=cursor)
+            sql,
+            (rule.rule_environment_id, property_name_id, property_name_id),
+            cursor=cursor,
+        )
 
-        for (pair_id, lhs_smiles, rhs_smiles, lhs_public_id, rhs_public_id,
-             lhs_value, rhs_value, delta) in c:
+        for (
+            pair_id,
+            lhs_smiles,
+            rhs_smiles,
+            lhs_public_id,
+            rhs_public_id,
+            lhs_value,
+            rhs_value,
+            delta,
+        ) in c:
             if rule.is_reversed:
                 yield PropertyRulePair(
-                    rule, pair_id, rhs_smiles, lhs_smiles, rhs_public_id, lhs_public_id,
-                    rhs_value, lhs_value, -delta)
+                    rule,
+                    pair_id,
+                    rhs_smiles,
+                    lhs_smiles,
+                    rhs_public_id,
+                    lhs_public_id,
+                    rhs_value,
+                    lhs_value,
+                    -delta,
+                )
             else:
                 yield PropertyRulePair(
-                    rule, pair_id, lhs_smiles, rhs_smiles, lhs_public_id, rhs_public_id,
-                    lhs_value, rhs_value, delta)
+                    rule,
+                    pair_id,
+                    lhs_smiles,
+                    rhs_smiles,
+                    lhs_public_id,
+                    rhs_public_id,
+                    lhs_value,
+                    rhs_value,
+                    delta,
+                )
 
     def iter_compounds(self, cursor=None):
         c = self.mmpa_db.execute(
             "SELECT id, public_id, input_smiles, clean_smiles, clean_num_heavies "
             "  FROM compound "
-            " ORDER BY public_id")
+            " ORDER BY public_id"
+        )
         for row in c:
             yield CompoundRow(*row)
 
 
 class PropertyRulePair(object):
-    def __init__(self, rule, pair_id, lhs_smiles, rhs_smiles, lhs_public_id, rhs_public_id,
-                 lhs_value, rhs_value, delta):
+    def __init__(
+        self,
+        rule,
+        pair_id,
+        lhs_smiles,
+        rhs_smiles,
+        lhs_public_id,
+        rhs_public_id,
+        lhs_value,
+        rhs_value,
+        delta,
+    ):
         self.__dict__.update(rule.to_dict())  # Incorporate all of the rule fields
         self.rule = rule
-        
+
         self.pair_id = pair_id
         self.lhs_smiles = lhs_smiles
         self.rhs_smiles = rhs_smiles
@@ -696,23 +933,68 @@ class PropertyRulePair(object):
         self.lhs_value = lhs_value
         self.rhs_value = rhs_value
         self.delta = delta
-    
+
 
 class PropertyRule(object):
     # Note: analysis_algorithms.check_eval_names() uses the following to
     # check if the passed-in eval'ed code contains unexpected names.
-    __slots__ = ("rule_id", "is_reversed", "from_smiles", "from_num_heavies", "to_smiles", "to_num_heavies", "smirks",
-                 "rule_environment_id", "radius", "fingerprint_id", "fingerprint",
-                 "rule_environment_statistics_id", "count", "avg", "std", "kurtosis", "skewness", "min", "q1", "median", "q3", "max",
-                 "paired_t", "p_value",
-                 "is_bidirectional")
-    
-    def __init__(self, rule_id, is_reversed, from_smiles, from_num_heavies, to_smiles, to_num_heavies,
-                 rule_environment_id, radius, fingerprint_id, fingerprint,
-                 rule_environment_statistics_id, count, avg, std, kurtosis, skewness, min, q1, median, q3, max, paired_t, p_value):
+    __slots__ = (
+        "rule_id",
+        "is_reversed",
+        "from_smiles",
+        "from_num_heavies",
+        "to_smiles",
+        "to_num_heavies",
+        "smirks",
+        "rule_environment_id",
+        "radius",
+        "fingerprint_id",
+        "fingerprint",
+        "rule_environment_statistics_id",
+        "count",
+        "avg",
+        "std",
+        "kurtosis",
+        "skewness",
+        "min",
+        "q1",
+        "median",
+        "q3",
+        "max",
+        "paired_t",
+        "p_value",
+        "is_bidirectional",
+    )
+
+    def __init__(
+        self,
+        rule_id,
+        is_reversed,
+        from_smiles,
+        from_num_heavies,
+        to_smiles,
+        to_num_heavies,
+        rule_environment_id,
+        radius,
+        fingerprint_id,
+        fingerprint,
+        rule_environment_statistics_id,
+        count,
+        avg,
+        std,
+        kurtosis,
+        skewness,
+        min,
+        q1,
+        median,
+        q3,
+        max,
+        paired_t,
+        p_value,
+    ):
         self.rule_id = rule_id
         self.is_reversed = is_reversed
-        
+
         self.from_smiles = from_smiles
         self.from_num_heavies = from_num_heavies
         self.to_smiles = to_smiles
@@ -723,7 +1005,7 @@ class PropertyRule(object):
         self.radius = radius
         self.fingerprint_id = fingerprint_id
         self.fingerprint = fingerprint
-        
+
         self.rule_environment_statistics_id = rule_environment_statistics_id
         self.count = count
         self.avg = avg
@@ -743,18 +1025,15 @@ class PropertyRule(object):
         return {
             "rule_id": self.rule_id,
             "is_reversed": self.is_reversed,
-
             "from_smiles": self.from_smiles,
             "from_num_heavies": self.from_num_heavies,
             "to_smiles": self.to_smiles,
             "to_num_heavies": self.to_num_heavies,
             "smirks": self.smirks,
-
             "rule_environment_id": self.rule_environment_id,
             "radius": self.radius,
             "fingerprint": self.fingerprint,
-
-            "rule_environment_statistics_id": self.rule_environment_statistics_id, 
+            "rule_environment_statistics_id": self.rule_environment_statistics_id,
             "count": self.count,
             "avg": self.avg,
             "std": self.std,
@@ -767,9 +1046,8 @@ class PropertyRule(object):
             "max": self.max,
             "paired_t": self.paired_t,
             "p_value": self.p_value,
-
             "is_bidirectional": self.is_bidirectional,
-            }
+        }
 
 
 class CompoundRow(object):

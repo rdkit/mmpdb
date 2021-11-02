@@ -1,13 +1,16 @@
 import unittest
 import support
 
+
 def list_main(args):
     args = ("--quiet", "list") + tuple(args)
     return support.expect_pass(args)
 
+
 def list_main_fail(args):
     args = ("--quiet", "list") + tuple(args)
     return support.expect_fail(args).stderr
+
 
 _header_fields = """
 Name         #cmpds #rules #pairs #envs  #stats  |- Title -| Properties
@@ -16,6 +19,7 @@ Name         #cmpds #rules #pairs #envs  #stats  |- Title -| Properties
 _expected_fields = """\
 test_data_2019.mmpdb      9     47    342    321    533  MMPs from 'test_data.fragments'                                    MW MP
 """.split()
+
 
 class TestList(unittest.TestCase):
     def _check_header(self, line):
@@ -27,9 +31,9 @@ class TestList(unittest.TestCase):
             elif field.endswith("-|"):
                 field = "-|"
             fields.append(field)
-        
+
         self.assertEqual(fields, _header_fields)
-    
+
     def _check_output(self, output):
         lines = output.splitlines()
         self._check_header(lines[0])
@@ -39,7 +43,7 @@ class TestList(unittest.TestCase):
                 n += 1
                 self.assertEqual(line.split(), _expected_fields)
         return n
-        
+
     def test_no_args(self):
         result = list_main([])
         n = self._check_output(result.output)
@@ -67,7 +71,7 @@ class TestList(unittest.TestCase):
 
     def test_all(self):
         self._test_all("--all")
-        
+
     def test_a(self):
         self._test_all("-a")
 
@@ -104,7 +108,7 @@ class TestList(unittest.TestCase):
             num_checked += 1
 
         self.assertEqual(num_checked, 16)
-                
+
 
 if __name__ == "__main__":
     unittest.main()

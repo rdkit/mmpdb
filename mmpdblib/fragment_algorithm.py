@@ -51,18 +51,22 @@ class EnumerationLabel(object):
 #####
 
 # TODO: Move some of these into smiles_syntax.py
-    
+
 # Extract just the atom terms (no closures)
-_atom_pat = re.compile(r"""
+_atom_pat = re.compile(
+    r"""
 (
  Cl? |
  Br? |
  [NOSPFIbcnosp] |
  \[[^]]*\]
 )
-""", re.X)
+""",
+    re.X,
+)
 
-_atom_and_dot_disconnect_pat = re.compile(r"""
+_atom_and_dot_disconnect_pat = re.compile(
+    r"""
 (
  Cl? |
  Br? |
@@ -71,7 +75,9 @@ _atom_and_dot_disconnect_pat = re.compile(r"""
  \* |
  \.
 )
-""", re.X)
+""",
+    re.X,
+)
 
 
 def count_num_heavies(mol):
@@ -84,7 +90,7 @@ def cansmiles(mol):
 
 def get_atom_order_in_smiles(mol):
     s = mol.GetProp("_smilesAtomOutputOrder")
-    #print("Decode", s)
+    # print("Decode", s)
     positions = []
     assert s[0] == "[", s
     i = 1
@@ -98,7 +104,7 @@ def get_atom_order_in_smiles(mol):
         assert order.isdigit(), (s, i, j, order)
         i = j + 1
         positions.append(int(order))
-    
+
     assert len(positions) == mol.GetNumAtoms(), (s, positions, mol.GetNumAtoms())
     assert len(set(positions)) == len(positions), positions
     return positions
@@ -108,36 +114,35 @@ def fragment_on_atom_pairs(mol, atom_pairs):
     bonds = []
     bond_dirs = {}
     dummy_labels = []
-    
+
     label = 2
     for a1, a2 in atom_pairs:
         bond = mol.GetBondBetweenAtoms(a1, a2)
         if bond.IsInRing():
-            raise ValueError("Cannot fragment a ring bond (between %d and %d)"
-                             % (a1, a2))
-            
+            raise ValueError("Cannot fragment a ring bond (between %d and %d)" % (a1, a2))
+
         bonds.append(bond.GetIdx())
         bond_dir = bond.GetBondDir()
-        #print("bond is", bond_dir)
+        # print("bond is", bond_dir)
 
         if bond.GetBeginAtomIdx() == a1:
-            dummy_labels.append( (label, label+1) )
+            dummy_labels.append((label, label + 1))
             if bond_dir == Chem.BondDir.ENDDOWNRIGHT:
-                bond_dirs[(a1, label+1)] = Chem.BondDir.ENDDOWNRIGHT
-                bond_dirs[(a2, label  )] = Chem.BondDir.ENDUPRIGHT
+                bond_dirs[(a1, label + 1)] = Chem.BondDir.ENDDOWNRIGHT
+                bond_dirs[(a2, label)] = Chem.BondDir.ENDUPRIGHT
             elif bond_dir == Chem.BondDir.ENDUPRIGHT:
-                bond_dirs[(a1, label+1)] = Chem.BondDir.ENDUPRIGHT
-                bond_dirs[(a2, label  )] = Chem.BondDir.ENDDOWNRIGHT
+                bond_dirs[(a1, label + 1)] = Chem.BondDir.ENDUPRIGHT
+                bond_dirs[(a2, label)] = Chem.BondDir.ENDDOWNRIGHT
         else:
             # swapped
-            dummy_labels.append( (label+1, label) )
+            dummy_labels.append((label + 1, label))
             if bond_dir == Chem.BondDir.ENDUPRIGHT:
-                bond_dirs[(a1, label+1)] = Chem.BondDir.ENDDOWNRIGHT
-                bond_dirs[(a2, label  )] = Chem.BondDir.ENDUPRIGHT
+                bond_dirs[(a1, label + 1)] = Chem.BondDir.ENDDOWNRIGHT
+                bond_dirs[(a2, label)] = Chem.BondDir.ENDUPRIGHT
             elif bond_dir == Chem.BondDir.ENDDOWNRIGHT:
-                bond_dirs[(a1, label+1)] = Chem.BondDir.ENDUPRIGHT
-                bond_dirs[(a2, label  )] = Chem.BondDir.ENDDOWNRIGHT
-        
+                bond_dirs[(a1, label + 1)] = Chem.BondDir.ENDUPRIGHT
+                bond_dirs[(a2, label)] = Chem.BondDir.ENDDOWNRIGHT
+
         label += 2
 
     ## print("bond_dirs", bond_dirs)
@@ -156,21 +161,21 @@ def fragment_on_atom_pairs(mol, atom_pairs):
 
             for bond in atom.GetBonds():
                 other_atom_id = bond.GetOtherAtomIdx(atom.GetIdx())
-                #print("look for", (other_atom_id, label))
-                bond_dir = bond_dirs.get( (other_atom_id, label), None)
-                #print("set to", bond_dir)
+                # print("look for", (other_atom_id, label))
+                bond_dir = bond_dirs.get((other_atom_id, label), None)
+                # print("set to", bond_dir)
                 if bond_dir is not None:
                     bond.SetBondDir(bond_dir)
                 break
             else:
                 raise AssertionError
-    
+
     other_atom_table = {}
     for a1, a2 in dummy_pairs:
         other_atom_table[a1] = a2
         other_atom_table[a2] = a1
-    
-    return fragmented_mol, other_atom_table  #dummy_pairs
+
+    return fragmented_mol, other_atom_table  # dummy_pairs
 
 
 def get_num_heavies_from_smiles(smiles):
@@ -197,7 +202,7 @@ def get_component_atom_symbols(smiles):
             idx += 1
     components.append(component)
     return components
-    
+
 
 ## def powerset(iterable):
 ##     "powerset([1,2,3]) --> () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)"
@@ -211,12 +216,13 @@ def get_component_atom_symbols(smiles):
 # because that does not identify ring stereocenters.
 # The following is from Code/GraphMol/Chirality.cpp:isAtomPotentialChiralCenter.
 
+
 def is_potential_chiral_center(atom, atom_ranks):
     d = atom.GetTotalDegree()
     if d not in (3, 4):
         # Only support tetrahedral chirality
         return False
-    
+
     seen = set()
     atom_idx = atom.GetIdx()
     for bond in atom.GetBonds():
@@ -236,7 +242,7 @@ def is_potential_chiral_center(atom, atom_ranks):
     if num_neighbors < 3:
         # Not a stereocenter. Might even have 2 hydrogens.
         return False
-    
+
     # 3 real neighbors. If there's a hydrogen, accept it.
     if atom.GetTotalNumHs() == 1:
         return True
@@ -249,8 +255,7 @@ def is_potential_chiral_center(atom, atom_ranks):
     return False
 
 
-CHIRAL_TAGS = (Chem.ChiralType.CHI_TETRAHEDRAL_CW,
-               Chem.ChiralType.CHI_TETRAHEDRAL_CCW)
+CHIRAL_TAGS = (Chem.ChiralType.CHI_TETRAHEDRAL_CW, Chem.ChiralType.CHI_TETRAHEDRAL_CCW)
 
 
 def get_chiral_flags(mol, atom_ranks):
@@ -282,7 +287,7 @@ def replace_wildcard_with_H(smiles):
         smiles_with_H = smiles.replace("*", "[H]")
     else:
         raise AssertionError("Could not find the '*' atom")
-        
+
     new_smiles = Chem.CanonSmiles(smiles_with_H)
     if len(_H_cache) > 10000:
         _H_cache.clear()
@@ -299,13 +304,13 @@ def make_single_cut(mol, atom_pair, chiral_flags, fragment_filter):
     a1, a2 = num_atoms - 1, num_atoms - 2
     assert fragmented_mol.GetAtomWithIdx(a1).GetAtomicNum() == 0
     assert fragmented_mol.GetAtomWithIdx(a2).GetAtomicNum() == 0
-    
+
     frag1_smiles = Chem.MolFragmentToSmiles(fragmented_mol, frag1_indices, isomericSmiles=True)
     frag2_smiles = Chem.MolFragmentToSmiles(fragmented_mol, frag2_indices, isomericSmiles=True)
-    
+
     frag1_num_atoms = get_num_heavies_from_smiles(frag1_smiles)
     frag2_num_atoms = get_num_heavies_from_smiles(frag2_smiles)
-    
+
     # Determine the symmetry of both parts
     fragmented_mol.UpdatePropertyCache(strict=False)  # XXX magic; without it I get a RuntimeError
 
@@ -317,7 +322,7 @@ def make_single_cut(mol, atom_pair, chiral_flags, fragment_filter):
     # Landrum, on 2016-10-11 05:39:12 titled "identify chiral atoms which
     # became achiral after fragmenting".
     Chem.AssignStereochemistry(fragmented_mol, cleanIt=True, force=True)
-    
+
     #   "getNumImplicitHs() called without preceding call to calcImplicitValence()"
     new_atom_ranks = Chem.CanonicalRankAtoms(fragmented_mol, breakTies=False)
     ## print("new_atom_ranks:", list(new_atom_ranks))
@@ -330,8 +335,7 @@ def make_single_cut(mol, atom_pair, chiral_flags, fragment_filter):
         ## print("new_chiral_flags", len(new_chiral_flags), new_chiral_flags)
 
         frag_indices_without_wildcard = [a for a in frag1_indices if a < a2]
-        chiral_indices = get_new_stereocenter_indices(
-            frag_indices_without_wildcard, chiral_flags, new_chiral_flags)
+        chiral_indices = get_new_stereocenter_indices(frag_indices_without_wildcard, chiral_flags, new_chiral_flags)
         up_enumeration = set()
         for chiral_assignment in chiral_enumerate(chiral_indices):
             for (atom_index, chiral_tag) in chiral_assignment:
@@ -341,36 +345,80 @@ def make_single_cut(mol, atom_pair, chiral_flags, fragment_filter):
         up_enumerations.append(up_enumeration)
 
     frag1_up_enumerations, frag2_up_enumerations = up_enumerations
-   
+
     # fragment 1 is the constant part and 2 is variable.
-    for ((constant_num_atoms, constant_smiles, constant_up_enumerations,
-          variable_num_atoms, variable_smiles, variable_up_enumerations)) in (
-              (frag1_num_atoms, frag1_smiles, frag1_up_enumerations, frag2_num_atoms, frag2_smiles, frag2_up_enumerations),
-              (frag2_num_atoms, frag2_smiles, frag2_up_enumerations, frag1_num_atoms, frag1_smiles, frag1_up_enumerations),
-        ):
+    for (
+        constant_num_atoms,
+        constant_smiles,
+        constant_up_enumerations,
+        variable_num_atoms,
+        variable_smiles,
+        variable_up_enumerations,
+    ) in (
+        (
+            frag1_num_atoms,
+            frag1_smiles,
+            frag1_up_enumerations,
+            frag2_num_atoms,
+            frag2_smiles,
+            frag2_up_enumerations,
+        ),
+        (
+            frag2_num_atoms,
+            frag2_smiles,
+            frag2_up_enumerations,
+            frag1_num_atoms,
+            frag1_smiles,
+            frag1_up_enumerations,
+        ),
+    ):
 
         if constant_num_atoms < fragment_filter.min_heavies_per_const_frag:
             continue
-        
+
         constant_smiles_with_H = replace_wildcard_with_H(constant_smiles)
-        yield Fragmentation(1, EnumerationLabel.NO_ENUMERATION,
-                            variable_num_atoms, "1", variable_smiles,
-                            "0",
-                            constant_num_atoms, "1", constant_smiles, constant_smiles_with_H)
+        yield Fragmentation(
+            1,
+            EnumerationLabel.NO_ENUMERATION,
+            variable_num_atoms,
+            "1",
+            variable_smiles,
+            "0",
+            constant_num_atoms,
+            "1",
+            constant_smiles,
+            constant_smiles_with_H,
+        )
 
         # up-enumeration in the constant part
         for constant_up_smiles in constant_up_enumerations:
-            yield Fragmentation(1, EnumerationLabel.CONSTANT_UP_ENUMERATION,
-                                variable_num_atoms, "1", variable_smiles,
-                                "0",
-                                constant_num_atoms, "1", constant_up_smiles, replace_wildcard_with_H(constant_up_smiles))
-            
+            yield Fragmentation(
+                1,
+                EnumerationLabel.CONSTANT_UP_ENUMERATION,
+                variable_num_atoms,
+                "1",
+                variable_smiles,
+                "0",
+                constant_num_atoms,
+                "1",
+                constant_up_smiles,
+                replace_wildcard_with_H(constant_up_smiles),
+            )
+
         # up-enumeration in the variable part
         for variable_up_smiles in variable_up_enumerations:
-            yield Fragmentation(1, EnumerationLabel.VARIABLE_UP_ENUMERATION,
-                                variable_num_atoms, "1", variable_up_smiles,
-                                "0",
-                                constant_num_atoms, "1", constant_up_smiles, constant_smiles_with_H)
+            yield Fragmentation(
+                1,
+                EnumerationLabel.VARIABLE_UP_ENUMERATION,
+                variable_num_atoms,
+                "1",
+                variable_up_smiles,
+                "0",
+                constant_num_atoms,
+                "1",
+                constant_up_smiles,
+                constant_smiles_with_H,
+            )
 
 
 def _get_bonds_from_atom_pairs(mol, atom_pairs):
@@ -409,7 +457,7 @@ def get_symmetry_class(a, b, c=None):
     if b == c:
         return "122"
     return "123"
-    
+
 
 def _init_canonical_order():
     canonical_order = {}
@@ -421,25 +469,25 @@ def _init_canonical_order():
             terms.append(symm_group1[i] + symm_group2[j])
         terms.sort()
         return terms
-        
+
     # Many permutations can give the same mapping between
     # constant and variable location. The canonical mapping
     # is the lexically smallest of the possible mappings.
     for symmetry_groups, permutations in (
-            (("11", "12"), ("01", "10")),
-            (("111", "112", "121", "122", "123"),
-             ("012", "021", "102", "120", "201", "210")),
-             ):
+        (("11", "12"), ("01", "10")),
+        (
+            ("111", "112", "121", "122", "123"),
+            ("012", "021", "102", "120", "201", "210"),
+        ),
+    ):
         ordered_permutations = sorted(permutations)
-        
+
         for symm_group1 in symmetry_groups:
             for symm_group2 in symmetry_groups:
                 for perm in permutations:
-                    target_connection = get_connection(
-                        symm_group1, symm_group2, perm)
+                    target_connection = get_connection(symm_group1, symm_group2, perm)
                     for canonical_perm in ordered_permutations:
-                        if get_connection(
-                            symm_group1, symm_group2, canonical_perm) == target_connection:
+                        if get_connection(symm_group1, symm_group2, canonical_perm) == target_connection:
                             canonical_order[symm_group1, symm_group2, perm] = canonical_perm
                             break
                     else:
@@ -448,6 +496,7 @@ def _init_canonical_order():
 
 
 CANONICAL_ATTACHMENT_ORDER = _init_canonical_order()
+
 
 def get_chiral_difference(atom_indices, old_chiral_flags, new_chiral_flags):
     num_chirals = num_lost_chirals = num_new_stereocenters = 0
@@ -465,7 +514,7 @@ def get_chiral_difference(atom_indices, old_chiral_flags, new_chiral_flags):
             if new_flag == 0:
                 raise AssertionError("that also shouldn't happen")
             elif new_flag == 1:
-                num_chirals += 1 # still chiral
+                num_chirals += 1  # still chiral
             else:
                 raise AssertionError("That was unexpected")
         elif old_flag == 2:
@@ -479,18 +528,23 @@ def get_chiral_difference(atom_indices, old_chiral_flags, new_chiral_flags):
 
 # Atoms which weren't a stereocenter due to symmetry but which, after
 # fragmentation, can be a stereocenter
-def up_enumerate(fragmented_mol, constant_atom_indices, variable_atom_indices,
-                 chiral_flags, new_chiral_flags):
+def up_enumerate(
+    fragmented_mol,
+    constant_atom_indices,
+    variable_atom_indices,
+    chiral_flags,
+    new_chiral_flags,
+):
     yield EnumerationLabel.NO_ENUMERATION, None
     constant_indices = get_new_stereocenter_indices(constant_atom_indices, chiral_flags, new_chiral_flags)
-    #print("test", constant_atom_indices)
-    #print([(i, chiral_flags[i], new_chiral_flags[i]) for i in constant_atom_indices])
-    #print("constant_indices", constant_indices)
-    
+    # print("test", constant_atom_indices)
+    # print([(i, chiral_flags[i], new_chiral_flags[i]) for i in constant_atom_indices])
+    # print("constant_indices", constant_indices)
+
     if constant_indices:
         for chiral_enumeration in chiral_enumerate(constant_indices):
             yield EnumerationLabel.CONSTANT_UP_ENUMERATION, chiral_enumeration
-    
+
     variable_indices = get_new_stereocenter_indices(variable_atom_indices, chiral_flags, new_chiral_flags)
     if variable_indices:
         for chiral_enumeration in chiral_enumerate(variable_indices):
@@ -508,9 +562,11 @@ def get_new_stereocenter_indices(atom_indices, old_chiral_flags, new_chiral_flag
 
 
 def chiral_enumerate(indices):
-    chiral_tags = (Chem.CHI_UNSPECIFIED,
-                   Chem.CHI_TETRAHEDRAL_CW,
-                   Chem.CHI_TETRAHEDRAL_CCW)
+    chiral_tags = (
+        Chem.CHI_UNSPECIFIED,
+        Chem.CHI_TETRAHEDRAL_CW,
+        Chem.CHI_TETRAHEDRAL_CCW,
+    )
     terms = []
     for index in indices:
         terms.append((index, chiral_tag) for chiral_tag in chiral_tags)
@@ -518,7 +574,7 @@ def chiral_enumerate(indices):
     next(it)  # The first one is the input structure
     return it
 
-        
+
 def make_multiple_cuts(mol, atom_pairs, chiral_flags, fragment_filter):
     num_cuts = len(atom_pairs)
     assert num_cuts >= 2, num_cuts
@@ -545,19 +601,19 @@ def make_multiple_cuts(mol, atom_pairs, chiral_flags, fragment_filter):
             # Did not cut into core+rgroups
             return
 
-#    # Filter out fragmentations with too small fragments in the constant
-#    if fragment_filter.min_heavies_per_const_frag > 0:
-#        for frag in Chem.GetMolFrags(fragmented_mol, asMols=True):
-#            num_wildcards = 0
-#            for atom in frag.GetAtoms():
-#                if atom.GetAtomicNum() == 0:
-#                    num_wildcards += 1
-#            if num_wildcards == 1 and frag.GetNumHeavyAtoms() < fragment_filter.min_heavies_per_const_frag:
-#                yield None
-#                return
+    #    # Filter out fragmentations with too small fragments in the constant
+    #    if fragment_filter.min_heavies_per_const_frag > 0:
+    #        for frag in Chem.GetMolFrags(fragmented_mol, asMols=True):
+    #            num_wildcards = 0
+    #            for atom in frag.GetAtoms():
+    #                if atom.GetAtomicNum() == 0:
+    #                    num_wildcards += 1
+    #            if num_wildcards == 1 and frag.GetNumHeavyAtoms() < fragment_filter.min_heavies_per_const_frag:
+    #                yield None
+    #                return
 
     # Determine the symmetry of the variable part
-    fragmented_mol.UpdatePropertyCache(strict=False) # XXX magic; without it I get a RuntimeError
+    fragmented_mol.UpdatePropertyCache(strict=False)  # XXX magic; without it I get a RuntimeError
     Chem.AssignStereochemistry(fragmented_mol, cleanIt=True, force=True)
 
     #   "getNumImplicitHs() called without preceding call to calcImplicitValence()"
@@ -565,9 +621,14 @@ def make_multiple_cuts(mol, atom_pairs, chiral_flags, fragment_filter):
     new_chiral_flags = get_chiral_flags(mol, new_atom_ranks)
 
     seen_smiles = set()
-    #     
+    #
     for enumeration_label, chiral_assignments in up_enumerate(
-            fragmented_mol, constant_atom_indices, variable_atom_indices, chiral_flags, new_chiral_flags):
+        fragmented_mol,
+        constant_atom_indices,
+        variable_atom_indices,
+        chiral_flags,
+        new_chiral_flags,
+    ):
         if enumeration_label == EnumerationLabel.NO_ENUMERATION:
             assert chiral_assignments is None
             atom_ranks = new_atom_ranks
@@ -575,37 +636,37 @@ def make_multiple_cuts(mol, atom_pairs, chiral_flags, fragment_filter):
         else:
             for (atom_index, chiral_tag) in chiral_assignments:
                 fragmented_mol.GetAtomWithIdx(atom_index).SetChiralTag(chiral_tag)
-            fragmented_mol.ClearComputedProps() # XXX Do I need this?
+            fragmented_mol.ClearComputedProps()  # XXX Do I need this?
             atom_ranks = Chem.CanonicalRankAtoms(fragmented_mol, breakTies=False)
             ## print("computed:", list(atom_ranks))
 
         # Work in SMILES space so we find a canonical mapping between the
         # unlabeled canonical variable and canonical constant parts.
         smiles = cansmiles(fragmented_mol)
-        #print("smiles", smiles)
-        
+        # print("smiles", smiles)
+
         # The up-enumeration may have several ways to generate the same structure.
         # For example, flipping two "@"s to "@@"s may leave the structure unchanged.
         if smiles in seen_smiles:
             continue
         seen_smiles.add(smiles)
-    
+
         # Figure out which is the variable/core structure.
         # It's the one with the most "*"s on it (must equal the number of cuts)
         frag_smiles_list = smiles.split(".")
-        assert len(frag_smiles_list) == num_cuts+1, smiles
+        assert len(frag_smiles_list) == num_cuts + 1, smiles
         variable_component_index = _get_variable_index(frag_smiles_list)
         if variable_component_index is None:
             # 3 cuts but no fragment with three "*"s
             raise AssertionError(("I already checked for this", smiles))
-    
-        #print("core is at", variable_component_index)
+
+        # print("core is at", variable_component_index)
 
         # Get the mapping from position in the SMILES string to atom index in the molecule
         smiles_index_to_atom_index = get_atom_order_in_smiles(fragmented_mol)
 
         # Determine the constant part (the rgroups)
-        constant_component_indices = list(range(num_cuts+1))
+        constant_component_indices = list(range(num_cuts + 1))
         del constant_component_indices[variable_component_index]
         constant_smiles_list = [frag_smiles_list[i] for i in constant_component_indices]
         assert len(constant_smiles_list) == num_cuts
@@ -621,14 +682,17 @@ def make_multiple_cuts(mol, atom_pairs, chiral_flags, fragment_filter):
             else:
                 variable_atom_indices2.append(atom_index)  # XXX Remove
         assert sorted(variable_atom_indices) == sorted(variable_atom_indices2), (
-            sorted(variable_atom_indices), sorted(variable_atom_indices2))
-            
+            sorted(variable_atom_indices),
+            sorted(variable_atom_indices2),
+        )
+
         assert len(variable_connection_atom_indices) == num_cuts
-        
-        #print("variable_connection_atom_indices", variable_connection_atom_indices)
-        variable_symmetry_class = get_symmetry_class(*(
-            atom_ranks[atom_index] for atom_index in variable_connection_atom_indices))
-        
+
+        # print("variable_connection_atom_indices", variable_connection_atom_indices)
+        variable_symmetry_class = get_symmetry_class(
+            *(atom_ranks[atom_index] for atom_index in variable_connection_atom_indices)
+        )
+
         # Determine the symmetry of the constant part (the rgroups)
 
         constant_symmetry_class = get_symmetry_class(*constant_smiles_list)
@@ -645,13 +709,13 @@ def make_multiple_cuts(mol, atom_pairs, chiral_flags, fragment_filter):
                 if "*" not in smiles_symbol:
                     constant_atom_indices.append(atom_index)
 
-        attachment_order = "".join(atom_index_to_rgroup_label[other_atom_table[atom_index]]
-                                     for atom_index in variable_connection_atom_indices)
+        attachment_order = "".join(
+            atom_index_to_rgroup_label[other_atom_table[atom_index]] for atom_index in variable_connection_atom_indices
+        )
         # Figure the canonical attachment order
         canonical_attachment_order = CANONICAL_ATTACHMENT_ORDER[
-            variable_symmetry_class,
-            constant_symmetry_class,
-            attachment_order]
+            variable_symmetry_class, constant_symmetry_class, attachment_order
+        ]
 
         # Figure out which atoms in the variable part are still chiral
         ## fragmented_chiral_flags = get_chiral_flags(fragmented_mol, atom_ranks)
@@ -684,12 +748,17 @@ def make_multiple_cuts(mol, atom_pairs, chiral_flags, fragment_filter):
         yield Fragmentation(
             num_cuts,
             enumeration_label,
-            get_num_heavies_from_smiles(variable_smiles), variable_symmetry_class, variable_smiles,
+            get_num_heavies_from_smiles(variable_smiles),
+            variable_symmetry_class,
+            variable_smiles,
             canonical_attachment_order,
-            get_num_heavies_from_smiles(constant_smiles), constant_symmetry_class, constant_smiles, None,
-            )
-    
-            
+            get_num_heavies_from_smiles(constant_smiles),
+            constant_symmetry_class,
+            constant_smiles,
+            None,
+        )
+
+
 def fragment_mol(mol, fragment_filter, num_heavies=None):
     try:
         for x in _fragment_mol(mol, fragment_filter, num_heavies):
@@ -701,14 +770,14 @@ def fragment_mol(mol, fragment_filter, num_heavies=None):
 
 
 def _fragment_mol(mol, fragment_filter, num_heavies=None):
-    
+
     cut_lists = fragment_filter.get_cut_lists(mol)
 
     if not cut_lists:
         return
 
     seen = set()
-    
+
     if num_heavies is None:
         num_heavies = count_num_heavies(mol)
 
@@ -719,16 +788,16 @@ def _fragment_mol(mol, fragment_filter, num_heavies=None):
 
     for cut_list in cut_lists:
         num_cuts = len(cut_list)
-        #print("num_cuts", num_cuts)
+        # print("num_cuts", num_cuts)
         if num_cuts == 1:
             fragmentations = make_single_cut(mol, cut_list[0], chiral_flags, fragment_filter)
         else:
             fragmentations = make_multiple_cuts(mol, cut_list, chiral_flags, fragment_filter)
-            if fragmentations == None:                       # Fragmentation has been filtered out
+            if fragmentations == None:  # Fragmentation has been filtered out
                 continue
-     
+
         for fragmentation in fragmentations:
-            key = fragmentation.get_unique_key() # XXX + "012" + YYY
+            key = fragmentation.get_unique_key()  # XXX + "012" + YYY
             if key not in seen:
                 seen.add(key)
                 yield fragmentation
@@ -761,10 +830,17 @@ def get_hydrogen_fragmentations(smiles, num_heavies):
                 continue
             seen.add(cut_smiles)
             new_fragmentation = Fragmentation(
-                1, EnumerationLabel.NO_ENUMERATION,
-                0, "1", _hydrogen_cut_smiles,
+                1,
+                EnumerationLabel.NO_ENUMERATION,
+                0,
+                "1",
+                _hydrogen_cut_smiles,
                 "0",
-                num_heavies, "1", cut_smiles, smiles)
+                num_heavies,
+                "1",
+                cut_smiles,
+                smiles,
+            )
             fragmentations.append(new_fragmentation)
 
         elif atom.GetNumExplicitHs() > 0:
@@ -776,16 +852,23 @@ def get_hydrogen_fragmentations(smiles, num_heavies):
             cut_mol = emol.GetMol()
             cut_mol_atom = cut_mol.GetAtoms()[atom_idx]
             num_explicit_Hs = cut_mol_atom.GetNumExplicitHs()
-            cut_mol_atom.SetNumExplicitHs(num_explicit_Hs-1)
+            cut_mol_atom.SetNumExplicitHs(num_explicit_Hs - 1)
             cut_smiles = Chem.MolToSmiles(cut_mol, isomericSmiles=True)
             if cut_smiles in seen:
                 continue
             seen.add(cut_smiles)
             new_fragmentation = Fragmentation(
-                1, EnumerationLabel.NO_ENUMERATION,
-                0, "1", _hydrogen_cut_smiles,
+                1,
+                EnumerationLabel.NO_ENUMERATION,
+                0,
+                "1",
+                _hydrogen_cut_smiles,
                 "0",
-                num_heavies, "1", cut_smiles, smiles)
+                num_heavies,
+                "1",
+                cut_smiles,
+                smiles,
+            )
             fragmentations.append(new_fragmentation)
 
     return fragmentations
@@ -798,12 +881,13 @@ def get_hydrogen_fragmentations(smiles, num_heavies):
 
 _hydrogen_cut_pat = Chem.MolFromSmarts("[!#1]-[0#1v1!+!-]")
 
+
 def fragment_molecule_on_explicit_hydrogens(smiles):
     num_heavies = get_num_heavies_from_smiles(smiles)
     smiles_with_H = Chem.CanonSmiles(smiles)
     input_mol = Chem.MolFromSmiles(smiles, sanitize=False)  # use santize=False to preserve explicit hydrogens
     Chem.SanitizeMol(input_mol, Chem.SANITIZE_ALL)
-    
+
     cut_pairs = input_mol.GetSubstructMatches(_hydrogen_cut_pat)
 
     fragmentations = []
@@ -811,7 +895,7 @@ def fragment_molecule_on_explicit_hydrogens(smiles):
         bond_idx = input_mol.GetBondBetweenAtoms(*cut_pair).GetIdx()
         fragmented_mol = Chem.FragmentOnBonds(input_mol, [bond_idx], dummyLabels=[(0, 0)])
         new_smiles = Chem.MolToSmiles(fragmented_mol, isomericSmiles=True)
-        
+
         left, mid, right = new_smiles.partition(".")
         assert mid == ".", new_smiles
 
@@ -820,8 +904,7 @@ def fragment_molecule_on_explicit_hydrogens(smiles):
         elif right == "[*][H]":
             cut_smiles = left
         else:
-            raise AssertionError("did not split hydrogen correctly: %r %r"
-                                  % (smiles, new_smiles))
+            raise AssertionError("did not split hydrogen correctly: %r %r" % (smiles, new_smiles))
 
         if "[H]" in cut_smiles:
             # If there were multiple [H] atoms, then we cut on one but others remain.
@@ -829,15 +912,21 @@ def fragment_molecule_on_explicit_hydrogens(smiles):
             cut_smiles = Chem.CanonSmiles(cut_smiles)
 
         new_fragmentation = Fragmentation(
-            1, EnumerationLabel.NO_ENUMERATION,
-            0, "1", "[*][H]",
+            1,
+            EnumerationLabel.NO_ENUMERATION,
+            0,
+            "1",
+            "[*][H]",
             "0",
-            num_heavies, "1", cut_smiles,
-            None)
+            num_heavies,
+            "1",
+            cut_smiles,
+            None,
+        )
 
         fragmentations.append(new_fragmentation)
 
     return fragmentations
-        
 
-#, dummyLabels=[(1, 1)]
+
+# , dummyLabels=[(1, 1)]

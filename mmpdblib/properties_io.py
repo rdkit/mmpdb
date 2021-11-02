@@ -32,20 +32,19 @@
 
 
 class Properties(object):
-    def __init__(self, id_header, id_column, property_names, property_columns,
-                 property_table):
+    def __init__(self, id_header, id_column, property_names, property_columns, property_table):
         self.id_header = id_header
         self.id_column = id_column
         self.property_names = property_names
         self.property_columns = property_columns
         self.property_table = property_table
-        
+
     def get_ids(self):
         return self.id_column
-    
+
     def get_property_values(self, id):
         return self.property_table[id]
-        
+
     def iter_properties(self):
         for name, column in zip(self.property_names, self.property_columns):
             yield name, column
@@ -70,17 +69,19 @@ def load_properties(properties_file, reporter):
     if not header_names:
         raise ValueError("The properties file must contain at least one column name, for the id")
     if header_names[0] not in ("id", "ID", "Name", "name"):
-        reporter.warning("the identifier column in the properties file (column 1) has "
-                         "a header of %r; should be 'id', 'ID', 'Name', or 'name'" % (header_names[0],))
+        reporter.warning(
+            "the identifier column in the properties file (column 1) has "
+            "a header of %r; should be 'id', 'ID', 'Name', or 'name'" % (header_names[0],)
+        )
 
     seen = set()
     for header_name in header_names:
         if header_name in seen:
             raise ValueError(
-                "Duplicate header %r found. A property name may not be listed more than once."
-                % (header_name,))
+                "Duplicate header %r found. A property name may not be listed more than once." % (header_name,)
+            )
         seen.add(header_name)
-        
+
     n = len(header_names)
 
     id_column = []
@@ -89,8 +90,7 @@ def load_properties(properties_file, reporter):
     for lineno, line in enumerate(properties_file, 2):
         fields = _split(line)
         if len(fields) != n:
-            raise ValueError("Line %d has %d fields but the header has %d"
-                             % (lineno, len(fields), n))
+            raise ValueError("Line %d has %d fields but the header has %d" % (lineno, len(fields), n))
         float_fields = []
         try:
             for field in fields[1:]:
@@ -99,8 +99,7 @@ def load_properties(properties_file, reporter):
                 else:
                     float_fields.append(float(field))
         except ValueError:
-            raise ValueError("Line %d value %r cannot be converted to a float"
-                             % (lineno, field))
+            raise ValueError("Line %d value %r cannot be converted to a float" % (lineno, field))
 
         id = fields[0]
         id_column.append(id)
@@ -111,5 +110,4 @@ def load_properties(properties_file, reporter):
         property_columns = list(zip(*property_rows))
     else:
         property_columns = [[] for _ in header_names]
-    return Properties(header_names[0], id_column, header_names[1:], property_columns,
-                      property_table)
+    return Properties(header_names[0], id_column, header_names[1:], property_columns, property_table)

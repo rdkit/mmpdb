@@ -50,12 +50,9 @@
 import sys
 
 import click
-from .click_utils import (
-    command,
-    die
-    )
+from .click_utils import command, die
 
-rgroup2smarts_epilog="""
+rgroup2smarts_epilog = """
 
 This command is primarily meant for users to see how the `mmpdb
 fragment` parameters `--cut-rgroup` and `--cut-rgroup-file` work.
@@ -77,48 +74,48 @@ fragments. Use `--cut-rgroup` to specify the SMILES fragments on the
 command-line instead of from a file.
 """
 
+
 @command(epilog=rgroup2smarts_epilog)
 @click.option(
     "--cut-rgroup",
-    metavar = "SMILES",
-    multiple = True,
-    help = "R-group SMILES to use",
-    )
+    metavar="SMILES",
+    multiple=True,
+    help="R-group SMILES to use",
+)
 @click.option(
     "--single",
     "-s",
-    default = False,
-    is_flag = True,
-    help = "generate a SMARTS for each R-group SMILES (default: generate a single recursive SMARTS)"
-    )
+    default=False,
+    is_flag=True,
+    help="generate a SMARTS for each R-group SMILES (default: generate a single recursive SMARTS)",
+)
 @click.option(
     "--check",
     "-c",
-    default = False,
-    is_flag = True,
-    help = "check that the SMARTS strings are valid (default: assume they are valid)",
-    )
+    default=False,
+    is_flag=True,
+    help="check that the SMARTS strings are valid (default: assume they are valid)",
+)
 @click.option(
     "--explain",
-    is_flag = True,
-    default = False,
-    help = "write conversion and check details to stderr",
-    )
-
+    is_flag=True,
+    default=False,
+    help="write conversion and check details to stderr",
+)
 @click.argument(
     "rgroup_filename",
-    metavar = "FILENAME",
-    required = False,
-    )
+    metavar="FILENAME",
+    required=False,
+)
 @click.pass_obj
 def rgroup2smarts(
-        reporter,
-        check,
-        explain,
-        cut_rgroup,
-        rgroup_filename,
-        single,
-        ):
+    reporter,
+    check,
+    explain,
+    cut_rgroup,
+    rgroup_filename,
+    single,
+):
     """convert an R-group file into a SMARTS which matches all of the SMILES
 
     FILENAME: file containing one or more R-group SMILES (use stdin if not specified)
@@ -126,7 +123,6 @@ def rgroup2smarts(
     from rdkit import Chem
     from .. import rgroup2smarts as _rgroup2smarts
 
-    
     reporter.set_explain(explain)
     explain = reporter.explain
 
@@ -140,7 +136,7 @@ def rgroup2smarts(
         location.save(recno=1)
         explain("Using --cut-rgroup SMILES from the command-line")
         record_reader = _rgroup2smarts.iter_smiles_list(cut_rgroup, location)
-        
+
     elif rgroup_filename is not None:
         explain(f"Reading R-group SMILES from {rgroup_filename!r}")
         location = _rgroup2smarts.FileLocation(rgroup_filename)
@@ -150,7 +146,7 @@ def rgroup2smarts(
             die(f"Cannot open input file: {err}")
         close = f.close
         record_reader = _rgroup2smarts.parse_rgroup_file(f, location)
-        
+
     else:
         explain("Reading R-group SMILES from <stdin>")
         location = _rgroup2smarts.FileLocation("<stdin>")
@@ -160,13 +156,13 @@ def rgroup2smarts(
         all_mols = []
     else:
         all_mols = None
-        
+
     outfile = sys.stdout
 
     iter_smarts = _rgroup2smarts.iter_smiles_as_smarts(record_reader, location, explain, all_mols)
 
     all_smarts = None
-    
+
     try:
         if single:
             for smarts in iter_smarts:
@@ -178,7 +174,7 @@ def rgroup2smarts(
                 all_smarts.append(smarts)
             if not all_smarts:
                 die(f"Cannot make a SMARTS: no SMILES strings found in {location.filename!r}")
-                
+
     except _rgroup2smarts.ParseError as err:
         die(f"Cannot parse input file: {err}")
     except _rgroup2smarts.ConversionError as err:
@@ -187,27 +183,25 @@ def rgroup2smarts(
         if close is not None:
             close()
 
-
     if not single:
         smarts = _rgroup2smarts.make_recursive_smarts(all_smarts)
-        
+
         try:
             if check:
                 explain("Checking that the SMARTS matches all of the input molecules")
                 all_pat = Chem.MolFromSmarts(smarts)
                 if all_pat is None:
                     die(f"Cannot process final SMARTS: {smarts!r}")
-                
+
                 for i, (mol, where, smiles) in enumerate(all_mols):
                     if not mol.HasSubstructMatch(all_pat):
                         die(f"final SMARTS does not match SMILES from {where} ({smiles!r})")
                     explain(f"checked #{i}")
         finally:
             outfile.write(smarts + "\n")
-            
+
     outfile.flush()
-    
+
 
 if __name__ == "__main__":
     main()
-    

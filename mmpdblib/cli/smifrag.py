@@ -37,7 +37,7 @@ import click
 from .click_utils import (
     command,
     die,
-    )
+)
 
 from .. import smarts_aliases
 from .. import fileio
@@ -47,25 +47,24 @@ from . import fragment
 
 from .. import reporters
 from .. import fragment_records
-        
+
 
 ########
 smifrag_epilog = """
 \b
-""" + smarts_aliases.get_epilog("--cut-smarts", smarts_aliases.cut_smarts_aliases)
+""" + smarts_aliases.get_epilog(
+    "--cut-smarts", smarts_aliases.cut_smarts_aliases
+)
 
-@command(epilog = smifrag_epilog)
+
+@command(epilog=smifrag_epilog)
 @fragment_click.add_fragment_options
 @click.argument(
     "smiles",
     # help="SMILES string to fragment"
-    )
+)
 @click.pass_context
-def smifrag(
-        ctx,
-        fragment_options,
-        smiles
-        ):
+def smifrag(ctx, fragment_options, smiles):
     """fragment a single SMILES string
 
     SMILES: the SMILES string of the structure to fragment
@@ -76,47 +75,61 @@ def smifrag(
     """
 
     reporter = ctx.obj
-    
+
     try:
         fragment_filter = fragment_options.get_fragment_filter()
     except fragment_types.FragmentValueError as err:
-        die(
-            f"Error in command-line option {name_to_command_line(err.name)!r} "
-            f"({err.value!r}): err.reason"
-            )
-    
+        die(f"Error in command-line option {name_to_command_line(err.name)!r} " f"({err.value!r}): err.reason")
+
     record = fragment_records.make_fragment_record_from_smiles(
         smiles,
         fragment_filter,
-        reporter = reporter,
-        )
+        reporter=reporter,
+    )
     if record.errmsg:
         die(f"Cannot parse smiles: {record.errmsg}")
-        
-    columns = [["#cuts"], ["enum.label"],
-               ["#heavies"], ["symm.class"], ["smiles"],
-               ["order"],
-               ["#heavies"], ["symm.class"], ["smiles"],
-               ["with-H"]]
-    styles = ["center", "center",
-              "right", "center", "left", "center",
-              "right", "center", "left", "left"]
+
+    columns = [
+        ["#cuts"],
+        ["enum.label"],
+        ["#heavies"],
+        ["symm.class"],
+        ["smiles"],
+        ["order"],
+        ["#heavies"],
+        ["symm.class"],
+        ["smiles"],
+        ["with-H"],
+    ]
+    styles = [
+        "center",
+        "center",
+        "right",
+        "center",
+        "left",
+        "center",
+        "right",
+        "center",
+        "left",
+        "left",
+    ]
 
     has_rows = False
     for frag in record.fragmentations:
         has_rows = True
-        items = [str(frag.num_cuts),
-                 frag.enumeration_label,
-                 str(frag.variable_num_heavies),
-                 frag.variable_symmetry_class,
-                 frag.variable_smiles,
-                 frag.attachment_order,
-                 str(frag.constant_num_heavies),
-                 frag.constant_symmetry_class,
-                 frag.constant_smiles,
-                 frag.constant_with_H_smiles or "-",
-                 ]
-                     
+        items = [
+            str(frag.num_cuts),
+            frag.enumeration_label,
+            str(frag.variable_num_heavies),
+            frag.variable_symmetry_class,
+            frag.variable_smiles,
+            frag.attachment_order,
+            str(frag.constant_num_heavies),
+            frag.constant_symmetry_class,
+            frag.constant_smiles,
+            frag.constant_with_H_smiles or "-",
+        ]
+
         for (item, column) in zip(items, columns):
             column.append(str(item))
 
@@ -127,9 +140,9 @@ def smifrag(
         sizes.append(column_width)
         if len(column) == 1:
             continue
-        
+
         data_width = max(map(len, column[1:]))
-        
+
         if style == "center":
             column[1:] = [s.rjust(data_width).center(column_width) for s in column[1:]]
         elif style == "left":
@@ -143,15 +156,19 @@ def smifrag(
             raise AssertionError(style)
 
     first_line = (
-        " " * sizes[0] + "   " +
-        " " * sizes[1] + " |-" +
-        "  variable  ".center(sizes[2] + sizes[3] + sizes[4] + 6, "-") + "-| " +
-        " " * sizes[5] + " |-" +
-        "  constant  ".center(sizes[6] + sizes[7] + sizes[8] + sizes[9] + 9, "-")
-        )
+        " " * sizes[0]
+        + "   "
+        + " " * sizes[1]
+        + " |-"
+        + "  variable  ".center(sizes[2] + sizes[3] + sizes[4] + 6, "-")
+        + "-| "
+        + " " * sizes[5]
+        + " |-"
+        + "  constant  ".center(sizes[6] + sizes[7] + sizes[8] + sizes[9] + 9, "-")
+    )
 
     print(first_line)
     for lineno, fields in enumerate(zip(*columns)):
         print(*fields, sep=" | ")
         if lineno == 0:
-            print(*["-"*len(s) for s in fields], sep = "-+-")
+            print(*["-" * len(s) for s in fields], sep="-+-")

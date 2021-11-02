@@ -13,8 +13,7 @@ from playhouse.db_url import connect as db_url_connect
 
 
 class PaginatedQuery(object):
-    def __init__(self, query_or_model, paginate_by, page_var='page',
-                 check_bounds=False):
+    def __init__(self, query_or_model, paginate_by, page_var="page", check_bounds=False):
         self.paginate_by = paginate_by
         self.page_var = page_var
         self.check_bounds = check_bounds
@@ -49,31 +48,28 @@ def get_object_or_404(query_or_model, *query):
     except DoesNotExist:
         abort(404)
 
-def object_list(template_name, query, context_variable='object_list',
-                paginate_by=20, page_var='page', check_bounds=True, **kwargs):
-    paginated_query = PaginatedQuery(
-        query,
-        paginate_by,
-        page_var,
-        check_bounds)
+
+def object_list(
+    template_name, query, context_variable="object_list", paginate_by=20, page_var="page", check_bounds=True, **kwargs
+):
+    paginated_query = PaginatedQuery(query, paginate_by, page_var, check_bounds)
     kwargs[context_variable] = paginated_query.get_object_list()
-    return render_template(
-        template_name,
-        pagination=paginated_query,
-        page=paginated_query.get_page(),
-        **kwargs)
+    return render_template(template_name, pagination=paginated_query, page=paginated_query.get_page(), **kwargs)
+
 
 def get_current_url():
     if not request.query_string:
         return request.path
-    return '%s?%s' % (request.path, request.query_string)
+    return "%s?%s" % (request.path, request.query_string)
 
-def get_next_url(default='/'):
-    if request.args.get('next'):
-        return request.args['next']
-    elif request.form.get('next'):
-        return request.form['next']
+
+def get_next_url(default="/"):
+    if request.args.get("next"):
+        return request.args["next"]
+    elif request.form.get("next"):
+        return request.form["next"]
     return default
+
 
 class FlaskDB(object):
     def __init__(self, app=None):
@@ -88,7 +84,7 @@ class FlaskDB(object):
         self._register_handlers(app)
 
     def _load_database(self, app):
-        config_value = app.config['DATABASE']
+        config_value = app.config["DATABASE"]
         if isinstance(config_value, dict):
             database = self._load_from_config_dict(dict(config_value))
         else:
@@ -102,16 +98,15 @@ class FlaskDB(object):
 
     def _load_from_config_dict(self, config_dict):
         try:
-            name = config_dict.pop('name')
-            engine = config_dict.pop('engine')
+            name = config_dict.pop("name")
+            engine = config_dict.pop("engine")
         except KeyError:
-            raise RuntimeError('DATABASE configuration must specify a '
-                               '`name` and `engine`.')
+            raise RuntimeError("DATABASE configuration must specify a " "`name` and `engine`.")
 
-        if '.' in engine:
-            path, class_name = engine.rsplit('.', 1)
+        if "." in engine:
+            path, class_name = engine.rsplit(".", 1)
         else:
-            path, class_name = 'peewee', engine
+            path, class_name = "peewee", engine
 
         try:
             __import__(path)
@@ -119,12 +114,11 @@ class FlaskDB(object):
             database_class = getattr(module, class_name)
             assert issubclass(database_class, _Database)
         except ImportError:
-            raise RuntimeError('Unable to import %s' % engine)
+            raise RuntimeError("Unable to import %s" % engine)
         except AttributeError:
-            raise RuntimeError('Database engine not found %s' % engine)
+            raise RuntimeError("Database engine not found %s" % engine)
         except AssertionError:
-            raise RuntimeError('Database engine not a subclass of '
-                               'peewee.Database: %s' % engine)
+            raise RuntimeError("Database engine not a subclass of " "peewee.Database: %s" % engine)
 
         return database_class(name, **config_dict)
 
@@ -134,7 +128,7 @@ class FlaskDB(object):
 
     def get_model_class(self):
         if self.database is None:
-            raise RuntimeError('Database must be initialized.')
+            raise RuntimeError("Database must be initialized.")
 
         class BaseModel(Model):
             class Meta:
@@ -145,11 +139,11 @@ class FlaskDB(object):
     @property
     def Model(self):
         if self._app is None:
-            database = getattr(self, 'database', None)
+            database = getattr(self, "database", None)
             if database is None:
                 self.database = Proxy()
 
-        if not hasattr(self, '_model_class'):
+        if not hasattr(self, "_model_class"):
             self._model_class = self.get_model_class()
         return self._model_class
 

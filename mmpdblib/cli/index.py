@@ -49,12 +49,13 @@ from .click_utils import (
     positive_float,
     positive_int_or_none,
     set_click_attrs,
-    )
+)
 
 from .. import (
     config,
     index_types,
-    )
+)
+
 
 def get_psutil():
     try:
@@ -63,12 +64,14 @@ def get_psutil():
         psutil = None
     return psutil
 
+
 #### Map click options to an index_types.IndexOptions
 
 
 def add_index_options(command):
     DEFAULT_INDEX_OPTIONS = config.DEFAULT_INDEX_OPTIONS
     param_names = []
+
     def add_option(*args, **kwargs):
         # Keep track of the parameter names used
         param_names.append(args[0].lstrip("-").replace("-", "_"))
@@ -77,80 +80,79 @@ def add_index_options(command):
 
     add_option(
         "--min-variable-heavies",
-        type = nonnegative_int(),
-        default = DEFAULT_INDEX_OPTIONS.min_variable_heavies,
-        help = "Minimum number of non-hydrogen atoms in the variable fragment.",
-        )
-    
+        type=nonnegative_int(),
+        default=DEFAULT_INDEX_OPTIONS.min_variable_heavies,
+        help="Minimum number of non-hydrogen atoms in the variable fragment.",
+    )
+
     add_option(
         "--max-variable-heavies",
-        type = positive_int_or_none(),
-        default = DEFAULT_INDEX_OPTIONS.max_variable_heavies,
-        help = (
+        type=positive_int_or_none(),
+        default=DEFAULT_INDEX_OPTIONS.max_variable_heavies,
+        help=(
             "Maximum number of non-hydrogen atoms in the variable fragment "
             f"(default: {DEFAULT_INDEX_OPTIONS.max_variable_heavies}; for no maximum use 'none')"
-            ),
-        )
+        ),
+    )
 
     add_option(
         "--min-variable-ratio",
-        type = positive_float(),
-        default = None,
-        help = "Minimum ratio of variable fragment heavies to heavies in the (cleaned) structure",
-        )
-    
+        type=positive_float(),
+        default=None,
+        help="Minimum ratio of variable fragment heavies to heavies in the (cleaned) structure",
+    )
+
     add_option(
         "--max-variable-ratio",
-        type = nonnegative_float(),
-        default = None,
-        metavar = "FLT",
-        help = "Maximum ratio of variable fragment heavies to heavies in the (cleaned) structure",
-        )
+        type=nonnegative_float(),
+        default=None,
+        metavar="FLT",
+        help="Maximum ratio of variable fragment heavies to heavies in the (cleaned) structure",
+    )
 
     add_option(
         "--max-heavies-transf",
-        type = nonnegative_int(),
-        default = None,
-        metavar = "N",
-        help = "Maximum difference in the number of heavies transfered in a transformation",
-        )
-    
+        type=nonnegative_int(),
+        default=None,
+        metavar="N",
+        help="Maximum difference in the number of heavies transfered in a transformation",
+    )
+
     add_option(
         "--max-frac-trans",
-        type = nonnegative_float(),
-        default = None,
-        metavar = "FLT",
-        help = "Maximum fraction of atoms taking part in a transformation",
-        )
+        type=nonnegative_float(),
+        default=None,
+        metavar="FLT",
+        help="Maximum fraction of atoms taking part in a transformation",
+    )
 
     add_option(
         "--max-radius",
-        type = IntChoice(["0", "1", "2", "3", "4", "5"]),
-        default = DEFAULT_INDEX_OPTIONS.max_radius,
-        metavar = "N",
-        help= "Maximum Environment Radius to be indexed in the MMPDB database",
-        )
+        type=IntChoice(["0", "1", "2", "3", "4", "5"]),
+        default=DEFAULT_INDEX_OPTIONS.max_radius,
+        metavar="N",
+        help="Maximum Environment Radius to be indexed in the MMPDB database",
+    )
 
     assert DEFAULT_INDEX_OPTIONS.symmetric is False, "unsupported"
     add_option(
         "--symmetric",
         "-s",
-        is_flag = True,
-        default = DEFAULT_INDEX_OPTIONS.symmetric,
-        help = (
+        is_flag=True,
+        default=DEFAULT_INDEX_OPTIONS.symmetric,
+        help=(
             "Output symmetrically equivalent MMPs, i.e output both cmpd1,cmpd2, "
             "SMIRKS:A>>B and cmpd2,cmpd1, SMIRKS:B>>A"
-            ),
-        )
+        ),
+    )
 
     assert DEFAULT_INDEX_OPTIONS.smallest_transformation_only is False, "unsupported"
     add_option(
         "--smallest-transformation-only",
-        is_flag = True,
-        default = DEFAULT_INDEX_OPTIONS.smallest_transformation_only,
-        help = "Ignore all transformations that can be reduced to smaller fragments",
-        )
-    
+        is_flag=True,
+        default=DEFAULT_INDEX_OPTIONS.smallest_transformation_only,
+        help="Ignore all transformations that can be reduced to smaller fragments",
+    )
 
     def get_index_options_wrapper(**kwargs):
         # Fill in the defaults
@@ -159,17 +161,17 @@ def add_index_options(command):
         # adjust for 'none'
         if popped_kwargs["max_variable_heavies"] == "none":
             popped_kwargs["max_variable_heavies"] = None
-        
+
         check_validity(popped_kwargs)
         kwargs["index_options"] = index_types.IndexOptions(**popped_kwargs)
 
         return command(**kwargs)
 
     set_click_attrs(get_index_options_wrapper, command)
-    
+
     return get_index_options_wrapper
 
-    
+
 def check_validity(kwargs):
     min_variable_heavies = kwargs["min_variable_heavies"]
     max_variable_heavies = kwargs["max_variable_heavies"]
@@ -178,19 +180,18 @@ def check_validity(kwargs):
 
     if min_variable_ratio is not None and max_variable_ratio is not None:
         if min_variable_ratio > max_variable_ratio:
-            raise click.UsageError(
-                "--min-variable-ratio must not be larger than --max-variable-ratio"
-                )
+            raise click.UsageError("--min-variable-ratio must not be larger than --max-variable-ratio")
 
     if min_variable_heavies is not None and max_variable_heavies is not None:
         if min_variable_heavies > max_variable_heavies:
-            raise click.UsageError(
-                "--min-variable-heavies must not be larger than --max-variable-heavies"
-                )
+            raise click.UsageError("--min-variable-heavies must not be larger than --max-variable-heavies")
+
 
 ##### Get memory size
 
 _process = None
+
+
 def get_memory_use():
     global _process
     psutil = get_psutil()
@@ -207,9 +208,13 @@ def get_memory_use():
 def human_memory(n):
     if n < 1024:
         return "%d B" % (n,)
-    for unit, denom in (("KB", 1024), ("MB", 1024**2),
-                        ("GB", 1024**3), ("PB", 1024**4)):
-        f = n/denom
+    for unit, denom in (
+        ("KB", 1024),
+        ("MB", 1024 ** 2),
+        ("GB", 1024 ** 3),
+        ("PB", 1024 ** 4),
+    ):
+        f = n / denom
         if f < 10.0:
             return "%.2f %s" % (f, unit)
         if f < 100.0:
@@ -217,6 +222,7 @@ def human_memory(n):
         if f < 1000.0:
             return "%d %s" % (round(f, 0), unit)
     return ">1TB ?!?"
+
 
 ## for i in range(51):
 ##     print(2**i-1, human_memory(2**i-1))
@@ -330,68 +336,63 @@ entire structure, and save the transformation in both A>>B and B>>A
       --title "CHEMBL ratio 40%" --output CHEMBL_ratio_40.mmpdb
 """
 
+
 @command(epilog=index_epilog)
 @add_index_options
-
 @click.option(
     "--properties",
     "properties_filename",
-    metavar = "FILENAME",
-    help = "File containing the identifiers to use and optional physical properties",
-    )
-
+    metavar="FILENAME",
+    help="File containing the identifiers to use and optional physical properties",
+)
 @click.option(
     "--output",
     "-o",
     "output_filename",
-    metavar = "FILENAME",
-    help = (
+    metavar="FILENAME",
+    help=(
         "save the fragment data to FILENAME. "
         "Default for mmpdb is based on the fragment filename, "
         "otherwise stdout."
-        ),
-    )
-
+    ),
+)
 @click.option(
     "--out",
     "output_format",
-    metavar = "FORMAT",
-    type = click.Choice(["csv", "csv.gz", "mmpa", "mmpa.gz", "mmpdb"]),
-    help = (
+    metavar="FORMAT",
+    type=click.Choice(["csv", "csv.gz", "mmpa", "mmpa.gz", "mmpdb"]),
+    help=(
         "Output format. One of 'mmpdb' (default), 'csv', 'csv.gz', 'mmpa' or 'mmpa.gz'. "
         "If not present, guess from the filename, and default to 'mmpdb'"
-        ),
-    )
-
+    ),
+)
 @click.option(
     "--title",
-    help = "A short description of the dataset. If not given, base the title on the filename",
-    )
-
+    help="A short description of the dataset. If not given, base the title on the filename",
+)
 @click.option(
     "--memory",
-    is_flag = True,
-    default = False,
-    help = "Report a summary of the memory use",
-    )
-
+    is_flag=True,
+    default=False,
+    help="Report a summary of the memory use",
+)
 @click.argument(
     "fragment_filename",
-    metavar = "FILENAME",
-    default = None,
-    #help = "SMILES filename (default: read from stdin)",
-    )
+    metavar="FILENAME",
+    default=None,
+    # help = "SMILES filename (default: read from stdin)",
+)
 @click.pass_obj
 def index(
-        reporter,
-        title,
-        index_options,
-        properties_filename,
-        memory,
-        output_format,
-        output_filename,
-        fragment_filename,
-        ):
+    reporter,
+    title,
+    index_options,
+    properties_filename,
+    memory,
+    output_format,
+    output_filename,
+    fragment_filename,
+):
     """index fragments and find matched molecular pairs
 
     FILENAME: the name of the fragdb file containing the fragments to index
@@ -401,8 +402,8 @@ def index(
         fragment_types,
         index_algorithm,
         properties_io,
-        )
-    
+    )
+
     if title is None:
         title = f"MMPs from {fragment_filename!r}"
 
@@ -429,7 +430,7 @@ def index(
                 properties = properties_io.load_properties(properties_file, reporter)
         except ValueError as err:
             die(f"Problem reading --properties file {properties_file!r}: {err}")
-            
+
         selected_ids = set(properties.get_ids())
     end_properties_memory = get_memory_use()
 
@@ -437,7 +438,7 @@ def index(
         # Not specified so use the default name.
         # XXX warning message?
         fragment_filename = "input.fragdb"
-    
+
     if (output_format in (None, "mmpdb")) and output_filename is None:
         # Use the filename based on the fragments filename
 
@@ -445,14 +446,14 @@ def index(
         output_filename = os.path.splitext(fragment_filename)[0] + ".mmpdb"
         reporter.warning(f"No --output filename specified. Saving to {output_filename!r}.")
 
-    #reporter.report("Using fragment filters: %s" % (fragment_filter.get_args(),))
+    # reporter.report("Using fragment filters: %s" % (fragment_filter.get_args(),))
 
     start_fragment_index_memory = get_memory_use()
     try:
         fragment_reader = fragment_db.open_fragdb(fragment_filename)
     except fragment_types.FragmentFormatError as err:
         parser.error(str(err))
-        
+
     with fragment_reader:
         with reporter.progress(fragment_reader, "Loaded fragment record") as report_fragment_reader:
             fragment_index = index_algorithm.load_fragment_index(report_fragment_reader, fragment_filter, selected_ids)
@@ -461,32 +462,39 @@ def index(
     environment_cache = index_algorithm.EnvironmentCache()
 
     pairs = index_algorithm.find_matched_molecular_pairs(
-        fragment_index, fragment_reader, index_options, environment_cache,
-        max_radius = index_options.max_radius, reporter=reporter)
+        fragment_index,
+        fragment_reader,
+        index_options,
+        environment_cache,
+        max_radius=index_options.max_radius,
+        reporter=reporter,
+    )
 
     with index_algorithm.open_mmpa_writer(
-            output_filename,
-            format = output_format,
-            title = title,
-            fragment_options = fragment_reader.options,
-            fragment_index = fragment_index,
-            index_options = index_options,
-            properties = properties,
-            environment_cache = environment_cache,
-            ) as pair_writer:
+        output_filename,
+        format=output_format,
+        title=title,
+        fragment_options=fragment_reader.options,
+        fragment_index=fragment_index,
+        index_options=index_options,
+        properties=properties,
+        environment_cache=environment_cache,
+    ) as pair_writer:
         pair_writer.start()
         pair_writer.write_matched_molecule_pairs(pairs)
         end_mmp_memory = get_memory_use()
         pair_writer.end(reporter)
         end_memory = get_memory_use()
-        
-    if report_memory:
-        #print(start_fragment_index_memory, start_mmp_memory, end_mmp_memory, end_memory)
-        sys.stderr.write("#pairs: %d Memory (RSS) total: %s properties: %s fragments: %s indexing: %s\n" % (
-                         pair_writer.num_pairs, 
-                         human_memory(max(end_mmp_memory, end_memory)),
-                         human_memory(end_properties_memory-start_properties_memory),
-                         human_memory(start_mmp_memory - start_fragment_index_memory),
-                         human_memory(end_mmp_memory - start_mmp_memory)))
-        
 
+    if report_memory:
+        # print(start_fragment_index_memory, start_mmp_memory, end_mmp_memory, end_memory)
+        sys.stderr.write(
+            "#pairs: %d Memory (RSS) total: %s properties: %s fragments: %s indexing: %s\n"
+            % (
+                pair_writer.num_pairs,
+                human_memory(max(end_mmp_memory, end_memory)),
+                human_memory(end_properties_memory - start_properties_memory),
+                human_memory(start_mmp_memory - start_fragment_index_memory),
+                human_memory(end_mmp_memory - start_mmp_memory),
+            )
+        )

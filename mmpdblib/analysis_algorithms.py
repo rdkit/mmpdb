@@ -127,9 +127,8 @@ def check_eval_names(code_obj, extra_names):
 
     for name in code_obj.co_names:
         if name not in known_names:
-            raise ValueError("unsupported variable name %r"
-                             % (name,))
-    
+            raise ValueError("unsupported variable name %r" % (name,))
+
 
 def get_where_function(where_expr=None):
     if where_expr is None:
@@ -141,30 +140,32 @@ def get_where_function(where_expr=None):
         where_code = compile(where_expr, "--where", "eval")
     except Exception as err:
         raise ValueError("Cannot parse: %s" % (err,))
-    
+
     check_eval_names(where_code, ["__builtins__", "None", "True", "False"])
 
     def where_function(property_rule):
         d = property_rule.to_dict()
-        d.update({
-            "__builtins__": None,
-            "None": None,
-            "True": True,
-            "False": False,
-            })
-        
+        d.update(
+            {
+                "__builtins__": None,
+                "None": None,
+                "True": True,
+                "False": False,
+            }
+        )
+
         try:
             result = eval(where_code, d)
         except Exception as err:
             raise EvalError("Could not evaluate 'where' expression %r: %s" % (where_expr, err))
 
         return result
-    
+
     return where_function
 
 
 def default_score_function(property_rule):
-    
+
     # Break ties on the minimum standard deviation
     std = property_rule.std
     if std is None:  # only one element, so effectively infinite stddev
@@ -198,19 +199,20 @@ def get_score_function(score_expr=None):
     except Exception as err:
         raise ValueError("Cannot parse: %s" % (err,))
 
-    check_eval_names(score_code,
-                     ["__builtins__", "None", "True", "False", "inf", "ninf"])
+    check_eval_names(score_code, ["__builtins__", "None", "True", "False", "inf", "ninf"])
 
     def score_function(property_rule):
         d = property_rule.to_dict()
-        d.update({
-            "__builtins__": None,
-            "None": None,
-            "inf": infinity,
-            "ninf": ninfinity,
-            "True": True,
-            "False": False,
-            })
+        d.update(
+            {
+                "__builtins__": None,
+                "None": None,
+                "inf": infinity,
+                "ninf": ninfinity,
+                "True": True,
+                "False": False,
+            }
+        )
         try:
             result = eval(score_code, d)
         except Exception as err:
@@ -229,13 +231,13 @@ class ComputeRuleKey(object):
     def __call__(self, property_rule):
         score = self.score_function(property_rule)
         key = []
-        
+
         for cutoff in self.cutoffs:
             if property_rule.count < cutoff:
                 # Force this to be the smallest value and try the next cutoff
-                key.append( (0, _smallest_score) )
+                key.append((0, _smallest_score))
             else:
-                key.append( (1, score) )
+                key.append((1, score))
 
         return tuple(key)
 
@@ -253,8 +255,9 @@ class RuleSelectionFunction(object):
         # Order the list so the --explain is easier to understand.
         def by_rule_id_then_radius(property_rule):
             return (property_rule.rule_id, property_rule.radius)
+
         property_rules = sorted(property_rules, key=by_rule_id_then_radius)
-        
+
         # Apply the --where clause, if specified.
         if self.where_function is not None:
             property_rules = self.apply_where_function(property_rules, explain)
@@ -269,7 +272,7 @@ class RuleSelectionFunction(object):
 
         # Report what happened.
         _explain_choice(property_rule, property_rules, explain)
-        
+
         return property_rule
 
     def apply_where_function(self, property_rules, explain):
@@ -278,22 +281,27 @@ class RuleSelectionFunction(object):
             # Always do the test, even if there is only one term.
             if self.where_function(property_rule):
                 new_list.append(property_rule)
-                explain("    Rule %s (#%d) passed the --where test",
-                        property_rule.smirks, property_rule.rule_id)
+                explain(
+                    "    Rule %s (#%d) passed the --where test",
+                    property_rule.smirks,
+                    property_rule.rule_id,
+                )
             else:
-                explain("    Rule %s (#%d) did not pass the --where test",
-                        property_rule.smirks, property_rule.rule_id)
+                explain(
+                    "    Rule %s (#%d) did not pass the --where test",
+                    property_rule.smirks,
+                    property_rule.rule_id,
+                )
 
         if not new_list:
             explain("    No rule environment statistics passed the --where test.")
             return None
-            
+
         return new_list
 
     def select_max_rule(self, property_rules, explain):
         # Select the best option
-        property_rules = sorted(property_rules,
-                                key=self.rule_key_function, reverse=True)
+        property_rules = sorted(property_rules, key=self.rule_key_function, reverse=True)
         property_rule = property_rules[0]
 
         # Make sure it's actually usable. Otherwise it could be that
@@ -310,20 +318,27 @@ class RuleSelectionFunction(object):
 
 def _explain_choice(property_rule, property_rules, explain):
     if len(property_rules) == 1:
-        explain("Selected rule %s (rule %d).",
-                property_rule.smirks, property_rule.rule_id)
+        explain("Selected rule %s (rule %d).", property_rule.smirks, property_rule.rule_id)
     else:
-        explain("Selected rule %s (#%d). The %d possibilities were:",
-                property_rule.smirks, property_rule.rule_id, len(property_rules))
+        explain(
+            "Selected rule %s (#%d). The %d possibilities were:",
+            property_rule.smirks,
+            property_rule.rule_id,
+            len(property_rules),
+        )
         for property_rule in property_rules:
-            explain("   %s (rule %d) radius: %d count: %d std: %s",
-                    property_rule.smirks, property_rule.rule_id, property_rule.radius,
-                    property_rule.count, str(property_rule.std) if property_rule.std is not None else "n/a",
-                    )
+            explain(
+                "   %s (rule %d) radius: %d count: %d std: %s",
+                property_rule.smirks,
+                property_rule.rule_id,
+                property_rule.radius,
+                property_rule.count,
+                str(property_rule.std) if property_rule.std is not None else "n/a",
+            )
             ## for q in self.rule_key_function(stats):
             ##     explain("     %r", q)
-                        
-    
+
+
 def get_rule_selection_function(where_expr, score_expr, cutoffs):
     # '--where': select which rule environments to use
     where_function = get_where_function(where_expr)
@@ -340,24 +355,26 @@ def get_rule_selection_function_from_args(parser, args):
         where_function = get_where_function(args.where)
     except ValueError as err:
         parser.error("%s, in --where %r" % (err, args.where))
-        
+
     try:
         score_function = get_score_function(args.score)
     except ValueError as err:
         parser.error("%s, in --score %r" % (err, args.score))
-        
+
     rule_key_function = ComputeRuleKey(score_function=score_function, cutoffs=args.cutoffs)
-    
+
     return RuleSelectionFunction(where_function, rule_key_function)
-    
+
 
 default_rule_selection_function = get_rule_selection_function(
     where_expr=DEFAULT_RULE_SELECTION_OPTIONS.where,
     score_expr=DEFAULT_RULE_SELECTION_OPTIONS.score,
-    cutoffs=DEFAULT_RULE_SELECTION_OPTIONS.cutoff_list)
+    cutoffs=DEFAULT_RULE_SELECTION_OPTIONS.cutoff_list,
+)
 
 
 ###### Predict
+
 
 def _get_tool(klass, dataset, rule_selection_function):
     cursor = dataset.get_cursor()
@@ -370,13 +387,18 @@ def _get_tool(klass, dataset, rule_selection_function):
         fragment_options=fragment_options,
         fragment_filter=fragment_filter,
         rule_selection_function=rule_selection_function,
-        )
+    )
 
 
 class Tool(object):
-    def __init__(self,
-                 dataset, property_name_to_id,
-                 fragment_options, fragment_filter, rule_selection_function):
+    def __init__(
+        self,
+        dataset,
+        property_name_to_id,
+        fragment_options,
+        fragment_filter,
+        rule_selection_function,
+    ):
         self.dataset = dataset
         self.property_name_to_id = property_name_to_id
         self.fragment_options = fragment_options
@@ -385,22 +407,19 @@ class Tool(object):
 
     def get_property_names(self):
         return list(self.property_name_to_id)
-    
+
     def is_available_property_name(self, property_name):
         return property_name in self.property_name_to_id
 
-    
-def get_predict_tool(
-        dataset,
-        rule_selection_function=default_rule_selection_function
-        ):
+
+def get_predict_tool(dataset, rule_selection_function=default_rule_selection_function):
     return _get_tool(PredictTool, dataset, rule_selection_function)
 
 
 class PredictTool(Tool):
     def fragment_predict_smiles(self, smiles):
         from . import fragment_records
-        
+
         if "[H]" in smiles:
             smiles_record = fragment_records.make_hydrogen_fragment_record("query", smiles, self.fragment_filter)
             return smiles_record
@@ -411,36 +430,50 @@ class PredictTool(Tool):
 
         # Include hydrogen fragments
         hydrogen_fragments = fragment_algorithm.get_hydrogen_fragmentations(
-            smiles_record.normalized_smiles, smiles_record.num_normalized_heavies)
+            smiles_record.normalized_smiles, smiles_record.num_normalized_heavies
+        )
 
         smiles_record.fragmentations.extend(hydrogen_fragments)
         return smiles_record
 
     def fragment_reference_smiles(self, smiles):
         from . import fragment_records
-        
+
         smiles_record = fragment_records.make_fragment_record_from_smiles(smiles, self.fragment_filter)
         if smiles_record.errmsg is not None:
             return smiles_record
 
         # Include hydrogen fragments
         hydrogen_fragments = fragment_algorithm.get_hydrogen_fragmentations(
-            smiles_record.normalized_smiles, smiles_record.num_normalized_heavies)
+            smiles_record.normalized_smiles, smiles_record.num_normalized_heavies
+        )
 
         smiles_record.fragmentations.extend(hydrogen_fragments)
         return smiles_record
 
-    def predict(self, reference_fragments, smiles_fragments,
-                property_name, explain=None, relabel_cache=None):
+    def predict(
+        self,
+        reference_fragments,
+        smiles_fragments,
+        property_name,
+        explain=None,
+        relabel_cache=None,
+    ):
         property_name_id = self.property_name_to_id.get(property_name, None)
         if property_name_id is None:
-                raise ValueError("Property %r not found")
+            raise ValueError("Property %r not found")
         cursor = self.dataset.get_cursor()
         return make_prediction(
-            self.dataset, reference_fragments, smiles_fragments,
-            property_name, property_name_id,
+            self.dataset,
+            reference_fragments,
+            smiles_fragments,
+            property_name,
+            property_name_id,
             rule_selection_function=self.rule_selection_function,
-            relabel_cache=relabel_cache, cursor=cursor, explain=explain)
+            relabel_cache=relabel_cache,
+            cursor=cursor,
+            explain=explain,
+        )
 
 
 #####
@@ -449,25 +482,30 @@ class PredictTool(Tool):
 # XXX or should this return inverse?
 
 _attachment_pattern = re.compile(":([123])")
+
+
 def get_attachment_order(smiles):
     order = "".join(_attachment_pattern.findall(smiles))
     return order
 
-    
+
 def make_prediction(
-        dataset, reference_fragments, smiles_fragments,
-        property_name, property_name_id,
-        rule_selection_function,
-        explain=None,
-        relabel_cache=None,
-        cursor=None,
-        ):
+    dataset,
+    reference_fragments,
+    smiles_fragments,
+    property_name,
+    property_name_id,
+    rule_selection_function,
+    explain=None,
+    relabel_cache=None,
+    cursor=None,
+):
     if explain is None:
         explain = reporters.no_explain
         using_explain = False
     else:
         using_explain = True
-    
+
     # Used to help speed up the canonical SMIRKS.
     # It's passed in as an argument because it might be shared across multiple
     # 'predict' and 'transform' calls/datasets, e.g., for a hypothetical web
@@ -481,13 +519,21 @@ def make_prediction(
     # Find the variable fragments for each constant fragment in --reference
     constant_to_reference_fragments = defaultdict(list)
     for frag in reference_fragments:
-        explain("--reference fragments: constant %s variable %s", frag.constant_smiles, frag.variable_smiles)
+        explain(
+            "--reference fragments: constant %s variable %s",
+            frag.constant_smiles,
+            frag.variable_smiles,
+        )
         constant_to_reference_fragments[frag.constant_smiles].append(frag)
-        
+
     # Find the variable fragments for each constant fragment in --smiles
     constant_to_smiles_fragments = defaultdict(list)
     for frag in smiles_fragments:
-        explain("--smiles fragments: constant %s variable %s", frag.constant_smiles, frag.variable_smiles)
+        explain(
+            "--smiles fragments: constant %s variable %s",
+            frag.constant_smiles,
+            frag.variable_smiles,
+        )
         constant_to_smiles_fragments[frag.constant_smiles].append(frag)
 
     # Which constants are common to both --reference and --smiles?
@@ -496,10 +542,12 @@ def make_prediction(
     # Figure out which rules to consider for each constant
     unique_property_rules = {}
     for constant_smiles in common_constants:
-        explain("Found match for constant %s (#variable fragments in the --reference and --smiles: %dx%d)",
-                constant_smiles,
-                len(constant_to_reference_fragments[constant_smiles]),
-                len(constant_to_smiles_fragments[constant_smiles]))
+        explain(
+            "Found match for constant %s (#variable fragments in the --reference and --smiles: %dx%d)",
+            constant_smiles,
+            len(constant_to_reference_fragments[constant_smiles]),
+            len(constant_to_smiles_fragments[constant_smiles]),
+        )
 
         # Get the environment fingerprints around each attachment point
         all_center_fps = environment.compute_constant_center_fingerprints(constant_smiles)
@@ -508,8 +556,12 @@ def make_prediction(
         for from_frag in constant_to_reference_fragments[constant_smiles]:
             for to_frag in constant_to_smiles_fragments[constant_smiles]:
                 assert from_frag.constant_symmetry_class == to_frag.constant_symmetry_class, (
-                    constant_smiles, from_frag.variable_smiles, to_frag.variable_smiles,
-                    from_frag.constant_symmetry_class, to_frag.constant_symmetry_class)
+                    constant_smiles,
+                    from_frag.variable_smiles,
+                    to_frag.variable_smiles,
+                    from_frag.constant_symmetry_class,
+                    to_frag.constant_symmetry_class,
+                )
                 constant_symmetry_class = to_frag.constant_symmetry_class
 
                 # Skip the idempotent transformation. (Can occur if --smiles and --reference are identical.)
@@ -519,10 +571,16 @@ def make_prediction(
                 # Figure out the canonical SMIRKS and canonical form of the constant.
                 smirks, ordered_constant = index_algorithm.cansmirks(
                     from_frag.num_cuts,
-                    from_frag.variable_smiles, from_frag.variable_symmetry_class, from_frag.attachment_order,
-                    constant_smiles, from_frag.constant_symmetry_class,
-                    to_frag.variable_smiles, to_frag.variable_symmetry_class, to_frag.attachment_order,
-                    relabel_cache)
+                    from_frag.variable_smiles,
+                    from_frag.variable_symmetry_class,
+                    from_frag.attachment_order,
+                    constant_smiles,
+                    from_frag.constant_symmetry_class,
+                    to_frag.variable_smiles,
+                    to_frag.variable_symmetry_class,
+                    to_frag.attachment_order,
+                    relabel_cache,
+                )
                 explain("  SMIRKS %s with constant assignment %s", smirks, ordered_constant)
 
                 # Use the ordered_constant to get the attachment order for the constant
@@ -532,35 +590,43 @@ def make_prediction(
 
                 # From that, compute the environment fingerprint(s)
                 possible_envs = environment.get_all_possible_fingerprints(
-                    all_center_fps, constant_symmetry_class, new_constant_order)
-                #explain("  Environment fingerprints: %s", possible_envs)
+                    all_center_fps, constant_symmetry_class, new_constant_order
+                )
+                # explain("  Environment fingerprints: %s", possible_envs)
 
                 # Turn those into identifiers because it helps with the
                 # iter_selected_property_rules() performance. I originally
                 # tried to use the fingerprint string directly, but the SQL
                 # query optimizer didn't optimize it very well.
-                
+
                 allowed_fingerprint_ids = dataset.get_fingerprint_ids(possible_envs, cursor)
 
                 # Find the rules for the given LHS/RHS and property
-                property_rules = dataset.iter_selected_property_rules(
-                    from_smiles, to_smiles, property_name_id, cursor)
-                
+                property_rules = dataset.iter_selected_property_rules(from_smiles, to_smiles, property_name_id, cursor)
+
                 # Select only those with the right environment fingerprints.
-                property_rules = [rule for rule in property_rules
-                                        if rule.fingerprint_id in allowed_fingerprint_ids]
-                    
+                property_rules = [rule for rule in property_rules if rule.fingerprint_id in allowed_fingerprint_ids]
+
                 if using_explain:
                     # Give a more in-depth description of the selected rules.
                     if not property_rules:
-                        explain("  No rule found for %s>>%s or its inverse",
-                                from_smiles, to_smiles)
+                        explain(
+                            "  No rule found for %s>>%s or its inverse",
+                            from_smiles,
+                            to_smiles,
+                        )
                     else:
                         for rule in property_rules:
-                            explain("  Rule %s (#%d) environment %d (radius %d): count %d avg %g",
-                                    rule.smirks, rule.rule_id, rule.rule_environment_id,
-                                    rule.radius, rule.count, rule.avg)
-                            
+                            explain(
+                                "  Rule %s (#%d) environment %d (radius %d): count %d avg %g",
+                                rule.smirks,
+                                rule.rule_id,
+                                rule.rule_environment_id,
+                                rule.radius,
+                                rule.count,
+                                rule.avg,
+                            )
+
                 # De-duplicate the rules. This can happen if the same rule can be
                 # used multiple times in a structure.
                 for rule in property_rules:
@@ -572,6 +638,7 @@ def make_prediction(
     # Sort them so output is human-understandable
     def get_sort_key(rule):
         return (rule.rule_id, rule.radius, -rule.from_num_heavies)
+
     property_rules.sort(key=get_sort_key)
 
     # Figure out which ones are used in both directions
@@ -580,12 +647,11 @@ def make_prediction(
         directions[rule.rule_environment_id].add(rule.is_reversed)
     for rule in property_rules:
         rule.is_bidirectional = len(directions[rule.rule_environment_id]) > 1
-    
+
     # Apply the rule selection function to get *the* property rule
     property_rule = rule_selection_function(property_rules, explain)
 
-    return PredictResult(dataset, property_rule, property_rules,
-                         property_name, property_name_id)
+    return PredictResult(dataset, property_rule, property_rules, property_name, property_name_id)
 
 
 # Help generate table output
@@ -615,7 +681,6 @@ _global_column_formatters = {
     "max": "%.5g",
     "paired_t": "%.5g",
     "p_value": "%.5g",
-
     "pair_id": "%d",
     "lhs_smiles": "%s",
     "rhs_smiles": "%s",
@@ -624,7 +689,7 @@ _global_column_formatters = {
     "lhs_value": "%.5g",
     "rhs_value": "%.5g",
     "delta": "%.5g",
-    }
+}
 
 
 def _format_object_attributes(obj, field_names, missing_value, formatters):
@@ -641,50 +706,79 @@ def _format_object_attributes(obj, field_names, missing_value, formatters):
 
 
 def _format_object_attributes_to_string(obj, field_name, missing_value, formatters):
-    return "\t".join(_format_object_attributes(
-        obj, field_name, missing_value, formatters))
+    return "\t".join(_format_object_attributes(obj, field_name, missing_value, formatters))
 
 
 # Store the results of the transform prediction, and provide ways to get/save the data.
 class PredictResult(object):
     missing_value = ""
     property_rule_field_names = (
-        "rule_id", "rule_environment_id", "radius", "fingerprint", "from_smiles", "to_smiles",
-        "rule_environment_statistics_id", "count", "avg", "std", "kurtosis", "skewness",
-        "min", "q1", "median", "q3", "max", "paired_t", "p_value")
+        "rule_id",
+        "rule_environment_id",
+        "radius",
+        "fingerprint",
+        "from_smiles",
+        "to_smiles",
+        "rule_environment_statistics_id",
+        "count",
+        "avg",
+        "std",
+        "kurtosis",
+        "skewness",
+        "min",
+        "q1",
+        "median",
+        "q3",
+        "max",
+        "paired_t",
+        "p_value",
+    )
 
     property_rule_pair_field_names = (
-        "rule_id", "rule_environment_id", "radius", "fingerprint", "pair_id",
-        "lhs_smiles", "rhs_smiles", "lhs_public_id", "rhs_public_id",
-        "lhs_value", "rhs_value", "delta")
-        
+        "rule_id",
+        "rule_environment_id",
+        "radius",
+        "fingerprint",
+        "pair_id",
+        "lhs_smiles",
+        "rhs_smiles",
+        "lhs_public_id",
+        "rhs_public_id",
+        "lhs_value",
+        "rhs_value",
+        "delta",
+    )
+
     column_formatters = _global_column_formatters.copy()
-    
-    def __init__(self, dataset, property_rule, property_rules,
-                       property_name, property_name_id):
+
+    def __init__(self, dataset, property_rule, property_rules, property_name, property_name_id):
         self.dataset = dataset
         self.property_rule = property_rule  # the selected rule
         self.property_rules = property_rules  # all of the rules
         self.property_name = property_name
         self.property_name_id = property_name_id
 
-    def format_property_rule(self, property_rule, field_names=None,
-                             show_bidirectional_flag=True):
+    def format_property_rule(self, property_rule, field_names=None, show_bidirectional_flag=True):
         if field_names is None:
             field_names = PredictResult.property_rule_field_names
-    
+
         column_values = _format_object_attributes(
-            property_rule, field_names, self.missing_value, self.column_formatters)
-        
+            property_rule, field_names, self.missing_value, self.column_formatters
+        )
+
         if show_bidirectional_flag and property_rule.is_bidirectional:
             for i, field_name in field_names:
                 if field_name == "avg":
                     column_values[i] += "*"
         return "\t".join(column_values)
-        
-    def write_property_rules(self, property_rules_file, field_names=None,
-                             column_aliases=None,
-                             show_bidirectional_flag=True):
+
+    def write_property_rules(
+        self,
+        property_rules_file,
+        field_names=None,
+        column_aliases=None,
+        show_bidirectional_flag=True,
+    ):
         if field_names is None:
             field_names = PredictResult.property_rule_field_names
         column_names = _get_column_names(field_names, column_aliases)
@@ -694,27 +788,23 @@ class PredictResult(object):
 
         # write a row for each rule
         for rule in self.property_rules:
-            line = self.format_property_rule(
-                rule, field_names, show_bidirectional_flag)
+            line = self.format_property_rule(rule, field_names, show_bidirectional_flag)
             property_rules_file.write(line + "\n")
 
     def get_property_rule_pairs(self, cursor=None):
         if cursor is None:
             cursor = self.dataset.get_cursor()
         for property_rule in self.property_rules:
-            property_rule_pairs = self.dataset.get_property_rule_pairs(
-                property_rule, self.property_name_id, cursor)
+            property_rule_pairs = self.dataset.get_property_rule_pairs(property_rule, self.property_name_id, cursor)
             for property_rule_pair in property_rule_pairs:
                 yield property_rule_pair
-            
+
     def format_property_rule_pair(self, rule_pair, field_names):
         if field_names is None:
             field_names = PredictResult.property_rule_pair_field_names
-        return _format_object_attributes_to_string(
-            rule_pair, field_names, self.missing_value, self.column_formatters)
-            
-    def write_property_rule_pairs(self, rule_pairs_file, field_names=None,
-                                  column_aliases=None):
+        return _format_object_attributes_to_string(rule_pair, field_names, self.missing_value, self.column_formatters)
+
+    def write_property_rule_pairs(self, rule_pairs_file, field_names=None, column_aliases=None):
         if field_names is None:
             field_names = PredictResult.property_rule_pair_field_names
         column_names = _get_column_names(field_names, column_aliases)
@@ -726,92 +816,101 @@ class PredictResult(object):
         for rule_pair in self.get_property_rule_pairs():
             line = self.format_property_rule_pair(rule_pair, field_names)
             rule_pairs_file.write(line + "\n")
-    
+
 
 def test_predict():
     # --smiles 'c1ccccc1C(=O)N(C)C' --reference 'c1ccccc1C(=O)NC' --property logD mdo_mmp_logD.db --save-details
     import sys
     from . import dbutils
+
     db = dbutils.open_database("e.mmpdb")
     dataset = db.get_dataset()
     predict_tool = get_predict_tool(dataset)
     reference_record = predict_tool.fragment_reference_smiles("c1ccccc1C(=O)NC")
     if reference_record.errmsg is not None:
         raise ValueError("Cannot parse reference: %s" % (reference_record.errmsg,))
-    
+
     predict_record = predict_tool.fragment_predict_smiles("c1ccccc1C(=O)N(C)C")
     if predict_record.errmsg is not None:
         raise ValueError("Cannot parse smiles: %s" % (predict_record.errmsg,))
 
-    predict_results = predict_tool.predict(reference_record.fragments,
-                                           predict_record.fragments, "MP")
+    predict_results = predict_tool.predict(reference_record.fragments, predict_record.fragments, "MP")
     predict_results.write_property_rules(sys.stdout)
     predict_results.write_property_rule_pairs(sys.stdout)
 
 
 ###### Transform
 
-def get_transform_tool(
-        dataset,
-        rule_selection_function=default_rule_selection_function
-        ):
+
+def get_transform_tool(dataset, rule_selection_function=default_rule_selection_function):
     return _get_tool(TransformTool, dataset, rule_selection_function)
-    
+
 
 class TransformTool(Tool):
     def fragment_transform_smiles(self, smiles):
         from . import fragment_records
-        
+
         # Figure out how I'm going to fragment the input --smiles
         if "[H]" in smiles:
             # User-specified transform location
-            record = fragment_records.make_hydrogen_fragment_record(
-                "query", smiles, self.fragment_filter)
+            record = fragment_records.make_hydrogen_fragment_record("query", smiles, self.fragment_filter)
         else:
-            record = fragment_records.make_fragment_record_from_smiles(
-                smiles, self.fragment_filter)
+            record = fragment_records.make_fragment_record_from_smiles(smiles, self.fragment_filter)
         return record
-    
-    def transform(self, transform_fragments, property_names,
-                  min_radius=0, min_pairs=0, min_variable_size=0, max_variable_size=9999, min_constant_size=0,
-                  substructure_pat=None,
-                  pool=None,
-                  explain=None):
+
+    def transform(
+        self,
+        transform_fragments,
+        property_names,
+        min_radius=0,
+        min_pairs=0,
+        min_variable_size=0,
+        max_variable_size=9999,
+        min_constant_size=0,
+        substructure_pat=None,
+        pool=None,
+        explain=None,
+    ):
         property_info_list = []
         for property_name in property_names:
             try:
                 property_name_id = self.property_name_to_id[property_name]
             except KeyError:
-                raise ValueError("Dataset does not contain property %r"
-                                 % (property_name,))
-            property_info_list.append( (property_name_id, property_name) )
+                raise ValueError("Dataset does not contain property %r" % (property_name,))
+            property_info_list.append((property_name_id, property_name))
 
         cursor = self.dataset.get_cursor()
         return make_transform(
-                self.dataset, transform_fragments, property_info_list,
-                rule_selection_function=self.rule_selection_function,
-                substructure_pat=substructure_pat,
-                min_radius=min_radius, min_pairs=min_pairs,
-                min_variable_size=min_variable_size, max_variable_size=max_variable_size,
-                min_constant_size=min_constant_size,
-                pool=pool,
-                cursor=cursor, explain=explain)
+            self.dataset,
+            transform_fragments,
+            property_info_list,
+            rule_selection_function=self.rule_selection_function,
+            substructure_pat=substructure_pat,
+            min_radius=min_radius,
+            min_pairs=min_pairs,
+            min_variable_size=min_variable_size,
+            max_variable_size=max_variable_size,
+            min_constant_size=min_constant_size,
+            pool=pool,
+            cursor=cursor,
+            explain=explain,
+        )
 
     def expand_variable_symmetry(self, transform_record):
         # Expand fragmentations of transform where the variable part is symmetric
         symmetry_fragments = []
         for fragment in transform_record.fragmentations:
-            if fragment.num_cuts == 1: 
-                continue         # No symmetry here
+            if fragment.num_cuts == 1:
+                continue  # No symmetry here
             elif fragment.num_cuts == 2 and fragment.variable_symmetry_class == "11":
                 if fragment.constant_symmetry_class == "11":
-                    continue     # Both variable and constant are symmetric
+                    continue  # Both variable and constant are symmetric
                 new_fragment = copy.copy(fragment)
                 frag1, frag2 = new_fragment.constant_smiles.split(".")
                 new_fragment.constant_smiles = frag2 + "." + frag1
                 symmetry_fragments.append(new_fragment)
-        
-            elif fragment.num_cuts == 3 and fragment.variable_symmetry_class == '111':
+
+            elif fragment.num_cuts == 3 and fragment.variable_symmetry_class == "111":
                 new_fragment = copy.copy(fragment)
                 frag1, frag2, frag3 = new_fragment.constant_smiles.split(".")
                 new_fragment.constant_smiles = frag1 + "." + frag3 + "." + frag2
@@ -829,36 +928,36 @@ class TransformTool(Tool):
                 new_fragment.constant_smiles = frag3 + "." + frag2 + "." + frag1
                 symmetry_fragments.append(new_fragment)
 
-            elif fragment.num_cuts == 3 and fragment.variable_symmetry_class == '112':
+            elif fragment.num_cuts == 3 and fragment.variable_symmetry_class == "112":
                 change_idx1, change_idx2 = int(fragment.attachment_order[0]), int(fragment.attachment_order[1])
                 keep_idx = int(fragment.attachment_order[2])
                 new_fragment = copy.copy(fragment)
                 frags = new_fragment.constant_smiles.split(".")
-                new_frags = ['', '', '']
+                new_frags = ["", "", ""]
                 new_frags[keep_idx] = frags[keep_idx]
                 new_frags[change_idx1] = frags[change_idx2]
                 new_frags[change_idx2] = frags[change_idx1]
                 new_fragment.constant_smiles = new_frags[0] + "." + new_frags[1] + "." + new_frags[2]
                 symmetry_fragments.append(new_fragment)
 
-            elif fragment.num_cuts == 3 and fragment.variable_symmetry_class == '121':
+            elif fragment.num_cuts == 3 and fragment.variable_symmetry_class == "121":
                 change_idx1, change_idx2 = int(fragment.attachment_order[0]), int(fragment.attachment_order[2])
                 keep_idx = int(fragment.attachment_order[1])
                 new_fragment = copy.copy(fragment)
                 frags = new_fragment.constant_smiles.split(".")
-                new_frags = ['', '', '']
+                new_frags = ["", "", ""]
                 new_frags[keep_idx] = frags[keep_idx]
                 new_frags[change_idx1] = frags[change_idx2]
                 new_frags[change_idx2] = frags[change_idx1]
                 new_fragment.constant_smiles = new_frags[0] + "." + new_frags[1] + "." + new_frags[2]
                 symmetry_fragments.append(new_fragment)
 
-            elif fragment.num_cuts == 3 and fragment.variable_symmetry_class == '122':
+            elif fragment.num_cuts == 3 and fragment.variable_symmetry_class == "122":
                 change_idx1, change_idx2 = int(fragment.attachment_order[1]), int(fragment.attachment_order[2])
                 keep_idx = int(fragment.attachment_order[0])
                 new_fragment = copy.copy(fragment)
                 frags = new_fragment.constant_smiles.split(".")
-                new_frags = ['', '', '']
+                new_frags = ["", "", ""]
                 new_frags[keep_idx] = frags[keep_idx]
                 new_frags[change_idx1] = frags[change_idx2]
                 new_frags[change_idx2] = frags[change_idx1]
@@ -876,6 +975,8 @@ class TransformTool(Tool):
 
 _bracket_wildcard_pat = re.compile(re.escape("[*]"))
 _organic_wildcard_pat = re.compile(re.escape("*"))
+
+
 def enumerate_permutations(dataset, smiles):
     # RDKit pre-2018 used "[*]"; this changed to using a bare "*".
     if "[*]" in smiles:
@@ -884,12 +985,12 @@ def enumerate_permutations(dataset, smiles):
     elif "*" in smiles:
         wildcard_pat = _organic_wildcard_pat
         wildcard = "*"
-        
+
     n = smiles.count("*")
     if n == 1:
         yield "1", smiles.replace(wildcard, "[*:1]")
         return
-            
+
     if n == 2:
         sub_terms = ["[*:2]", "[*:1]"]
         yield "12", wildcard_pat.sub(lambda pat: sub_terms.pop(), smiles)
@@ -898,36 +999,39 @@ def enumerate_permutations(dataset, smiles):
         sub_terms = ["[*:1]", "[*:2]"]
         yield "21", wildcard_pat.sub(lambda pat: sub_terms.pop(), smiles)
         return
-    
+
     if n == 3:
         sub_terms = ["[*:3]", "[*:2]", "[*:1]"]
         yield "123", wildcard_pat.sub(lambda pat: sub_terms.pop(), smiles)
         if dataset.is_symmetric:
             return
-        
+
         sub_terms = ["[*:2]", "[*:3]", "[*:1]"]
         yield "132", wildcard_pat.sub(lambda pat: sub_terms.pop(), smiles)
-        
+
         sub_terms = ["[*:3]", "[*:1]", "[*:2]"]
         yield "213", wildcard_pat.sub(lambda pat: sub_terms.pop(), smiles)
-        
+
         sub_terms = ["[*:1]", "[*:3]", "[*:2]"]
         yield "231", wildcard_pat.sub(lambda pat: sub_terms.pop(), smiles)
-        
+
         sub_terms = ["[*:2]", "[*:1]", "[*:3]"]
         yield "312", wildcard_pat.sub(lambda pat: sub_terms.pop(), smiles)
-        
+
         sub_terms = ["[*:1]", "[*:2]", "[*:3]"]
         yield "321", wildcard_pat.sub(lambda pat: sub_terms.pop(), smiles)
-        
+
         return
 
     raise AssertionError(smiles)
+
 
 # The LHS only has "*", the RHS has "*:1", "*:2", ...
 
 
 _weld_cache = {}
+
+
 def weld_fragments(frag1, frag2):
     key = (frag1, frag2)
     value = _weld_cache.get(key, None)
@@ -936,12 +1040,12 @@ def weld_fragments(frag1, frag2):
 
     # Also cache the lhs and rhs parts because they can be reused.
     # (It's about 4% faster overall runtime on one test.)
-    
+
     frag1_closures = _weld_cache.get(frag1, None)
     if frag1_closures is None:
         frag1_closures = smiles_syntax.convert_wildcards_to_closures(frag1, [1, 2, 3])
         _weld_cache[frag1] = frag1_closures
-        
+
     frag2_closures = _weld_cache.get(frag2, None)
     if frag2_closures is None:
         frag2_closures = smiles_syntax.convert_labeled_wildcards_to_closures(frag2)
@@ -950,7 +1054,7 @@ def weld_fragments(frag1, frag2):
     welded_mol = Chem.MolFromSmiles(frag1_closures + "." + frag2_closures)
     assert welded_mol is not None, (frag1, frag2, frag1_closures + "." + frag2_closures)
     welded_smiles = Chem.MolToSmiles(welded_mol, isomericSmiles=True)
-    
+
     if len(_weld_cache) > 3000:
         _weld_cache.clear()
         _weld_cache[frag1] = frag1_closures
@@ -974,17 +1078,30 @@ def _weld_and_filter(item):
         passed_substructure_test = test_mol.HasSubstructMatch(substructure_pat)
     else:
         passed_substructure_test = True
-    return (frag_constant_smiles, frag_variable_smiles, row, product_smiles, passed_substructure_test)
+    return (
+        frag_constant_smiles,
+        frag_variable_smiles,
+        row,
+        product_smiles,
+        passed_substructure_test,
+    )
 
 
 def make_transform(
-        dataset, transform_fragments, property_info_list,
-        rule_selection_function,
-        substructure_pat=None,
-        min_radius=0, min_pairs=0, min_variable_size=0, min_constant_size=0,
-        max_variable_size=9999,
-        pool=None,
-        cursor=None, explain=None):
+    dataset,
+    transform_fragments,
+    property_info_list,
+    rule_selection_function,
+    substructure_pat=None,
+    min_radius=0,
+    min_pairs=0,
+    min_variable_size=0,
+    min_constant_size=0,
+    max_variable_size=9999,
+    pool=None,
+    cursor=None,
+    explain=None,
+):
     if explain is None:
         explain = reporters.no_explain
     if cursor is None:
@@ -994,9 +1111,9 @@ def make_transform(
     # Map from the destination SMILES to the set of rule environments
     # The RHS set contains (rule_id, rule_environment_id, is_reversed) tuples.
     product_rule_environment_table = defaultdict(set)
-    
+
     # Hold the welded molecules in case I need them for a substructure search
-    
+
     # For each variable fragment (single, double, or triple cut) and
     # for each environment, extract all rules from the DB that start
     # with the given fragment and that has the same environment as the
@@ -1015,20 +1132,32 @@ def make_transform(
 
         # Check if the fragmentation is allowed
         if min_variable_size and frag.variable_num_heavies < min_variable_size:
-            explain("  The %d heavy atoms of variable %r is below the --min-variable-size of %d. Skipping fragment.",
-                    frag.variable_num_heavies, frag.variable_smiles, min_variable_size)
+            explain(
+                "  The %d heavy atoms of variable %r is below the --min-variable-size of %d. Skipping fragment.",
+                frag.variable_num_heavies,
+                frag.variable_smiles,
+                min_variable_size,
+            )
             continue
 
         if frag.variable_num_heavies > max_variable_size:
-            explain("  The %d heavy atoms of variable %r is above the --max-variable-size of %d. Skipping fragment.",
-                    frag.variable_num_heavies, frag.variable_smiles, max_variable_size)
+            explain(
+                "  The %d heavy atoms of variable %r is above the --max-variable-size of %d. Skipping fragment.",
+                frag.variable_num_heavies,
+                frag.variable_smiles,
+                max_variable_size,
+            )
             continue
-        
+
         if min_constant_size and frag.constant_num_heavies < min_constant_size:
-            explain("  The %d heavy atoms of constant %r is below the --min-constant-size of %d. Skipping fragment.",
-                    frag.constant_num_heavies, frag.constant_smiles, min_constant_size)
+            explain(
+                "  The %d heavy atoms of constant %r is below the --min-constant-size of %d. Skipping fragment.",
+                frag.constant_num_heavies,
+                frag.constant_smiles,
+                min_constant_size,
+            )
             continue
-            
+
         # XXX TODO: handle 'constant_with_H_smiles'?
 
         # In case of multiple cuts, permute the constant smiles to match the attachment order
@@ -1044,49 +1173,72 @@ def make_transform(
         # rule_smiles in the database contains labeled attachment points.
         # The fragment [*]CO[*] can potentially match [*:1]CO[*:2] or [*:2]CO[*:1],
         # so I need to enumerate all n! possibilities and find possible matches.
-        
+
         query_possibilities = []
         for permutation, permuted_variable_smiles in enumerate_permutations(dataset, frag.variable_smiles):
             permuted_variable_smiles_id = dataset.get_rule_smiles_id(permuted_variable_smiles, cursor=cursor)
             if permuted_variable_smiles_id is not None:
-                explain("  variable %r matches SMILES %r (id %d)", 
-                        frag.variable_smiles, permuted_variable_smiles, permuted_variable_smiles_id)
-                query_possibilities.append( (permutation, permuted_variable_smiles, permuted_variable_smiles_id) )
+                explain(
+                    "  variable %r matches SMILES %r (id %d)",
+                    frag.variable_smiles,
+                    permuted_variable_smiles,
+                    permuted_variable_smiles_id,
+                )
+                query_possibilities.append((permutation, permuted_variable_smiles, permuted_variable_smiles_id))
             else:
-                explain("  variable %r not found as SMILES %r",
-                        frag.variable_smiles, permuted_variable_smiles)
+                explain(
+                    "  variable %r not found as SMILES %r",
+                    frag.variable_smiles,
+                    permuted_variable_smiles,
+                )
 
         if not query_possibilities:
             explain("  No matching rule SMILES found. Skipping fragment.")
             continue
 
-        explain(" Evaluating %d possible rule SMILES: %s", 
-                len(query_possibilities), sorted(x[0] for x in query_possibilities))
+        explain(
+            " Evaluating %d possible rule SMILES: %s",
+            len(query_possibilities),
+            sorted(x[0] for x in query_possibilities),
+        )
 
         # We now have a canonical variable part, and the assignment to the constant part.
         # Get the constant fingerprints.
-        
-        all_center_fps = environment.compute_constant_center_fingerprints(
-            frag.constant_smiles, min_radius=min_radius)
+
+        all_center_fps = environment.compute_constant_center_fingerprints(frag.constant_smiles, min_radius=min_radius)
 
         # For each possible way to represent the variable SMILES:
         #   Find all of the pairs which use the same SMILES id as the variable
         #   (The pairs are ordered so the matching SMILES is the 'from' side of the transform)
         #   The transformed SMILES goes from variable+constant -> dest_smiles+constant
         #   so weld the destination SMILES (smi2) with the constant
-       
-        for permutation, permuted_variable_smiles, permuted_variable_smiles_id in query_possibilities:
-            explain(" Evaluate constant %r with permutation %r against rules using SMILES %s (%d)",
-                    frag.constant_smiles, permutation, permuted_variable_smiles, permuted_variable_smiles_id)
+
+        for (
+            permutation,
+            permuted_variable_smiles,
+            permuted_variable_smiles_id,
+        ) in query_possibilities:
+            explain(
+                " Evaluate constant %r with permutation %r against rules using SMILES %s (%d)",
+                frag.constant_smiles,
+                permutation,
+                permuted_variable_smiles,
+                permuted_variable_smiles_id,
+            )
 
             possible_envs = environment.get_all_possible_fingerprints(
-                all_center_fps, frag.variable_symmetry_class, permutation)
-            
-            rows = dataset.find_rule_environments_for_transform(
-                permuted_variable_smiles_id, sorted(possible_envs), max_variable_size=max_variable_size, cursor=cursor)
+                all_center_fps, frag.variable_symmetry_class, permutation
+            )
 
-            to_weld.extend( (frag.constant_smiles, frag.variable_smiles, substructure_pat, row) for row in rows )
-    
+            rows = dataset.find_rule_environments_for_transform(
+                permuted_variable_smiles_id,
+                sorted(possible_envs),
+                max_variable_size=max_variable_size,
+                cursor=cursor,
+            )
+
+            to_weld.extend((frag.constant_smiles, frag.variable_smiles, substructure_pat, row) for row in rows)
+
     if pool is None:
         results = map(_weld_and_filter, to_weld)
     else:
@@ -1094,27 +1246,51 @@ def make_transform(
         # Too small and there's extra pickling overhead. (Larger chunks share the same SMARTS pickle.)
         # Too large and only one process might be used for all of the welding.
         results = pool.imap(_weld_and_filter, to_weld, 20)
-        
-    for frag_constant_smiles, frag_variable_smiles, row, product_smiles, passed_substructure_test in results:
+
+    for (
+        frag_constant_smiles,
+        frag_variable_smiles,
+        row,
+        product_smiles,
+        passed_substructure_test,
+    ) in results:
         rule_id, rule_environment_id, other_constant_smiles, is_reversed = row
         if not passed_substructure_test:
-            explain("     Skip rule %d:  %r + %r -> %r; does not contain --substructure",
-                    rule_id, frag_constant_smiles, str(other_constant_smiles), product_smiles)
+            explain(
+                "     Skip rule %d:  %r + %r -> %r; does not contain --substructure",
+                rule_id,
+                frag_constant_smiles,
+                str(other_constant_smiles),
+                product_smiles,
+            )
             continue
-            
+
             # How to get to product_smiles from variable_smiles using rule_environment_id
         product_rule_environment_table[product_smiles].add(
-            (rule_id, frag_variable_smiles, rule_environment_id, is_reversed))
-        explain("     Rule %d:  %r + %r -> %r",
-                rule_id, frag_constant_smiles, str(other_constant_smiles), product_smiles)
+            (rule_id, frag_variable_smiles, rule_environment_id, is_reversed)
+        )
+        explain(
+            "     Rule %d:  %r + %r -> %r",
+            rule_id,
+            frag_constant_smiles,
+            str(other_constant_smiles),
+            product_smiles,
+        )
 
     explain("== Product SMILES in database: %d ==" % (len(product_rule_environment_table),))
 
-    transform_products = list(iter_transform_products(
-        dataset, product_rule_environment_table, property_info_list,
-        min_pairs, rule_selection_function,
-        cursor, explain))
-    
+    transform_products = list(
+        iter_transform_products(
+            dataset,
+            product_rule_environment_table,
+            property_info_list,
+            min_pairs,
+            rule_selection_function,
+            cursor,
+            explain,
+        )
+    )
+
     return TransformResult(property_info_list, transform_products)
 
 
@@ -1125,33 +1301,61 @@ class TransformProduct(object):
 
 
 def iter_transform_products(
-        dataset, product_rule_environment_table, property_info_list,
-        min_pairs, rule_selection_function,
-        cursor, explain):
+    dataset,
+    product_rule_environment_table,
+    property_info_list,
+    min_pairs,
+    rule_selection_function,
+    cursor,
+    explain,
+):
     # For each SMILES (row of output)
     for product_smiles, rule_environment_info in sorted(product_rule_environment_table.items()):
-        explain("Evaluating the %d rule environments for %r", len(rule_environment_info), product_smiles)
+        explain(
+            "Evaluating the %d rule environments for %r",
+            len(rule_environment_info),
+            product_smiles,
+        )
         product_property_rules = []
 
         # For each property...
         for property_name_id, property_name in property_info_list:
-            explain("  Evaluating property %s (%d) for SMILES %s",
-                    property_name, property_name_id, product_smiles)
+            explain(
+                "  Evaluating property %s (%d) for SMILES %s",
+                property_name,
+                property_name_id,
+                product_smiles,
+            )
 
             # Figure out the rule environments
             property_rules = []
-            for (rule_id, variable_smiles, rule_environment_id, is_reversed) in rule_environment_info:
+            for (
+                rule_id,
+                variable_smiles,
+                rule_environment_id,
+                is_reversed,
+            ) in rule_environment_info:
                 property_rule = dataset.get_property_rule(
-                    property_name_id, rule_environment_id, is_reversed, cursor=cursor)
+                    property_name_id, rule_environment_id, is_reversed, cursor=cursor
+                )
                 if property_rule is None:
-                    explain("    No property values found for %s environment (id %d)",
-                            property_name, rule_environment_id)
+                    explain(
+                        "    No property values found for %s environment (id %d)",
+                        property_name,
+                        rule_environment_id,
+                    )
                     continue
 
                 if property_rule.count < min_pairs:
-                    explain("    Rule %s (#%d) for %s environment (id %d) count is too small: %d < %d",
-                            property_rule.smirks, property_rule.rule_id, property_name,
-                            rule_environment_id, property_rule.count, min_pairs)
+                    explain(
+                        "    Rule %s (#%d) for %s environment (id %d) count is too small: %d < %d",
+                        property_rule.smirks,
+                        property_rule.rule_id,
+                        property_name,
+                        rule_environment_id,
+                        property_rule.count,
+                        min_pairs,
+                    )
                     continue
                 property_rules.append(property_rule)
 
@@ -1162,7 +1366,7 @@ def iter_transform_products(
                 property_rule = rule_selection_function(property_rules, explain)
                 if property_rule is None:
                     explain("    No rule selected.")
-                    
+
             product_property_rules.append(property_rule)
 
         yield TransformProduct(product_smiles, product_property_rules)
@@ -1170,15 +1374,31 @@ def iter_transform_products(
 
 class TransformResult(object):
     missing_value = ""
-    field_names = ("from_smiles", "to_smiles", "radius", "fingerprint", "count", "avg", "std", "kurtosis", "skewness",
-                   "min", "q1", "median", "q3", "max", "paired_t", "p_value")
-    
+    field_names = (
+        "from_smiles",
+        "to_smiles",
+        "radius",
+        "fingerprint",
+        "count",
+        "avg",
+        "std",
+        "kurtosis",
+        "skewness",
+        "min",
+        "q1",
+        "median",
+        "q3",
+        "max",
+        "paired_t",
+        "p_value",
+    )
+
     column_formatters = _global_column_formatters.copy()
-    
+
     def __init__(self, property_info_list, transform_products):
         self.property_info_list = property_info_list
         self.transform_products = transform_products
-        
+
     def _write_header(self, product_file, column_names):
         # Output column names
         #   ID SMILES transformation_SMILES count_MP avg_MP ...
@@ -1187,13 +1407,12 @@ class TransformResult(object):
             for column_name in column_names:
                 output_column_names.append("%s_%s" % (property_name, column_name))
         product_file.write("\t".join(output_column_names) + "\n")
-       
-    def write_products(self, product_file, field_names=None,
-                       column_aliases=None, include_empty=False):
+
+    def write_products(self, product_file, field_names=None, column_aliases=None, include_empty=False):
         if field_names is None:
             field_names = TransformResult.field_names
         column_names = _get_column_names(field_names, column_aliases)
-        
+
         self._write_header(product_file, column_names)
 
         product_id = 1
@@ -1202,13 +1421,17 @@ class TransformResult(object):
             has_nonempty = False
             for property_rule in transform_product.property_rules:
                 if property_rule is None:
-                    rule_values = [self.missing_value]*len(field_names)
+                    rule_values = [self.missing_value] * len(field_names)
                 else:
                     rule_values = _format_object_attributes(
-                        property_rule, field_names, self.missing_value, self.column_formatters)
+                        property_rule,
+                        field_names,
+                        self.missing_value,
+                        self.column_formatters,
+                    )
                     has_nonempty = True
                 values.extend(rule_values)
-            
+
             if has_nonempty or include_empty:
                 values[0] = str(product_id)
                 product_id += 1
@@ -1218,14 +1441,15 @@ class TransformResult(object):
 def test_transform():
     import sys
     from . import dbutils
+
     db = dbutils.open_database("e.mmpdb")
     dataset = db.get_dataset()
     transform_tool = get_transform_tool(dataset)
     transform_record = transform_tool.fragment_transform_smiles("c1ccccc1C(=O)N(C)C")
     result = transform_tool.transform(transform_record.fragmentations, ["MP"])
     result.write_products(sys.stdout, include_empty=True)
-    
-    
+
+
 if __name__ == "__main__":
     test_predict()
     test_transform()
