@@ -216,7 +216,7 @@ def make_fragment_options(
             cut_smarts = rgroup2smarts.get_recursive_smarts_from_cut_filename(
                 cut_rgroup_file)
         except OSError as err:
-            die(f"Cannot use --cut-rgroup-file: {cut_rgroup_file!r}")
+            die(f"Cannot use --cut-rgroup-file: {cut_rgroup_file!r}: {err}")
         
         except rgroup2smarts.ParseError as err:
             die(f"Cannot parse --cut-rgroup-file: {cut_rgroup_file!r}")
