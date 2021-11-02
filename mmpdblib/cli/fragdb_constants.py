@@ -73,7 +73,7 @@ def fragdb_constants(
 
     c = fragdb.cursor()
 
-    (num_constants,) = next(c.execute("SELECT COUNT(DISTINCT constant_smiles) FROM fragmentation"))
+    (num_constants,) = next(c.execute("SELECT COUNT(*) FROM fragmentation"))
 
     # TODO: push this into the database?
     const_frag_filter = min_heavies_per_const_frag is not None and min_heavies_per_const_frag > 0
