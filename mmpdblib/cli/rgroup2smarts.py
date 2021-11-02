@@ -88,12 +88,14 @@ command-line instead of from a file.
     "--single",
     "-s",
     default = False,
+    is_flag = True,
     help = "generate a SMARTS for each R-group SMILES (default: generate a single recursive SMARTS)"
     )
 @click.option(
     "--check",
     "-c",
     default = False,
+    is_flag = True,
     help = "check that the SMARTS strings are valid (default: assume they are valid)",
     )
 @click.option(
@@ -140,7 +142,7 @@ def rgroup2smarts(
         record_reader = _rgroup2smarts.iter_smiles_list(cut_rgroup, location)
         
     elif rgroup_filename is not None:
-        explain("Reading R-group SMILES from {rgroup_filename!r}")
+        explain(f"Reading R-group SMILES from {rgroup_filename!r}")
         location = _rgroup2smarts.FileLocation(rgroup_filename)
         try:
             f = open(rgroup_filename)
@@ -178,7 +180,7 @@ def rgroup2smarts(
                 die(f"Cannot make a SMARTS: no SMILES strings found in {location.filename!r}")
                 
     except _rgroup2smarts.ParseError as err:
-        die("Cannot parse input file: {err}")
+        die(f"Cannot parse input file: {err}")
     except _rgroup2smarts.ConversionError as err:
         die(str(err))
     finally:
@@ -194,7 +196,7 @@ def rgroup2smarts(
                 explain("Checking that the SMARTS matches all of the input molecules")
                 all_pat = Chem.MolFromSmarts(smarts)
                 if all_pat is None:
-                    die("Cannot process final SMARTS: {smarts!r}")
+                    die(f"Cannot process final SMARTS: {smarts!r}")
                 
                 for i, (mol, where, smiles) in enumerate(all_mols):
                     if not mol.HasSubstructMatch(all_pat):
