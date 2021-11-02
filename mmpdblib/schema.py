@@ -41,7 +41,6 @@ from collections import OrderedDict, defaultdict
 
 from . import reporters
 from . import config
-from ._compat import basestring
 
 SCHEMA_FILENAME = os.path.join(os.path.dirname(__file__), "schema.sql")
 CREATE_INDEX_FILENAME = os.path.join(os.path.dirname(__file__), "create_index.sql")
@@ -231,7 +230,7 @@ class MMPDatabase(object):
                 # The MySQL adapter returns a datetime object. The SQLite adapter
                 # returns a string. This bit of hack converts the datetime string
                 # a real datetime object.
-                if isinstance(creation_date, basestring):
+                if isinstance(creation_date, str):
                     creation_date = creation_date.rstrip("Z")
                     creation_date = datetime.datetime.strptime(creation_date, "%Y-%m-%d %H:%M:%S.%f")
 

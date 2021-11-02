@@ -37,7 +37,6 @@ from __future__ import absolute_import
 from collections import OrderedDict
 import argparse
 
-from ._compat import basestring
 from . import smarts_aliases
 from . import fragment_types
 from . import index_types

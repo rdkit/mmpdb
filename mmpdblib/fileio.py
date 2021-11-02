@@ -30,8 +30,14 @@ import sys
 import gzip
 import os
 
-from ._compat import basestring, open_universal, io_wrapper
-from ._compat import binary_stdin, binary_stdout
+from io import TextIOWrapper
+
+def _get_binary_stdin():
+    return sys.stdin.buffer
+
+def _get_binary_stdout():
+    return getattr(sys.stdout, "buffer", sys.stdout)
+
 
 class FileFormatError(ValueError):
     pass
@@ -67,14 +73,16 @@ def open_input(filename):
         return sys.stdin
     
     if filename.endswith(".gz"):
-        return io_wrapper(gzip.open(filename))
-    return open_universal(filename)
+        return TextIOWrapper(gzip.open(filename))
+    return open(filename)
 
 
 def open_output(filename, format_hint):
     if format_hint is None:
-        if isinstance(filename, basestring):
+        if isinstance(filename, str):
             is_compressed = filename.lower().endswith(".gz")
+        elif isinstance(filename, bytes):
+            is_compressed = filename.lower().endswith(b".gz")
         else:
             is_compressed = False
     else:
@@ -82,14 +90,14 @@ def open_output(filename, format_hint):
         
     if filename is None:
         if is_compressed:
-            outfile = gzip.GzipFile(fileobj=binary_stdout, mode="w")
-            outfile = io_wrapper(outfile)
+            outfile = gzip.GzipFile(fileobj=_get_binary_stdout(), mode="w")
+            outfile = Strings(outfile)
             return Outfile("<stdout>", outfile, outfile.close)
         else:
             return Outfile("<stdout>", sys.stdout, None)
 
     if is_compressed:
-        outfile = io_wrapper(gzip.open(filename, "w"))
+        outfile = TextIOWrapper(gzip.open(filename, "w"))
     else:
         outfile = open(filename, "w")
     return Outfile(filename, outfile, outfile.close)
@@ -203,7 +211,7 @@ class Location(object):
         """
         if source is None:
             return cls("<stdin>")
-        if isinstance(source, basestring):
+        if isinstance(source, str):
             return cls(source)
         return cls(getattr(source, "name", None))
 
@@ -218,7 +226,7 @@ class Location(object):
         """
         if destination is None:
             return cls("<stdout>")
-        if isinstance(destination, basestring):
+        if isinstance(destination, str):
             return cls(destination)
         return cls(getattr(destination, "name", None))
 
@@ -501,7 +509,7 @@ def read_smiles_file(filename, format=None, delimiter="whitespace", has_header=F
 
     if filename is None:
         if format == "smi.gz":
-            infile = io_wrapper(gzip.GzipFile(fileobj=binary_stdin))
+            infile = TextIOWrapper(gzip.GzipFile(fileobj=_get_binary_stdin()))
             close = None
         else:
             infile = sys.stdin
@@ -510,10 +518,10 @@ def read_smiles_file(filename, format=None, delimiter="whitespace", has_header=F
             
     else:
         if format == "smi.gz":
-            infile = io_wrapper(gzip.GzipFile(filename))
+            infile = TextIOWrapper(gzip.GzipFile(filename))
             close = infile.close
         else:
-            infile = open_universal(filename)
+            infile = open(filename)
             close = infile.close
         name = filename
 

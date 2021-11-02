@@ -49,7 +49,6 @@ from . import fragment_algorithm
 from . import reporters
 from .fragment_types import (FragmentOptions, FragmentRecord, FragmentErrorRecord,
                                  Fragmentation, FragmentFormatError)
-from ._compat import basestring
 from . import schema
 
 #### "fragdb" -- SQLite-based fragment file

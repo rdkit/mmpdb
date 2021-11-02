@@ -45,7 +45,6 @@ from . import environment
 from . import smiles_syntax
 from . import schema
 from .config import DEFAULT_RULE_SELECTION_OPTIONS
-from . import _compat
 
 ####
 
@@ -1088,7 +1087,7 @@ def make_transform(
             to_weld.extend( (frag.constant_smiles, frag.variable_smiles, substructure_pat, row) for row in rows )
     
     if pool is None:
-        results = _compat.imap(_weld_and_filter, to_weld)
+        results = map(_weld_and_filter, to_weld)
     else:
         # A chunk size of 20 seems to maximimize performance.
         # Too small and there's extra pickling overhead. (Larger chunks share the same SMARTS pickle.)

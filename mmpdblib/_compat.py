@@ -29,45 +29,4 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
-import sys
-
-if sys.version_info.major == 2:
-    # Python 2
-    import __builtin__
-    basestring = __builtin__.basestring
-    
-    def open_universal(filename):
-        return open(filename, "rU")
-
-    # Treat a gzip binary file as a text files.
-    # This may cause problems mixing newline conventions.
-    def io_wrapper(fileobj):
-        return fileobj
-
-    # gzip requires a binary file
-    binary_stdin = sys.stdin
-    binary_stdout = sys.stdout
-
-    # Lazy map available through itertools
-    import itertools
-    imap = itertools.imap
-    
-else:
-    # Python 3
-    import io
-    basestring = (str, bytes)
-
-    def open_universal(filename):
-        return open(filename, "r", newline=None)
-
-    # Convert binary file into text file
-    def io_wrapper(fileobj):
-        return io.TextIOWrapper(fileobj, newline=None)
-
-    # gzip requires a binary file
-    binary_stdin = sys.stdin.buffer
-    binary_stdout = getattr(sys.stdout, 'buffer', sys.stdout)
-    
-    # Lazy map is the default
-    imap = map
+raise ImportError

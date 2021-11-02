@@ -37,13 +37,11 @@ from __future__ import print_function, absolute_import
 import sys
 import time
 
-from ._compat import basestring
-
 
 def get_reporter(reporter):
     if reporter is None:
         return Quiet()
-    if isinstance(reporter, basestring):
+    if isinstance(reporter, str):
         if reporter == "quiet":
             return Quiet()
         if reporter == "verbose":

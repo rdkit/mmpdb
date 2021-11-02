@@ -43,7 +43,6 @@ import itertools
 # import json
 # import binascii
 import operator
-from . import _compat
 from . import config
 from . import environment
 from . import fileio, reporters
@@ -416,7 +415,7 @@ def relabel(smiles, order=None):
 
 class RelabelCache(dict):
     def __missing__(self, key):
-        if isinstance(key, _compat.basestring):
+        if isinstance(key, str):
             result = relabel(key)
         else:
             smiles, order = key
