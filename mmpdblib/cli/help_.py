@@ -144,7 +144,7 @@ fragment command will reuse the old fragmentation parameters. (You
 cannot override them with command-line options.). Here is an example:
 
 ```shell
-  % mmpdb fragment data_file.smi -o new_data_file.fragments \
+  % mmpdb fragment data_file.smi -o new_data_file.fragments \\
          --cache old_data_file.fragments
 ```
 
@@ -228,17 +228,17 @@ clarity):
 
 ```shell
   % mmpdb transform --smiles 'c1cccnc1O' test_data.mmpdb --property MW
-  ID      SMILES MW_from_smiles MW_to_smiles  MW_radius  \ 
+  ID      SMILES MW_from_smiles MW_to_smiles  MW_radius  \\
    1  Clc1ccccn1         [*:1]O      [*:1]Cl          1
    2   Nc1ccccn1         [*:1]O       [*:1]N          1
    3    c1ccncc1         [*:1]O     [*:1][H]          1
 
-                               MW_fingerprint  MW_rule_environment_id  \ 
+                               MW_fingerprint  MW_rule_environment_id  \\
   tLP3hvftAkp3EUY+MHSruGd0iZ/pu5nwnEwNA+NiAh8                     298
   tLP3hvftAkp3EUY+MHSruGd0iZ/pu5nwnEwNA+NiAh8                     275
   tLP3hvftAkp3EUY+MHSruGd0iZ/pu5nwnEwNA+NiAh8                     267
 
-  MW_count  MW_avg  MW_std  MW_kurtosis  MW_skewness  MW_min  MW_q1  \ 
+  MW_count  MW_avg  MW_std  MW_kurtosis  MW_skewness  MW_min  MW_q1  \\
          1    18.5     NaN          NaN          NaN    18.5   18.5
          3    -1.0     0.0          NaN          0.0    -1.0   -1.0
          4   -16.0     0.0          NaN          0.0   -16.0  -16.0
@@ -250,10 +250,10 @@ clarity):
 ```
 
 This says that "c1cccnc1O" can be transformed to "Clc1ccccn1" using
-the transformation \[\*:1\]O>>\[\*:1\]Cl (that is, replace the oxygen with a
-chlorine). The best transformation match has a radius of 1, which
-includes the aromatic carbon at the attachment point but not the
-aromatic nitrogen which is one atom away.
+the transformation \\[\\*:1\\]O>>\\[\\*:1\\]Cl (that is, replace the
+oxygen with a chlorine). The best transformation match has a radius
+of 1, which includes the aromatic carbon at the attachment point but
+not the aromatic nitrogen which is one atom away.
 
 There is only one pair for this transformation, and it predicts a shift
 in molecular weight of 18.5. This makes sense as the [OH] is replaced
@@ -271,17 +271,17 @@ deviation of 76.727C:
 
 ```shell
   % mmpdb transform --smiles 'c1cccnc1O' test_data.mmpdb --property MP
-  ID      SMILES MP_from_smiles MP_to_smiles  MP_radius  \ 
+  ID      SMILES MP_from_smiles MP_to_smiles  MP_radius  \\
   1  Clc1ccccn1         [*:1]O      [*:1]Cl          1
   2   Nc1ccccn1         [*:1]O       [*:1]N          1
   3    c1ccncc1         [*:1]O     [*:1][H]          1
 
-                               MP_fingerprint  MP_rule_environment_id  \ 
+                               MP_fingerprint  MP_rule_environment_id  \\
  tLP3hvftAkp3EUY+MHSruGd0iZ/pu5nwnEwNA+NiAh8                     298
  tLP3hvftAkp3EUY+MHSruGd0iZ/pu5nwnEwNA+NiAh8                     275
  tLP3hvftAkp3EUY+MHSruGd0iZ/pu5nwnEwNA+NiAh8                     267
 
-  MP_count  MP_avg  MP_std  MP_kurtosis  MP_skewness  MP_min   MP_q1  \ 
+  MP_count  MP_avg  MP_std  MP_kurtosis  MP_skewness  MP_min   MP_q1  \\
         1 -97.000     NaN          NaN          NaN     -97  -97.00
         3 -16.667  75.235         -1.5     -0.33764     -72  -65.75
         3 -93.000  76.727         -1.5      0.32397    -180 -151.00
@@ -308,7 +308,7 @@ starting and ending structures. The following predicts the effect on
 molecular weight in transforming 2-pyridone to pyridone:
 
 ```shell
-  % mmpdb predict --smiles 'c1cccnc1' --reference 'c1cccnc1O' \ 
+  % mmpdb predict --smiles 'c1cccnc1' --reference 'c1cccnc1O' \\
             test_data.mmpdb --property MP
   predicted delta: -93 +/- 76.7268
 ```
@@ -317,7 +317,7 @@ This is the same MP_value and MP_std from the previous section using
 '`transform`'.
 
 ```shell
-  % mmpdb predict --smiles 'c1cccnc1' --reference 'c1cccnc1O' \ 
+  % mmpdb predict --smiles 'c1cccnc1' --reference 'c1cccnc1O' \\
             test_data.mmpdb --property MP --value -41.6
 ```
 
@@ -326,7 +326,7 @@ mmpdb do the trival calculation of adding the known weight to the
 predicted delta:
 
 ```shell
-  % mmpdb predict --smiles 'c1cccnc1' --reference 'c1cccnc1O' \ 
+  % mmpdb predict --smiles 'c1cccnc1' --reference 'c1cccnc1O' \\
             test_data.mmpdb --property MW --value 95.1
   predicted delta: -16 predicted value: 79.1 +/- 0
 ```
