@@ -35,41 +35,25 @@ from __future__ import print_function
 import sys
 import unittest
 
-from mmpdblib import commandline
 from mmpdblib import rgroup2smarts
 
 import support
 
-def run(cmd, stderr_ok=False):
+def run(cmd, stderr_ok=False, input=None):
     if isinstance(cmd, str):
         cmd = cmd.split()
+    result = support.expect_pass(cmd, input=input)
 
-    try:
-        with support.capture_stdout() as stdout:
-            with support.capture_stderr() as stderr:
-                    commandline.main(cmd)
-    except SystemExit as sys_exit:
-        raise AssertionError(("unexpected exit", sys_exit, stderr.value))
-
-    if not stderr_ok and stderr.value:
+    if not stderr_ok and result.stderr:
         print(stderr.value, file=sys.stderr)
         raise AssertionError(("unexpected stderr", cmd, stderr.value))
-    return stdout.value, stderr.value
+    return result.output, result.stderr
 
-def run_failure(cmd):
+def run_fail(cmd):
     if isinstance(cmd, str):
         cmd = cmd.split()
 
-    try:
-        with support.capture_stdout() as stdout:
-            with support.capture_stderr() as stderr:
-                    commandline.main(cmd)
-    except SystemExit as sys_exit:
-        pass
-    else:
-        raise AssertionError("Failed to fail", cmd)
-
-    return stdout.value, stderr.value
+    return support.expect_fail(cmd).stderr
     
 
 class TestSmilesOnCommandline(unittest.TestCase):
@@ -291,8 +275,7 @@ checked #1
 # Basic burn-test that stdin works
 class TestSmilesFromStdin(unittest.TestCase):
     def test_merged(self):
-        with support.redirect_stdin("*c1ccccc1O\n*F\n"):
-            stdout, stderr = run(["rgroup2smarts"])
+        stdout, stderr = run(["rgroup2smarts"], input="*c1ccccc1O\n*F\n")
         self.assertEqual(stdout, "*-!@[$([cH0v4]1:[cHv4]:[cHv4]:[cHv4]:[cHv4]:[cH0v4]:1-[OHv2]),$([FH0v1])]\n")
 
 ######
@@ -319,7 +302,7 @@ class TestCommandlineFailures(unittest.TestCase):
             for smiles in smiles_list.split():
                 args.extend(["--cut-rgroup", smiles])
             assert len(args) > 1, smiles_list
-            stdout, stderr = run_failure(args)
+            stderr = run_fail(args)
             self.assertEqual(errmsg, stderr)
 
 class TestFilenameFailures(unittest.TestCase):
@@ -332,7 +315,7 @@ class TestFilenameFailures(unittest.TestCase):
                 for smiles in smiles_list.split():
                     outfile.write(smiles + "\n")
 
-            stdout, stderr = run_failure(args)
+            stderr = run_fail(args)
             stderr = fix_stderr(self, stderr, filename)
             errmsg = errmsg.replace("--cut-rgroup SMILES #", "frags.smi, line ")
             self.assertEqual(stderr, errmsg)
@@ -342,7 +325,7 @@ class TestFilenameFailures(unittest.TestCase):
         with open(filename, "w") as f:
             f.write("*C\n\n*N\n")
 
-        stdout, stderr = run_failure(["rgroup2smarts", filename])
+        stderr = run_fail(["rgroup2smarts", filename])
         stderr = fix_stderr(self, stderr, filename)
         self.assertEqual(stderr, "Cannot parse input file: no SMILES found at frags.smi, line 2\n")
 
@@ -351,7 +334,7 @@ class TestFilenameFailures(unittest.TestCase):
         with open(filename, "w") as f:
             f.write("*C\n\n*N\n")
 
-        stdout, stderr = run_failure(["rgroup2smarts", filename])
+        stderr = run_fail(["rgroup2smarts", filename])
         stderr = fix_stderr(self, stderr, filename)
         self.assertEqual(stderr, "Cannot parse input file: no SMILES found at frags.smi, line 2\n")
 
@@ -360,7 +343,7 @@ class TestFilenameFailures(unittest.TestCase):
         with open(filename, "w") as f:
             f.write("*C\n *N\n")
 
-        stdout, stderr = run_failure(["rgroup2smarts", filename])
+        stderr = run_fail(["rgroup2smarts", filename])
         stderr = fix_stderr(self, stderr, filename)
         self.assertEqual(stderr, "Cannot parse input file: expected SMILES at start of line at frags.smi, line 2\n")
 
@@ -369,19 +352,19 @@ class TestFilenameFailures(unittest.TestCase):
         with open(filename, "w") as f:
             f.close()
 
-        stdout, stderr = run_failure(["rgroup2smarts", filename])
+        stderr = run_fail(["rgroup2smarts", filename])
         stderr = fix_stderr(self, stderr, filename)
         self.assertEqual(stderr, "Cannot make a SMARTS: no SMILES strings found in frags.smi\n")
 
     def test_file_does_not_exist(self):
         filename = support.create_test_filename(self, "rgroups.dat")
-        stdout, stderr = run_failure(["rgroup2smarts", filename])
+        stderr = run_fail(["rgroup2smarts", filename])
         stderr = fix_stderr(self, stderr, filename)
         self.assertEqual(stderr, "Cannot open input file: [Errno 2] No such file or directory: frags.smi\n")
 
 class TestOtherErrors(unittest.TestCase):
     def test_both_cut_rgroup_and_filename(self):
-        stdout, stderr = run_failure(["rgroup2smarts", "rgroups.dat", "--cut-rgroup", "*F"])
+        stderr = run_fail(["rgroup2smarts", "rgroups.dat", "--cut-rgroup", "*F"])
         self.assertIn("Cannot specify both an R-group filename and a --cut-rgroup\n", stderr)
 
 if __name__ == "__main__":
