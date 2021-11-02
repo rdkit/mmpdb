@@ -835,31 +835,6 @@ class VariableFragmentsReducer(object):
 
         return fragments
 
-    #    def get_or_compute_variable_fragments(self, variable_smiles):
-    #        variable_smiles = variable_smiles.replace("*:1", "Ne").replace("*:2", "Ar").replace("*:3", "Kr")
-    #        fragments = self._variable_cache.get(variable_smiles, None)
-    #        if fragments is None:
-    #            pieces = fragment_records.make_fragment_record_from_smiles(variable_smiles, self.fragment_filter)
-    #            # Filter to relevant constant pieces
-    #            pieces = [fragment for fragment in pieces.fragments
-    #                      if fragment.num_cuts == 1]         # Only single-cuts indicate reducible fragmentations
-    #            pieces = [fragment for fragment in pieces
-    #                      if any(atm in fragment.constant_smiles for atm in self._attachment_masks)]  # Reductions always have to include at least one side, e.g. former attachment atom
-    #            pieces = [fragment for fragment in pieces
-    #                      if not any(fragment.constant_smiles == i for i in self._substitution_artefacts)]  # Fragmenting off the attachment atom only is not indicative of reducible transformations
-    #            pieces = [fragment for fragment in pieces
-    #                      if not any(fragment.variable_smiles == i for i in self._substitution_artefacts)]  # Same for the variable part
-    #            pieces = [fragment for fragment in pieces
-    #                      if not any(fragment.constant_smiles == i for i in self._oneAtom_multipleCuts)]  # If 2 or 3 cuts are on the same atom, chirality gets lost. This may lead to pairs not occuring any more at all for very special cases. Whether or not this should be kept is debatable.
-    #            pieces_with_H = [fragment.constant_with_H_smiles for fragment in pieces]  # needed to identify H >> X transformations
-    #            pieces = set([fragment.constant_smiles for fragment in pieces])
-    #            fragment_canonicalized = Chem.CanonSmiles(variable_smiles)
-    #            fragments = {'pieces': pieces, 'pieces_with_H': pieces_with_H, 'frag_canon': fragment_canonicalized}
-    #
-    #            self._variable_cache[variable_smiles] = fragments
-    #
-    #        return fragments
-
     def transformation_is_reducible(self, smirks):
         lhs_fragment, rhs_fragment = smirks.split(">>")
         lhs_fragments = self.get_or_compute_variable_fragments(lhs_fragment)
