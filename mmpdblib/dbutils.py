@@ -41,10 +41,7 @@ import os
 import sys
 import itertools
 
-try:
-    from urlparse import urlparse  # Python 2
-except ImportError:
-    from urllib.parse import urlparse  # Python 3
+from urllib.parse import urlparse  # Python 3
 
 from .playhouse import db_url as playhouse_db_url
 
