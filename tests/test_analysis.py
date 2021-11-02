@@ -43,16 +43,15 @@ from support import (
     expect_fail,
     )
 
+# In 2018/2019 RDKit changed its representation of '*' from '[*]' to '*'.
+# mmpdb for a while supported both options.
+# This code checks that nothing strange happened.
 from rdkit import Chem
 wildcard_atom = Chem.CanonSmiles("*")
-if wildcard_atom == "[*]":
-    TEST_DATA_MMPDB = get_filename("test_data_2019.mmpdb")
-elif wildcard_atom == "*":
-    # The dataset was generated with:
-    #   python -m mmpdblib.cli index test_data.fragments --properties test_data.csv -o test_data_2018.mmpdb
-    TEST_DATA_MMPDB = get_filename("test_data_2019.mmpdb")
-else:
-    raise AssertionError(wildcard_atom)
+assert wildcard_atom == "*", ("Why did RDKit change?", wildcard_atom)
+# The dataset was generated with:
+#   python -m mmpdblib.cli index test_data.fragments --properties test_data.csv -o test_data_2019.mmpdb
+TEST_DATA_MMPDB = get_filename("test_data_2019.mmpdb")
     
 
 class Table(list):
