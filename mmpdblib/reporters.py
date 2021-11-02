@@ -46,7 +46,7 @@ def get_reporter(reporter):
             return Quiet()
         if reporter == "verbose":
             return Verbose()
-        raise ValueError("Unsupported reporter %r" % (reporter,))
+        raise ValueError(f"Unsupported reporter {reporter!r}")
     return reporter
 
 
