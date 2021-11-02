@@ -98,13 +98,13 @@ class positive_int_or_none(click.ParamType):
             try:
                 value = int(value)
             except ValueError:
-                self.fail(msg)
+                self.fail(msg, param, ctx)
 
         if not isinstance(value, int):
-            self.fail(msg)
+            self.fail(msg, param, ctx)
 
         if value <= 0:
-            self.fail(msg)
+            self.fail(msg, param, ctx)
 
         return value
 
@@ -125,9 +125,9 @@ class nonnegative_float(click.ParamType):
             try:
                 value = float(value)
             except ValueError:
-                self.fail(msg)
+                self.fail(msg, param, ctx)
         if not (value >= 0.0):
-            self.fail(msg)
+            self.fail(msg, param, ctx)
         return value
 
 
@@ -140,9 +140,9 @@ class positive_float(click.ParamType):
             try:
                 value = float(value)
             except ValueError:
-                self.fail(msg)
+                self.fail(msg, param, ctx)
         if not (value > 0.0):
-            self.fail(msg)
+            self.fail(msg, param, ctx)
         return value
 
 
@@ -156,9 +156,9 @@ class nonnegative_int(click.ParamType):
             try:
                 value = int(value)
             except ValueError:
-                self.fail(msg)
+                self.fail(msg, param, ctx)
         if not (value >= 0):
-            self.fail(msg)
+            self.fail(msg, param, ctx)
         return value
 
 
@@ -172,9 +172,9 @@ class positive_int(click.ParamType):
             try:
                 value = int(value)
             except ValueError:
-                self.fail(msg)
+                self.fail(msg, param, ctx)
         if not (value > 0):
-            self.fail(msg)
+            self.fail(msg, param, ctx)
         return value
 
 
@@ -183,6 +183,22 @@ class radius_type(IntChoice):
 
     def __init__(self):
         super().__init__(["0", "1", "2", "3", "4", "5"])
+
+
+class frequency_type(click.ParamType):
+    name = "FLT"
+
+    def convert(self, value, param, ctx):
+        msg = "must be a float between 0.0 and 1.0, inclusive"
+        if value is None:
+            return value
+        try:
+            value = float(value)
+        except ValueError:
+            self.fail(msg, param, ctx)
+        if not (0.0 <= value <= 1.0):
+            self.fail(msg, param, ctx)
+        return value
 
 
 def name_to_command_line(s):
@@ -468,3 +484,14 @@ def get_property_names_or_error(dataset, *, property_names, no_properties=False,
             die(f"--property {name!r} is not present in the database")
         unique_names.append(name)
     return unique_names
+
+
+def open_fragdb_from_options_or_exit(options):
+    from .. import fragment_db
+
+    try:
+        return fragment_db.open_fragdb(options.database)
+    except IOError as err:
+        die(f"Unable to open fragdb file: {err}")
+    except Exception as err:
+        die(f"Unable to use fragdb file: {err}")
