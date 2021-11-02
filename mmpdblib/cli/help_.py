@@ -38,7 +38,7 @@ import click
 
 from .click_utils import OrderedGroup
 
-help_group = OrderedGroup
+help_group = OrderedGroup()
 
 
 def add_help(name, about, text):
