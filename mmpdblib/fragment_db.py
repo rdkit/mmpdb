@@ -98,18 +98,21 @@ def open_fragdb(filename):
     try:
         c.execute("SELECT COUNT(*) FROM record")
     except sqlite3.OperationalError:
-        raise ValueError(f"{filename!r} does not appear to be a fragdb")
+        raise ValueError(f"{filename!r} does not appear to contain a fragdb database (missing 'record' table?)")
     try:
         c.execute("SELECT COUNT(*) FROM options")
     except sqlite3.OperationalError:
-        raise ValueError(f"{filename!r} does not appear to be a fragdb")
+        raise ValueError(f"{filename!r} does not appear to contain a fragdb database (missing 'options' table?)")
 
     for (count,) in c:
         if count != 1:
-            raise ValueError(f"{filename!r} does not appear to be a fragdb")
+            raise ValueError(f"{filename!r} does not appear to contain a fragdb database (no options?)")
         break
 
-    options = select_options(c)
+    try:
+        options = select_options(c)
+    except sqlite3.OperationalError:
+        raise ValueError(f"{filename!r} does not appear to contain a fragdb database (cannot read options?)")
     return FragDB(None, options, db, c)
 
 
@@ -331,6 +334,8 @@ class FragDB:
     def iter_error_records(self):
         return iter_fragment_error_records(self.db.cursor(), self.db.cursor())
 
+    def cursor(self):
+        return self.db.cursor()
 
 ### connect to the database and prepare for writing.
 
