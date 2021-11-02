@@ -30,9 +30,6 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-# I call this "smiles_syntax.py"
-from __future__ import print_function
-
 import re
 
 # Match a '*' in the different forms that might occur,

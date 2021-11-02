@@ -30,8 +30,6 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-from __future__ import absolute_import, print_function
-
 # Some low-level/backend writers for MMPWriter.
 # The options are:
 #   - save as a simple line-oriented format

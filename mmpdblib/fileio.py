@@ -24,8 +24,6 @@
 #
 # The modifications to this file are covered under the mmpdb license.
 
-from __future__ import print_function, absolute_import
-
 import sys
 import gzip
 import os

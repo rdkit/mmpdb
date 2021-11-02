@@ -30,21 +30,14 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-from __future__ import absolute_import, print_function, division
-
 from collections import defaultdict
 
-# from collections import OrderedDict
 from scipy import stats
 import numpy as np
 import re
 
-# import sys
-# import os
 import itertools
 
-# import json
-# import binascii
 import operator
 from . import config
 from . import environment

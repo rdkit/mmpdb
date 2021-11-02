@@ -30,8 +30,6 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-from __future__ import print_function
-
 # Determine the environment around the attachment point(s) of the constant
 # part using circular fingerprints.
 
