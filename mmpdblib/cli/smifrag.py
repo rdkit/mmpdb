@@ -69,6 +69,10 @@ def smifrag(
         fragment_options,
         smiles
         ):
+    """fragment a SMILES into variable and constant parts
+
+    SMILES: the SMILES string of the structure to fragment
+    """
 
     reporter = ctx.obj
     
