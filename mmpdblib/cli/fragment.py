@@ -97,19 +97,30 @@ nearly 4-fold speedup. Use --num-jobs change the number of threads.
 It can take a while to generate fragments. Suppose you want to update
 the compound set every week, where only a few records are added or
 changed. Most of the fragments will be the same between those two data
-sets. What you can do is specify the old fragments file as a --cache so
+sets. What you can do is specify the old fragdb file as a --cache so
 the fragmentation method can re-use the old fragmentation, assuming
 the structure hasn't changed for a given record.
 
+If you do not specify the `--output` filename then the default is
+based on the SMILES filename with the "smi" or "smi.gz" extension
+replace with "fragdb". If there is no input SMILES filename because
+the data is from stdin then the default filename is `input.mmpdb`.
+
 Examples:
 
-1) Fragment the SMILES file to produce a fragments file
+1) Fragment the SMILES file to produce the fragdb file
+`CHEMBL_thrombin_Ki_IC50.fragdb` (the output name is based on the
+input SMILES filename):
 
 \b
-  % mmpdb fragment CHEMBL_thrombin_Ki_IC50.smi \\
-      -o CHEMBL_thrombin_Ki_IC50.fragments
+  % mmpdb fragment CHEMBL_thrombin_Ki_IC50.smi
 
-2) Read from a gzip-compressed tab-delimited SMILES file. Use 8
+2) Do the same, but with an explicit output filename:
+
+  % mmpdb fragment CHEMBL_thrombin_Ki_IC50.smi \\
+      -o CHEMBL_thrombin_Ki_IC50.fragdb
+
+3) Read from a gzip-compressed tab-delimited SMILES file. Use 8
 threads to fragment the structures. Save the results to
 dataset.fragdb
 
@@ -117,7 +128,7 @@ dataset.fragdb
   % mmpa fragment --delimiter tab dataset.smi.gz --num-jobs 8 \\
       -o dataset.fragdb
 
-3) Fragment the SMILES in 'dataset.smi.gz'. Reuse fragment information
+4) Fragment the SMILES in 'dataset.smi.gz'. Reuse fragment information
 from the cache file 'old_dataset.fragdb' if possible, instead of
 computing the fragments from scratch each time. Save the results to
 'new_dataset.fragdb'.
@@ -169,6 +180,7 @@ def cannot_combine_with_fragment_options(ctx, cache):
     metavar = "FILENAME",
     help = "save the fragment data to FILENAME (default: based on the structure filename)",
     )
+
 @click.argument(
     "structure_filename",
     default = None,
@@ -191,9 +203,13 @@ def fragment(
         # input
         structure_filename,
         ):
-    """fragment structures in a SMILES file based on its rotatable bonds
+    """fragment SMILES file structures on rotatable bonds
 
     FILENAME: SMILES file (default: read from stdin)
+
+    The output is a 'fragdb' file containing fragmentations which can
+    be used by `mmpdb index` or as cache for another `mmpdb fragment`.
+
     """
     from .. import (
         fragment_db,
