@@ -287,7 +287,7 @@ def iter_smiles_as_smarts(record_reader, location, explain=None, all_mols=None):
                     location,
                     )
             all_mols.append((mol, location.where(), smiles))
-            explain("#{location.recno} passed the self-check")
+            explain(f"#{location.recno} passed the self-check")
             
         yield smarts
 
