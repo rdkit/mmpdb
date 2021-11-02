@@ -38,12 +38,6 @@ from . import reporters
 #from . import fileio
 
 
-def get_reporter(is_quiet):
-    if is_quiet:
-        return reporters.get_reporter("quiet")
-    else:
-        return reporters.get_reporter("verbose")
-
 
 def explain(msg, *args):
     full_msg = (msg % args) + "\n"
