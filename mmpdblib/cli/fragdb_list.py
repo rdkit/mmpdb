@@ -74,12 +74,27 @@ def get_info(filename, reporter):
     name = "fragdb_list",
     )
 
+@click.option(
+    "--all",
+    "-a",
+    "show_all",
+    is_flag = True,
+    default = False,
+    help = "include option information",
+    )
+
 @add_multiple_databases_parameters()
 @click.pass_obj
 def fragdb_list(
         reporter,
         databases_options,
+        show_all,
         ):
+    """summarize zero or more fragdb databases
+
+    If no DATABASE is given then look for '*.fragdb' in the current directory.
+    """
+
     databases = databases_options.databases
     if not databases:
         import glob
@@ -120,3 +135,8 @@ def fragdb_list(
     for info, row in zip(info_list, rows):
         write(col.rjust(col_size)
                   for col, col_size in zip(row, col_sizes))
+        if show_all:
+            sys.stdout.write("        Fragment options:\n")
+            d = info.options.to_dict()
+            for k, v in d.items():
+                sys.stdout.write(f"          {k}: {v}\n")
