@@ -54,6 +54,14 @@ fragdb_constants_epilog = """
     type=positive_int(),
     help="limit the output to the 'K' most common constants",
 )
+@click.option(
+    "--output",
+    "-o",
+    "output_file",
+    default = "-",
+    type = click.File("w"),
+    help = "write the result to the named file (default: stdout)",
+    )
 @add_single_database_parameters()
 @click.pass_obj
 def fragdb_constants(
@@ -66,6 +74,7 @@ def fragdb_constants(
     min_heavies_per_const_frag,
     min_heavies_total_const_frag,
     limit,
+    output_file,
 ):
     """list constants in a fragdb DATABASE and their frequencies"""
     from ..index_algorithm import get_num_heavies
@@ -117,7 +126,7 @@ ORDER BY n DESC
         # 4611686018427387904 constants ought to be good enough for anyone
         limit = 2**63
 
-    click.echo(f"constant\tN")
+    output_file.write(f"constant\tN\n")
     i = 0
     for constant_smiles, n in c:
         # Can't put the --limit in the SQL because of
@@ -133,4 +142,4 @@ ORDER BY n DESC
                 continue
         
         i += 1
-        click.echo(f"{constant_smiles}\t{n}")
+        output_file.write(f"{constant_smiles}\t{n}\n")
