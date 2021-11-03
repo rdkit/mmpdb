@@ -15,7 +15,10 @@ fragdb_constants_epilog = """
 """
 
 
-@command(epilog=fragdb_constants_epilog)
+@command(
+    epilog = fragdb_constants_epilog,
+    name = "fragdb_constants",
+    )
 @click.option(
     "--min-count",
     type=nonnegative_int(),
@@ -41,7 +44,6 @@ fragdb_constants_epilog = """
 )
 @click.option(
     "--min-heavies-total-const-frag",
-    "--min-heavies",  ## Is this okay?
     type=nonnegative_int(),
     default=0,
     help="lower bound on the number of heavies in the constant part",
@@ -66,7 +68,6 @@ def fragdb_constants(
     limit,
 ):
     """list constants in a fragdb DATABASE and their frequencies"""
-
     from ..index_algorithm import get_num_heavies
 
     fragdb = open_fragdb_from_options_or_exit(database_options)
@@ -110,15 +111,26 @@ ORDER BY n DESC
 """
     args = (min_heavies_total_const_frag, min_count, max_count)
 
-    if limit is not None:
-        query += "LIMIT    ?\n"
-        args += (limit,)
     c.execute(query, args)
 
-    click.echo(f"constant\tN\tfreq")
+    if limit is None:
+        # 4611686018427387904 constants ought to be good enough for anyone
+        limit = 2**63
+
+    click.echo(f"constant\tN")
+    i = 0
     for constant_smiles, n in c:
+        # Can't put the --limit in the SQL because of
+        # possible additional filtering by
+        # --min-heavies-per-constant-frag 
+        # after the SQL query
+        if i >= limit:
+            break
+        
         if const_frag_filter:
             terms = constant_smiles.split(".")
             if any(get_num_heavies(term) < min_heavies_per_const_frag for term in terms):
                 continue
-        click.echo(f"{constant_smiles}\t{n}\t{n/num_constants:.3g}")
+        
+        i += 1
+        click.echo(f"{constant_smiles}\t{n}")
