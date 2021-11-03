@@ -281,7 +281,7 @@ def add_multiple_databases_parameters(add_in_memory=False):
         click.argument(
             "database",
             nargs=-1,
-            metavar="DATABASE",
+            metavar="DATABASE*",
         )(command)
 
         if add_in_memory:
