@@ -36,9 +36,18 @@ class template_type(click.ParamType):
         return value
 
 
-def get_constants_from_file(infile):
+def get_constants_from_file(infile, has_header):
     constants = set()
-    for line in infile:
+    line_iter = iter(infile)
+
+    if has_header:
+        # Skip the first line, if it exists
+        try:
+            next(line_iter)
+        except StopIteration:
+            return constants
+        
+    for line in line_iter:
         if line[:1].isspace():
             continue
         fields = line.split(None, 1)
@@ -118,15 +127,17 @@ system, then:
     )
 
 @click.option(
+    "--num-files",
     "-n",
     type = positive_int_or_none(),
     default = 10,
-    help = "maximum number of files to generate (default: 10)",
+    help = "maximum number of files to generate, or 'none' for 1 constant per file (default: 10)",
     )
 
 
 @click.option(
     "--constants",
+    "-c",
     "constants_file",
     type = click.File("r"),
     help = "only export fragmentations containing the constants specified in the named file",
@@ -134,10 +145,17 @@ system, then:
 
 @click.option(
     "--template",
+    "-t",
     default = "{prefix}.{i:04}.fragdb",
     type = template_type(),
     show_default = True,
     help = "template for the output filenames",
+    )
+
+@click.option(
+    "--has-header/--no-header",
+    default = False,
+    help = "Use --has-header to skip the first line of the constants file. Default is --no-header",
     )
 
 @click.option(
@@ -151,10 +169,11 @@ system, then:
 def fragdb_split(
         reporter,
         database_options,
-        n,
+        num_files,
         template,
-        seed,
         constants_file,
+        has_header,
+        seed,
         ):
     """split a fragdb based on common constants
 
@@ -165,6 +184,7 @@ def fragdb_split(
 
     fragdb = open_fragdb_from_options_or_exit(database_options)
 
+    # Get values used for template generation
     database_path = pathlib.Path(database_options.database)
     database = str(database_path)
     database_parent = database_path.parent
@@ -173,7 +193,7 @@ def fragdb_split(
     
     if constants_file is not None:
         with constants_file:
-            constants = get_constants_from_file(constants_file)
+            constants = get_constants_from_file(constants_file, has_header)
         src = f"file {constants_file.name!r}"
     else:
         constants = get_constants_from_db(fragdb)
@@ -185,8 +205,8 @@ def fragdb_split(
     
     reporter.report(f"Using {len(constants)} constants from {src}.")
 
-    if n == "none":
-        n = len(constants)
+    if num_files == "none":
+        num_files = len(constants)
 
     # Randomize the contants
     constants = list(constants)
@@ -195,7 +215,7 @@ def fragdb_split(
     # Assign to bins
     constant_bins = collections.defaultdict(set)
     for i, constant in enumerate(constants):
-        constant_bins[i % n].add(constant)
+        constant_bins[i % num_files].add(constant)
 
     for i, subset in sorted(constant_bins.items()):
         output_filename = template.format(
@@ -214,4 +234,3 @@ def fragdb_split(
             die(f"Cannot copy {database!r} to {output_filename!r}: {err}")
 
         restrict_to_subset(output_filename, subset)
-
