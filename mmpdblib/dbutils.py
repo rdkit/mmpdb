@@ -240,6 +240,26 @@ def iter_dbinfo(databases, reporter):
             reporter.report("Not a file, directory, or supported database URL: %r" % (database,))
 
 
+def iter_dbinfo_and_dataset(databases, reporter):
+    for dbinfo in iter_dbinfo(databases, reporter):
+        reporter.update("Opening %s ... " % (dbinfo.get_human_name(),))
+        database = None
+        try:
+            database = dbinfo.open_database(quiet=reporter.quiet)
+            dataset = database.get_dataset()
+        except dbutils.DBError as err:
+            reporter.update("")
+            reporter.report("Skipping %s: %s" % (dbinfo.get_human_name(), err))
+            if database is not None:
+                database.close()
+            continue
+        reporter.update("")
+        try:
+            yield dbinfo, dataset
+        finally:
+            database.close()
+
+
 def open_database(dburl, copy_to_memory=False, quiet=False):
     return get_dbinfo(dburl).open_database(copy_to_memory=copy_to_memory, quiet=quiet)
 

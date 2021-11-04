@@ -154,19 +154,7 @@ def list_(
 
     all_fragment_options = []
     all_index_options = []
-    for dbinfo in dbutils.iter_dbinfo(databases_options.databases, reporter):
-        reporter.update("Opening %s ... " % (dbinfo.get_human_name(),))
-        database = None
-        try:
-            database = dbinfo.open_database(quiet=reporter.quiet)
-            dataset = database.get_dataset()
-        except dbutils.DBError as err:
-            reporter.update("")
-            reporter.report("Skipping %s: %s" % (dbinfo.get_human_name(), err))
-            if database is not None:
-                database.close()
-            continue
-        reporter.update("")
+    for dbinfo, dataset in dbutils.iter_dbinfo_and_dataset(databases_options.databases, reporter):
 
         name = dbinfo.name
         name_width = max(name_width, len(name))
