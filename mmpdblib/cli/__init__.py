@@ -48,6 +48,7 @@ from . import (
     transform,
     rgroup2smarts,
     list_,
+    rulecat,
     loadprops,
     propcat,
     fragdb_list,
@@ -151,6 +152,7 @@ main.add_command(transform.transform)
 main.add_command(predict.predict)
 main.add_command(rgroup2smarts.rgroup2smarts)
 main.add_command(list_.list_)
+main.add_command(rulecat.rulecat)
 main.add_command(loadprops.loadprops)
 main.add_command(propcat.propcat)
 main.add_command(fragdb_list.fragdb_list)
