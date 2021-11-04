@@ -495,3 +495,18 @@ def open_fragdb_from_options_or_exit(options):
         die(f"Unable to open fragdb file: {err}")
     except Exception as err:
         die(f"Unable to use fragdb file: {err}")
+
+def open_database_from_options_or_exit(db_options, quiet=False):
+    from .. import dbutils
+    dbinfo = dbutilsget_dbinfo(db_options.database)
+    try:
+        return dbinfo.open_database(copy_to_memory=db_options.copy_to_memory, quiet=quiet)
+    except DBError as err:
+        die(f"Cannot connect to {dbinfo.get_human_name()}: {err}\n")
+
+
+def open_dataset_from_options_or_exit(db_options, quiet=False):
+    db = open_database_from_options_or_exit(db_options, quiet)
+    return db.get_dataset()
+
+        

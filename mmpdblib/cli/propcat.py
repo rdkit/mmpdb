@@ -40,6 +40,7 @@ from .click_utils import (
     die,
     add_single_database_parameters,
     add_multiple_properties,
+    open_database_from_options_or_exit,
     get_property_names_or_error,
 )
 
@@ -114,12 +115,9 @@ def propcat(
 
     DATABASE: an mmpdb file
     """
-    from .. import (
-        dbutils,
-        fileio,
-    )
+    from .. import fileio
 
-    db = dbutils.open_database_from_options_or_exit(database_options)
+    db = open_database_from_options_or_exit(database_options)
     c = db.get_cursor()
     dataset = db.get_dataset()
 

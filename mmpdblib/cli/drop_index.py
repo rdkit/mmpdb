@@ -36,6 +36,7 @@
 from .click_utils import (
     command,
     add_single_database_parameters,
+    open_database_from_options_or_exit,
 )
 
 drop_index_epilog = """
@@ -56,12 +57,9 @@ def drop_index(
 
     DATABASE: the mmpdb database
     """
-    from .. import (
-        dbutils,
-        schema,
-    )
+    from .. import schema
 
-    mmpdb = dbutils.open_database_from_options_or_exit(database_options)
+    mmpdb = open_database_from_options_or_exit(database_options)
 
     with mmpdb.atomic():
         schema.drop_index(mmpdb)

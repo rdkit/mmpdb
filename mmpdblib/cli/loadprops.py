@@ -39,6 +39,7 @@ import click
 from .click_utils import (
     command,
     die,
+    open_database_from_options_or_exit,
     add_single_database_parameters,
 )
 
@@ -95,7 +96,7 @@ def loadprops(
     """
     from .. import properties_io, dbutils, schema
 
-    db = dbutils.open_database_from_options_or_exit(database_options)
+    db = open_database_from_options_or_exit(database_options)
     c = db.get_cursor()
     dataset = db.get_dataset()
     reporter.report(f"Using dataset: {dataset.title}")

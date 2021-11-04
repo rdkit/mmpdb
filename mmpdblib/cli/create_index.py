@@ -36,6 +36,7 @@
 from .click_utils import (
     command,
     die,
+    open_database_from_options_or_exit,
     add_single_database_parameters,
 )
 
@@ -57,12 +58,9 @@ def create_index(database_options):
     DATABASE: an mmpdb database
     """
     import sqlite3
-    from .. import (
-        dbutils,
-        schema,
-    )
+    from .. import schema
 
-    mmpdb = dbutils.open_database_from_options_or_exit(database_options)
+    mmpdb = open_database_from_options_or_exit(database_options)
 
     with mmpdb.atomic():
         try:
