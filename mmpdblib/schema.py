@@ -186,6 +186,15 @@ class MMPDatabase(object):
     def SQL(self, sql):
         return sql.replace("?", self.db.param)
 
+    def close(self):
+        self.db.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.close()
+    
     def execute(self, sql, args=(), cursor=None):
         if cursor is None:
             cursor = self.db.cursor()
