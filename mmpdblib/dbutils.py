@@ -199,7 +199,7 @@ def get_dbinfo(dburl):
 
 # just the filenames. Does not join with the dirname
 def _get_mmpdb_filenames(dirname):
-    return [filename for filename in os.listdir(dirname) if filename.lower().endswith(".mmpdb")]
+    return sorted(filename for filename in os.listdir(dirname) if filename.lower().endswith(".mmpdb"))
 
 
 # files in ".", without the leaing "./"
