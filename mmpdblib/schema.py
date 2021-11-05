@@ -194,7 +194,7 @@ class MMPDatabase(object):
 
     def __exit__(self, *args):
         self.close()
-    
+
     def execute(self, sql, args=(), cursor=None):
         if cursor is None:
             cursor = self.db.cursor()
@@ -434,16 +434,17 @@ SELECT property_name.name, count(property_name_id)
             #  "rotatable_smarts": "[!$([NH]!@C(=O))&!D1&!$(*#*)]-&!@[!$([NH]!@C(=O))&!D1&!$(*#*)]",
             #  "cut_smarts": "[#6+0;!$(*=,#[!#6])]!@!=!#[!#0;!#1;!$([CH2]);!$([CH3][CH2])]", "num_cuts": 3,
             #   "method": "dalke", "salt_remover": "<default>"
-            return fragment_types.FragmentOptions(
-                max_heavies=d["max_heavies"],
-                max_rotatable_bonds=d["max_rotatable_bonds"],
-                rotatable_smarts=str(d["rotatable_smarts"]),  # otherwise it's unicode
-                cut_smarts=str(d["cut_smarts"]),  # otherwise it's unicode
-                num_cuts=d["num_cuts"],
-                salt_remover=d["salt_remover"],
-                method=d["method"],
-                min_heavies_per_const_frag=d["min_heavies_per_const_frag"],
-            )
+            return fragment_types.FragmentOptions(**d)
+        raise AssertionError("dataset 1 is supposed to exist")
+
+    def get_index_options(self, cursor=None):
+        cursor = self.mmpa_db.execute("SELECT index_options FROM dataset WHERE id = 1", (), cursor)
+        import json
+        from . import index_types
+
+        for (index_options,) in cursor:
+            d = json.loads(index_options)
+            return index_types.IndexOptions(**d)
         raise AssertionError("dataset 1 is supposed to exist")
 
     def get_rule_smiles_id(self, smiles, cursor=None):
