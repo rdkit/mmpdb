@@ -88,7 +88,7 @@ def get_schema_for_database(db_config):
 
     # Handle some non-portable SQL
     text = template.replace("$PRIMARY_KEY$", db_config.PRIMARY_KEY)
-    text = template.replace("$DATETIME$", db_config.DATETIME)
+    text = text.replace("$DATETIME$", db_config.DATETIME)
     schema = text.replace("$COLLATE$", db_config.COLLATE)
 
     return schema
