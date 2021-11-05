@@ -498,10 +498,10 @@ def open_fragdb_from_options_or_exit(options):
 
 def open_database_from_options_or_exit(db_options, quiet=False):
     from .. import dbutils
-    dbinfo = dbutilsget_dbinfo(db_options.database)
+    dbinfo = dbutils.get_dbinfo(db_options.database)
     try:
         return dbinfo.open_database(copy_to_memory=db_options.copy_to_memory, quiet=quiet)
-    except DBError as err:
+    except dbutils.DBError as err:
         die(f"Cannot connect to {dbinfo.get_human_name()}: {err}\n")
 
 
