@@ -85,7 +85,11 @@ def open_as_schema_database(playhouse_db):
     if mmpdb_version != 2:
         raise DBError("Expecting mmpdb version 2, not %d" % (mmpdb_version,))
 
-    return schema.MMPDatabase(playhouse_db)
+    import peewee
+    if isinstance(playhouse_db, peewee.PostgresqlDatabase):
+        return schema.PostgresMMPDatabase(playhouse_db)
+    else:
+        return schema.MMPDatabase(playhouse_db)
 
 
 class DBError(Exception):
@@ -183,6 +187,64 @@ class DBUrl(DBInfo):
         return open_as_schema_database(db)
 
 
+def get_database_server(url):
+    parsed = urlparse(url)
+    if parsed.scheme not in playhouse_db_url.schemes:
+        return None
+    
+    if parsed.scheme == "postgres":
+        # Are we pointing to the server, or a specific database
+        if parsed.path in ("", "/", "/postgres"):
+            new_url = urlunparse(parsed._replace(path="/postgres"))
+            db = playhouse_db_url.connect(new_url)
+            return PostgresServer(url, db)
+        return None
+
+    # I don't know how to support other database servers
+    return None
+    
+class PostgresServer(object):
+    def __init__(self, url, db):
+        self.url = url
+        self.db = db
+        self._parsed = urlparse(self.url)
+        
+    def get_mmpdb_databases(self):
+        parsed = self._parsed
+        c = self.db.cursor()
+        
+        # List the available databases.
+        c.execute("SELECT datname FROM pg_database WHERE datistemplate = false")
+        databases = [row[0] for row in c if row[0] != "postgres"]
+        
+        # See which has the right schema
+        for database in databases:
+            if self.is_mmpdb_database(database):
+                url = urlunparse(parsed._replace(path="/" + database))
+                yield DBUrl(url)
+
+    def is_mmpdb_database(self, database):
+        import psycopg2.errors
+        url = urlunparse(self._parsed._replace(path = "/" + database))
+        # XXX need error checking
+        db = playhouse_db_url.connect(url)
+        db.connect()
+        c = db.cursor()
+        try:
+            c.execute("SELECT mmpdb_version FROM dataset LIMIT 2")
+        except psycopg2.errors.UndefinedTable:
+            return False
+        values = [row[0] for row in c]
+        if not values:
+            return True
+
+        if len(values) > 1:
+            # Shouldn't happen
+            return False
+
+        return values[0] == 2 # what should I do about different versions?
+        
+    
 def is_valid_dburl(url):
     parsed = urlparse(url)
     return parsed.scheme in playhouse_db_url.schemes
@@ -226,6 +288,11 @@ def iter_dbinfo(databases, reporter):
         return
 
     for database in databases:
+        server = get_database_server(database)
+        if server is not None:
+            for entry in server.get_mmpdb_databases():
+                yield entry
+                
         if os.path.isdir(database):
             for filename in get_mmpdb_filenames_in_directory(database):
                 yield DBFile(filename)
@@ -237,7 +304,7 @@ def iter_dbinfo(databases, reporter):
             yield DBFile(database)
 
         else:
-            reporter.report("Not a file, directory, or supported database URL: %r" % (database,))
+            reporter.report(f"Not a file, directory, or supported database URL:{database!r}")
 
 
 def iter_dbinfo_and_dataset(databases, reporter):

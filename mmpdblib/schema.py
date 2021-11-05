@@ -70,18 +70,25 @@ def get_drop_index_sql():
 class SQLiteConfig:
     PRIMARY_KEY = "INTEGER PRIMARY KEY"
     COLLATE = ""  # default collation is binary so this isn't needed
+    DATETIME = "DATETIME"
 
 
 class MySQLConfig:
     PRIMARY_KEY = "INTEGER AUTO_INCREMENT"
     COLLATE = "COLLATE latin_bin"  # default is case-insensitive; force binary
+    DATETIME = "DATETIME"
 
+class PostgresConfig:
+    PRIMARY_KEY = "SERIAL PRIMARY KEY"
+    COLLATE =  'COLLATE "C"'
+    DATETIME = "TIMESTAMP"
 
 def get_schema_for_database(db_config):
     template = get_schema_template()
 
     # Handle some non-portable SQL
     text = template.replace("$PRIMARY_KEY$", db_config.PRIMARY_KEY)
+    text = template.replace("$DATETIME$", db_config.DATETIME)
     schema = text.replace("$COLLATE$", db_config.COLLATE)
 
     return schema
@@ -277,6 +284,28 @@ class MMPDatabase(object):
             else:
                 raise AssertionError("Database missing dataset with id 1")
         return self._dataset
+
+class PostgresMMPDatabase(MMPDatabase):
+    def execute_many(self, sql, rows, template=None, cursor=None):
+        from psycopg2.extras import execute_values, execute_batch
+        if cursor is None:
+            cursor = self.db.cursor()
+        ## print("SQL", sql)
+        ## if rows:
+        ##     print("rows[0]", rows[0])
+        #print("template:", template)
+
+        ## execute_values(cursor, sql, rows, template=template)
+        execute_batch(cursor, sql.replace("?", "%s"), rows) # sql.replace("%s", template), rows)
+
+    ## def execute_many(self, sql, rows, cursor=None):
+    ##     from psycopg2.extras import execute_values
+    ##     if cursor is None:
+    ##         cursor = self.db.cursor()
+    ##     left, mid, right = sql.partition("VALUES")
+    ##     sql = left + mid + " %s"
+    ##     assert mid == "VALUES", ("Unexpected SQL", sql)
+    ##     cursor.
 
 
 class Pair(object):
