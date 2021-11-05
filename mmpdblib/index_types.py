@@ -51,15 +51,15 @@ class IndexOptions(object):
 
     def __init__(
         self,
-        min_variable_heavies,
-        max_variable_heavies,
-        min_variable_ratio,
-        max_variable_ratio,
-        max_heavies_transf,
-        max_frac_trans,
-        max_radius,
-        symmetric,
-        smallest_transformation_only,
+        min_variable_heavies = None,
+        max_variable_heavies = None,
+        min_variable_ratio = None,
+        max_variable_ratio = None,
+        max_heavies_transf = None,
+        max_frac_trans = None,
+        max_radius = 5,
+        symmetric = False,
+        smallest_transformation_only = False,
     ):
 
         assert min_variable_heavies is None or min_variable_heavies >= 0, min_variable_heavies
