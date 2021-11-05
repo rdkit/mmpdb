@@ -300,6 +300,13 @@ def _get_one_or_none(cursor):
     return None
 
 
+def _adjust_property_rules_query(sql, args, min_count):
+    if min_count is not None:
+        sql += "  AND count >= ?\n"
+        args = args + (min_count,)
+    return sql, args
+
+
 class MMPDataset(object):
     def __init__(
         self,
@@ -387,6 +394,15 @@ class MMPDataset(object):
     def get_num_constant_smiles(self, cursor=None):
         return _get_one(self.mmpa_db.execute("SELECT count(*) from constant_smiles", cursor=cursor))
 
+    def get_smallest_constant_smiles(self, rule_environment_id, cursor=None):
+        return _get_one(self.mmpa_db.execute("""
+                SELECT constant_smiles.smiles
+                  FROM pair, constant_smiles
+                 WHERE pair.rule_environment_id = ?
+                   AND pair.constant_id = constant_smiles.id
+              ORDER BY length(constant_smiles.smiles), constant_smiles.smiles
+                 LIMIT 1""", (rule_environment_id,)))
+    
     def get_property_names_and_counts(self, cursor=None):
         c = self.mmpa_db.execute(
             """
@@ -500,7 +516,24 @@ SELECT property_name.name, count(property_name_id)
 
         return fpids
 
-    def iter_selected_property_rules(self, from_smiles, to_smiles, property_id, cursor=None):
+    def iter_selected_property_rules(self, from_smiles, to_smiles, property_id, min_count=None, cursor=None):
+        if from_smiles is not None and to_smiles is not None:
+            return self._iter_selected_property_rules_both_smiles(from_smiles, to_smiles, property_id,
+                                                                      min_count=min_count, cursor=cursor)
+        
+        if from_smiles is None and to_smiles is None:
+            return self._iter_selected_property_rules_no_smiles(property_id,
+                                                                    min_count=min_count, cursor=cursor)
+
+        if from_smiles is None:
+            smiles = to_smiles
+        else:
+            smiles = from_smiles
+        return self._iter_selected_property_rules_one_smiles(smiles, property_id,
+                                                                 min_count=min_count, cursor=cursor)
+        
+    def _iter_selected_property_rules_both_smiles(self, from_smiles, to_smiles, property_id,
+                                                      min_count, cursor):
         assert from_smiles is not None
         assert to_smiles is not None
         sql = """
@@ -520,7 +553,8 @@ SELECT rule.id, 0, from_smiles.smiles, from_smiles.num_heavies, to_smiles.smiles
    AND rule_environment_statistics.property_name_id = ?
         """
         args = (from_smiles, to_smiles, property_id)
-
+        sql, args = _adjust_property_rules_query(sql, args, min_count)
+        
         if not self.is_symmetric:
             sql += """\
 UNION
@@ -540,6 +574,8 @@ SELECT rule.id, 1, to_smiles.smiles, to_smiles.num_heavies, from_smiles.smiles, 
    AND rule_environment_statistics.property_name_id = ?
 """
             args = args + (to_smiles, from_smiles, property_id)
+            sql, args = _adjust_property_rules_query(sql, args, min_count)
+
 
         ## print(sql)
         ## print((from_smiles, to_smiles, property_id,
@@ -547,57 +583,120 @@ SELECT rule.id, 1, to_smiles.smiles, to_smiles.num_heavies, from_smiles.smiles, 
         # If this query is slow, and the indices are present, then you might
         # try running "analyze" in the SQLite terminal.
         c = self.mmpa_db.execute(sql, args, cursor=cursor)
-        for (
-            rule_id,
-            is_reversed,
-            from_smiles,
-            from_num_heavies,
-            to_smiles,
-            to_num_heavies,
-            rule_environment_id,
-            radius,
-            fingerprint_id,
-            fingerprint,
-            rule_environment_statistics_id,
-            count,
-            avg,
-            std,
-            kurtosis,
-            skewness,
-            min,
-            q1,
-            median,
-            q3,
-            max,
-            paired_t,
-            p_value,
-        ) in c:
+        for (rule_id, is_reversed, from_smiles, from_num_heavies, to_smiles, to_num_heavies,
+                 rule_environment_id, radius, fingerprint_id, fingerprint,
+                 rule_environment_statistics_id, count, avg, std, kurtosis, skewness, min, q1, median, q3, max, paired_t, p_value) in c:
             yield PropertyRule(
-                rule_id,
-                is_reversed,
-                from_smiles,
-                from_num_heavies,
-                to_smiles,
-                to_num_heavies,
-                rule_environment_id,
-                radius,
-                fingerprint_id,
-                fingerprint,
-                rule_environment_statistics_id,
-                count,
-                avg,
-                std,
-                kurtosis,
-                skewness,
-                min,
-                q1,
-                median,
-                q3,
-                max,
-                paired_t,
-                p_value,
-            )
+                rule_id, is_reversed, from_smiles, from_num_heavies, to_smiles, to_num_heavies,
+                rule_environment_id, radius, fingerprint_id, fingerprint,
+                rule_environment_statistics_id, count, avg, std, kurtosis, skewness, min, q1, median, q3, max, paired_t, p_value)
 
+    def _iter_selected_property_rules_no_smiles(self, property_id, min_count, cursor):
+        sql = """
+SELECT rule.id, 0, from_smiles.smiles, from_smiles.num_heavies, to_smiles.smiles, to_smiles.num_heavies,
+        rule_environment.id, rule_environment.radius,
+        rule_environment.environment_fingerprint_id, environment_fingerprint.fingerprint,
+        rule_environment_statistics.id, count, avg, std, kurtosis, skewness, min, q1, median, q3, max, paired_t, p_value
+  FROM rule, rule_environment, environment_fingerprint, rule_environment_statistics,
+          rule_smiles as from_smiles, rule_smiles as to_smiles
+ WHERE rule.from_smiles_id = from_smiles.id
+   AND rule.to_smiles_id = to_smiles.id
+   AND rule_environment.rule_id = rule.id
+   AND rule_environment.environment_fingerprint_id = environment_fingerprint.id
+   AND rule_environment_statistics.rule_environment_id = rule_environment.id
+   AND rule_environment_statistics.property_name_id = ?
+        """
+        args = (property_id,)
+        sql, args = _adjust_property_rules_query(sql, args, min_count)
+        
+        if not self.is_symmetric:
+            sql += """\
+UNION
+SELECT rule.id, 1, to_smiles.smiles, to_smiles.num_heavies, from_smiles.smiles, from_smiles.num_heavies,
+        rule_environment.id, rule_environment.radius,
+        rule_environment.environment_fingerprint_id, environment_fingerprint.fingerprint,
+        rule_environment_statistics.id, count, -avg, std, kurtosis, skewness, -max, -q3, -median, -q1, -min, paired_t, p_value
+  FROM rule, rule_environment, environment_fingerprint, rule_environment_statistics, 
+        rule_smiles as from_smiles, rule_smiles as to_smiles
+ WHERE rule.from_smiles_id = from_smiles.id
+   AND rule.to_smiles_id = to_smiles.id
+   AND rule_environment.rule_id = rule.id
+   AND rule_environment.environment_fingerprint_id = environment_fingerprint.id
+   AND rule_environment_statistics.rule_environment_id = rule_environment.id
+   AND rule_environment_statistics.property_name_id = ?
+"""
+            args = args + (property_id,)
+            sql, args = _adjust_property_rules_query(sql, args, min_count)
+
+        ## print(sql)
+        ## print((from_smiles, to_smiles, property_id,
+        ##                                to_smiles, from_smiles, property_id))
+        # If this query is slow, and the indices are present, then you might
+        # try running "analyze" in the SQLite terminal.
+        c = self.mmpa_db.execute(sql, args, cursor=cursor)
+        for (rule_id, is_reversed, from_smiles, from_num_heavies, to_smiles, to_num_heavies,
+                 rule_environment_id, radius, fingerprint_id, fingerprint,
+                 rule_environment_statistics_id, count, avg, std, kurtosis, skewness, min, q1, median, q3, max, paired_t, p_value) in c:
+            yield PropertyRule(
+                rule_id, is_reversed, from_smiles, from_num_heavies, to_smiles, to_num_heavies,
+                rule_environment_id, radius, fingerprint_id, fingerprint,
+                rule_environment_statistics_id, count, avg, std, kurtosis, skewness, min, q1, median, q3, max, paired_t, p_value)
+
+    def _iter_selected_property_rules_one_smiles(self, smiles, property_id, min_count, cursor):
+        sql = """
+SELECT rule.id, 0, from_smiles.smiles, from_smiles.num_heavies, to_smiles.smiles, to_smiles.num_heavies,
+        rule_environment.id, rule_environment.radius,
+        rule_environment.environment_fingerprint_id, environment_fingerprint.fingerprint,
+        rule_environment_statistics.id, count, avg, std, kurtosis, skewness, min, q1, median, q3, max, paired_t, p_value
+  FROM rule, rule_environment, environment_fingerprint, rule_environment_statistics,
+          rule_smiles as from_smiles, rule_smiles as to_smiles
+ WHERE from_smiles.smiles = ?
+   AND rule.from_smiles_id = from_smiles.id
+   AND rule.to_smiles_id = to_smiles.id
+   AND rule_environment.rule_id = rule.id
+   AND rule_environment.environment_fingerprint_id = environment_fingerprint.id
+   AND rule_environment_statistics.rule_environment_id = rule_environment.id
+   AND rule_environment_statistics.property_name_id = ?
+        """
+        args = (smiles, property_id)
+        sql, args = _adjust_property_rules_query(sql, args, min_count)
+        
+        if not self.is_symmetric:
+            sql += """\
+UNION
+SELECT rule.id, 1, to_smiles.smiles, to_smiles.num_heavies, from_smiles.smiles, from_smiles.num_heavies,
+        rule_environment.id, rule_environment.radius,
+        rule_environment.environment_fingerprint_id, environment_fingerprint.fingerprint,
+        rule_environment_statistics.id, count, -avg, std, kurtosis, skewness, -max, -q3, -median, -q1, -min, paired_t, p_value
+  FROM rule, rule_environment, environment_fingerprint, rule_environment_statistics, 
+        rule_smiles as from_smiles, rule_smiles as to_smiles
+ WHERE to_smiles.smiles = ?
+   AND rule.from_smiles_id = from_smiles.id
+   AND rule.to_smiles_id = to_smiles.id
+   AND rule_environment.rule_id = rule.id
+   AND rule_environment.environment_fingerprint_id = environment_fingerprint.id
+   AND rule_environment_statistics.rule_environment_id = rule_environment.id
+   AND rule_environment_statistics.property_name_id = ?
+"""
+            args = args + (smiles, property_id)
+            sql, args = _adjust_property_rules_query(sql, args, min_count)
+
+        ## print(sql)
+        ## print((from_smiles, to_smiles, property_id,
+        ##                                to_smiles, from_smiles, property_id))
+        # If this query is slow, and the indices are present, then you might
+        # try running "analyze" in the SQLite terminal.
+        c = self.mmpa_db.execute(sql, args, cursor=cursor)
+        for (rule_id, is_reversed, from_smiles, from_num_heavies, to_smiles, to_num_heavies,
+                 rule_environment_id, radius, fingerprint_id, fingerprint,
+                 rule_environment_statistics_id, count, avg, std, kurtosis, skewness, min, q1, median, q3, max, paired_t, p_value) in c:
+            yield PropertyRule(
+                rule_id, is_reversed, from_smiles, from_num_heavies, to_smiles, to_num_heavies,
+                rule_environment_id, radius, fingerprint_id, fingerprint,
+                rule_environment_statistics_id, count, avg, std, kurtosis, skewness, min, q1, median, q3, max, paired_t, p_value)
+
+    ####
+    
     def get_property_values(self, property_name_id, cursor=None):
         c = self.mmpa_db.execute(
             "SELECT compound_id, value FROM compound_property " "   WHERE property_name_id = ?",

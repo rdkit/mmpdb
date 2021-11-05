@@ -51,9 +51,11 @@ from . import (
     rulecat,
     loadprops,
     propcat,
+    proprulecat,
     fragdb_list,
     fragdb_constants,
     fragdb_split,
+    merge,
     drop_index,
     create_index,
     help_,
@@ -155,9 +157,11 @@ main.add_command(list_.list_)
 main.add_command(rulecat.rulecat)
 main.add_command(loadprops.loadprops)
 main.add_command(propcat.propcat)
+main.add_command(proprulecat.proprulecat)
 main.add_command(fragdb_list.fragdb_list)
 main.add_command(fragdb_constants.fragdb_constants)
 main.add_command(fragdb_split.fragdb_split)
+#main.add_command(merge.merge)
 main.add_command(drop_index.drop_index)
 main.add_command(create_index.create_index)
 
