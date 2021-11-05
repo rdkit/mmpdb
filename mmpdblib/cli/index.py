@@ -48,6 +48,7 @@ from .click_utils import (
     positive_float,
     positive_int_or_none,
     set_click_attrs,
+    open_fragdb_from_options_or_exit,
 )
 
 from .. import (
@@ -378,8 +379,8 @@ entire structure, and save the transformation in both A>>B and B>>A
 @click.argument(
     "fragment_filename",
     metavar="FILENAME",
+    type = click.Path(exists=True, dir_okay=False, readable=True),
     default=None,
-    # help = "SMILES filename (default: read from stdin)",
 )
 @click.pass_obj
 def index(
@@ -397,7 +398,6 @@ def index(
     FILENAME: the name of the fragdb file containing the fragments to index
     """
     from .. import (
-        fragment_db,
         fragment_types,
         index_algorithm,
         properties_io,
@@ -449,10 +449,7 @@ def index(
     # reporter.report("Using fragment filters: %s" % (fragment_filter.get_args(),))
 
     start_fragment_index_memory = get_memory_use()
-    try:
-        fragment_reader = fragment_db.open_fragdb(fragment_filename)
-    except fragment_types.FragmentFormatError as err:
-        die(str(err))
+    fragment_reader = open_fragdb_from_options_or_exit(fragment_filename)
 
     with fragment_reader:
         with reporter.progress(fragment_reader, "Loaded fragment record") as report_fragment_reader:
