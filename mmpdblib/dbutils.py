@@ -247,7 +247,7 @@ def iter_dbinfo_and_dataset(databases, reporter):
         try:
             database = dbinfo.open_database(quiet=reporter.quiet)
             dataset = database.get_dataset()
-        except dbutils.DBError as err:
+        except DBError as err:
             reporter.update("")
             reporter.report("Skipping %s: %s" % (dbinfo.get_human_name(), err))
             if database is not None:
