@@ -488,9 +488,13 @@ def get_property_names_or_error(dataset, *, property_names, no_properties=False,
 
 def open_fragdb_from_options_or_exit(options):
     from .. import fragment_db
+    if isinstance(options, str):
+        database = options
+    else:
+        database = options.database
 
     try:
-        return fragment_db.open_fragdb(options.database)
+        return fragment_db.open_fragdb(database)
     except IOError as err:
         die(f"Unable to open fragdb file: {err}")
     except Exception as err:
