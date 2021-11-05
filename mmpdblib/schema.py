@@ -36,6 +36,8 @@ import datetime
 
 import importlib.resources
 
+from hashlib import sha256
+
 
 _schema_template = None
 
@@ -500,7 +502,8 @@ SELECT property_name.name, count(property_name_id)
         assert len(possible_env_fps) > 0, possible_env_fps
         cursor = self.mmpa_db.get_cursor(cursor)
 
-        test_fp_in = " OR ".join(("environment_fingerprint.fingerprint = ?",) * len(possible_env_fps))
+        possible_env_fps = [sha256(smarts.encode("ascii")).hexdigest() for smarts in possible_env_fps]
+        test_fp_in = " OR ".join(("environment_fingerprint.hash = ?",) * len(possible_env_fps))
 
         execute_args = (smiles_id,) + tuple(possible_env_fps) + (max_variable_size,)
 
@@ -533,19 +536,19 @@ SELECT property_name.name, count(property_name_id)
         for x in self.mmpa_db.execute(sql, execute_args, cursor):
             yield x
 
-    def get_fingerprint_ids(self, fingerprints, cursor=None):
+    def get_smarts_ids(self, smarts_list, cursor=None):
         fpids = set()
-        if fingerprints:
-            in_term = "', '".join(fingerprints)
-            c = self.mmpa_db.execute(
-                "SELECT id FROM environment_fingerprint " "WHERE fingerprint IN ('" "" + in_term + "')",
-                cursor=cursor,
-            )
-            fpids.update(fpid for (fpid,) in c)
+        if smarts_list:
+            cursor = self.mmpa_db.get_cursor(cursor)
+            for smarts in smarts_list:
+                c = self.mmpa_db.execute(
+                    "SELECT id FROM environment_fingerprint WHERE hash = ?",
+                    (sha256(smarts.encode("ascii")).hexdigest(),), cursor=cursor)
+                fpids.update(fpid for (fpid,) in c)
 
         return fpids
-
-    def iter_selected_property_rules(self, from_smiles, to_smiles, property_id, min_count=None, cursor=None):
+    
+    def iter_selected_property_rules(self, from_smiles, to_smiles, property_id, *, min_count=None, cursor=None):
         if from_smiles is not None and to_smiles is not None:
             return self._iter_selected_property_rules_both_smiles(from_smiles, to_smiles, property_id,
                                                                       min_count=min_count, cursor=cursor)
@@ -568,7 +571,8 @@ SELECT property_name.name, count(property_name_id)
         sql = """
 SELECT rule.id, 0, from_smiles.smiles, from_smiles.num_heavies, to_smiles.smiles, to_smiles.num_heavies,
         rule_environment.id, rule_environment.radius,
-        rule_environment.environment_fingerprint_id, environment_fingerprint.fingerprint,
+        rule_environment.environment_fingerprint_id,
+        environment_fingerprint.smarts, environment_fingerprint.pseudosmiles,
         rule_environment_statistics.id, count, avg, std, kurtosis, skewness, min, q1, median, q3, max, paired_t, p_value
   FROM rule, rule_environment, environment_fingerprint, rule_environment_statistics,
           rule_smiles as from_smiles, rule_smiles as to_smiles
@@ -589,7 +593,8 @@ SELECT rule.id, 0, from_smiles.smiles, from_smiles.num_heavies, to_smiles.smiles
 UNION
 SELECT rule.id, 1, to_smiles.smiles, to_smiles.num_heavies, from_smiles.smiles, from_smiles.num_heavies,
         rule_environment.id, rule_environment.radius,
-        rule_environment.environment_fingerprint_id, environment_fingerprint.fingerprint,
+        rule_environment.environment_fingerprint_id,
+        environment_fingerprint.smarts, environment_fingerprint.pseudosmiles,
         rule_environment_statistics.id, count, -avg, std, kurtosis, skewness, -max, -q3, -median, -q1, -min, paired_t, p_value
   FROM rule, rule_environment, environment_fingerprint, rule_environment_statistics, 
         rule_smiles as from_smiles, rule_smiles as to_smiles
@@ -613,18 +618,21 @@ SELECT rule.id, 1, to_smiles.smiles, to_smiles.num_heavies, from_smiles.smiles, 
         # try running "analyze" in the SQLite terminal.
         c = self.mmpa_db.execute(sql, args, cursor=cursor)
         for (rule_id, is_reversed, from_smiles, from_num_heavies, to_smiles, to_num_heavies,
-                 rule_environment_id, radius, fingerprint_id, fingerprint,
+                 rule_environment_id, radius,
+                 fingerprint_id, fingerprint_smarts, fingerprint_pseudosmiles,
                  rule_environment_statistics_id, count, avg, std, kurtosis, skewness, min, q1, median, q3, max, paired_t, p_value) in c:
             yield PropertyRule(
                 rule_id, is_reversed, from_smiles, from_num_heavies, to_smiles, to_num_heavies,
-                rule_environment_id, radius, fingerprint_id, fingerprint,
+                rule_environment_id, radius,
+                fingerprint_id, fingerprint_smarts, fingerprint_pseudosmiles,
                 rule_environment_statistics_id, count, avg, std, kurtosis, skewness, min, q1, median, q3, max, paired_t, p_value)
 
     def _iter_selected_property_rules_no_smiles(self, property_id, min_count, cursor):
         sql = """
 SELECT rule.id, 0, from_smiles.smiles, from_smiles.num_heavies, to_smiles.smiles, to_smiles.num_heavies,
         rule_environment.id, rule_environment.radius,
-        rule_environment.environment_fingerprint_id, environment_fingerprint.fingerprint,
+        rule_environment.environment_fingerprint_id,
+        environment_fingerprint.smarts, environment_fingerprint.pseudosmiles,
         rule_environment_statistics.id, count, avg, std, kurtosis, skewness, min, q1, median, q3, max, paired_t, p_value
   FROM rule, rule_environment, environment_fingerprint, rule_environment_statistics,
           rule_smiles as from_smiles, rule_smiles as to_smiles
@@ -643,7 +651,8 @@ SELECT rule.id, 0, from_smiles.smiles, from_smiles.num_heavies, to_smiles.smiles
 UNION
 SELECT rule.id, 1, to_smiles.smiles, to_smiles.num_heavies, from_smiles.smiles, from_smiles.num_heavies,
         rule_environment.id, rule_environment.radius,
-        rule_environment.environment_fingerprint_id, environment_fingerprint.fingerprint,
+        rule_environment.environment_fingerprint_id,
+        environment_fingerprint.smarts, environment_fingerprint.pseudosmiles,
         rule_environment_statistics.id, count, -avg, std, kurtosis, skewness, -max, -q3, -median, -q1, -min, paired_t, p_value
   FROM rule, rule_environment, environment_fingerprint, rule_environment_statistics, 
         rule_smiles as from_smiles, rule_smiles as to_smiles
@@ -664,18 +673,21 @@ SELECT rule.id, 1, to_smiles.smiles, to_smiles.num_heavies, from_smiles.smiles, 
         # try running "analyze" in the SQLite terminal.
         c = self.mmpa_db.execute(sql, args, cursor=cursor)
         for (rule_id, is_reversed, from_smiles, from_num_heavies, to_smiles, to_num_heavies,
-                 rule_environment_id, radius, fingerprint_id, fingerprint,
+                 rule_environment_id, radius,
+                 fingerprint_id, fingerprint_smarts, fingerprint_pseudosmiles,
                  rule_environment_statistics_id, count, avg, std, kurtosis, skewness, min, q1, median, q3, max, paired_t, p_value) in c:
             yield PropertyRule(
                 rule_id, is_reversed, from_smiles, from_num_heavies, to_smiles, to_num_heavies,
-                rule_environment_id, radius, fingerprint_id, fingerprint,
+                rule_environment_id, radius,
+                fingerprint_id, fingerprint_smarts, fingerprint_pseudosmiles,
                 rule_environment_statistics_id, count, avg, std, kurtosis, skewness, min, q1, median, q3, max, paired_t, p_value)
 
     def _iter_selected_property_rules_one_smiles(self, smiles, property_id, min_count, cursor):
         sql = """
 SELECT rule.id, 0, from_smiles.smiles, from_smiles.num_heavies, to_smiles.smiles, to_smiles.num_heavies,
         rule_environment.id, rule_environment.radius,
-        rule_environment.environment_fingerprint_id, environment_fingerprint.fingerprint,
+        rule_environment.environment_fingerprint_id,
+        environment_fingerprint.smarts, environment_fingerprint.pseudosmiles,
         rule_environment_statistics.id, count, avg, std, kurtosis, skewness, min, q1, median, q3, max, paired_t, p_value
   FROM rule, rule_environment, environment_fingerprint, rule_environment_statistics,
           rule_smiles as from_smiles, rule_smiles as to_smiles
@@ -695,7 +707,8 @@ SELECT rule.id, 0, from_smiles.smiles, from_smiles.num_heavies, to_smiles.smiles
 UNION
 SELECT rule.id, 1, to_smiles.smiles, to_smiles.num_heavies, from_smiles.smiles, from_smiles.num_heavies,
         rule_environment.id, rule_environment.radius,
-        rule_environment.environment_fingerprint_id, environment_fingerprint.fingerprint,
+        rule_environment.environment_fingerprint_id,
+        environment_fingerprint.smarts, environment_fingerprint.pseudosmiles,
         rule_environment_statistics.id, count, -avg, std, kurtosis, skewness, -max, -q3, -median, -q1, -min, paired_t, p_value
   FROM rule, rule_environment, environment_fingerprint, rule_environment_statistics, 
         rule_smiles as from_smiles, rule_smiles as to_smiles
@@ -717,11 +730,13 @@ SELECT rule.id, 1, to_smiles.smiles, to_smiles.num_heavies, from_smiles.smiles, 
         # try running "analyze" in the SQLite terminal.
         c = self.mmpa_db.execute(sql, args, cursor=cursor)
         for (rule_id, is_reversed, from_smiles, from_num_heavies, to_smiles, to_num_heavies,
-                 rule_environment_id, radius, fingerprint_id, fingerprint,
+                 rule_environment_id, radius,
+                 fingerprint_id, fingerprint_smarts, fingerprint_pseudosmiles,
                  rule_environment_statistics_id, count, avg, std, kurtosis, skewness, min, q1, median, q3, max, paired_t, p_value) in c:
             yield PropertyRule(
                 rule_id, is_reversed, from_smiles, from_num_heavies, to_smiles, to_num_heavies,
-                rule_environment_id, radius, fingerprint_id, fingerprint,
+                rule_environment_id, radius,
+                fingerprint_id, fingerprint_smarts, fingerprint_pseudosmiles,
                 rule_environment_statistics_id, count, avg, std, kurtosis, skewness, min, q1, median, q3, max, paired_t, p_value)
 
     ####
@@ -738,7 +753,7 @@ SELECT rule.id, 1, to_smiles.smiles, to_smiles.num_heavies, from_smiles.smiles, 
         c = self.mmpa_db.execute(
             "SELECT rule_environment.rule_id, from_smiles.smiles, from_smiles.num_heavies, to_smiles.smiles, to_smiles.num_heavies, "
             "          rule_environment.radius, rule_environment.environment_fingerprint_id, "
-            "          environment_fingerprint.fingerprint, "
+            "          environment_fingerprint.smarts, environment_fingerprint.pseudosmiles, "
             "          rule_environment_statistics.id, count, avg, std, kurtosis, skewness, min, q1, median, q3, max, paired_t, p_value "
             "  FROM rule, rule_environment, environment_fingerprint, rule_environment_statistics, "
             "          rule_smiles as from_smiles, rule_smiles as to_smiles "
@@ -772,7 +787,8 @@ SELECT rule.id, 1, to_smiles.smiles, to_smiles.num_heavies, from_smiles.smiles, 
             to_num_heavies,
             radius,
             fingerprint_id,
-            fingerprint,
+            fingerprint_smarts,
+            fingerprint_pseudosmiles,
             rule_environment_statistics_id,
             count,
             avg,
@@ -803,7 +819,8 @@ SELECT rule.id, 1, to_smiles.smiles, to_smiles.num_heavies, from_smiles.smiles, 
             rule_environment_id,
             radius,
             fingerprint_id,
-            fingerprint,
+            fingerprint_smarts,
+            fingerprint_pseudosmiles,
             rule_environment_statistics_id,
             count,
             avg,
@@ -1075,7 +1092,8 @@ class PropertyRule(object):
         "rule_environment_id",
         "radius",
         "fingerprint_id",
-        "fingerprint",
+        "fingerprint_smarts",
+        "fingerprint_pseudosmiles",
         "rule_environment_statistics_id",
         "count",
         "avg",
@@ -1103,7 +1121,8 @@ class PropertyRule(object):
         rule_environment_id,
         radius,
         fingerprint_id,
-        fingerprint,
+        fingerprint_smarts,
+        fingerprint_pseudosmiles,
         rule_environment_statistics_id,
         count,
         avg,
@@ -1130,7 +1149,8 @@ class PropertyRule(object):
         self.rule_environment_id = rule_environment_id
         self.radius = radius
         self.fingerprint_id = fingerprint_id
-        self.fingerprint = fingerprint
+        self.fingerprint_smarts = fingerprint_smarts
+        self.fingerprint_pseudosmiles = fingerprint_pseudosmiles
 
         self.rule_environment_statistics_id = rule_environment_statistics_id
         self.count = count
@@ -1158,7 +1178,8 @@ class PropertyRule(object):
             "smirks": self.smirks,
             "rule_environment_id": self.rule_environment_id,
             "radius": self.radius,
-            "fingerprint": self.fingerprint,
+            "fingerprint_smarts": self.fingerprint_smarts,
+            "fingerprint_pseudosmiles": self.fingerprint_pseudosmiles,
             "rule_environment_statistics_id": self.rule_environment_statistics_id,
             "count": self.count,
             "avg": self.avg,

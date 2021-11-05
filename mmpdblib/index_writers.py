@@ -41,6 +41,8 @@ import sqlite3
 import datetime
 import json
 
+from hashlib import sha256
+
 # To install apsw, do:
 # pip install --user https://github.com/rogerbinns/apsw/releases/download/3.16.2-r1/apsw-3.16.2-r1.zip \
 # --global-option=fetch --global-option=--version --global-option=3.16.2 --global-option=--all \
@@ -77,7 +79,7 @@ class TableIndexWriter(object):
         self.close()
 
     def start(self, fragment_options, index_options):
-        self._W("VERSION\tmmpa/3\n")
+        self._W("VERSION\tmmpa/4\n")
         self._W("FRAGMENT_OPTIONS\t%s\n" % (json.dumps(list(fragment_options.to_dict().items())),))
         self._W("INDEX_OPTIONS\t%s\n" % (json.dumps(list(index_options.to_dict().items())),))
 
@@ -90,12 +92,8 @@ class TableIndexWriter(object):
     def add_rule(self, rule_idx, from_smiles_idx, to_smiles_idx):
         self._W("RULE\t%d\t%d\t%d\n" % (rule_idx, from_smiles_idx, to_smiles_idx))
 
-    def add_environment_fingerprint(self, fp_idx, environment_fingerprint):
-        self._W("FINGERPRINT\t%d\t%s\n" % (fp_idx, environment_fingerprint))
-
-    # Added to account for parents in indexing (only has an effect on SQLite Tables)
-    def add_environment_fingerprint_parent(self, fp_idx, environment_fingerprint, parent_idx):
-        self._W("FINGERPRINT\t%d\t%s\t%d\n" % (fp_idx, environment_fingerprint, parent_idx))
+    def add_environment_fingerprint(self, fp_idx, smarts, pseudosmiles, parent_smarts):
+        self._W(f"FINGERPRINT\t{fp_idx}\t{smarts}\t{pseudosmiles}\t{parent_smarts}\n")
 
     def add_rule_environment(self, rule_env_idx, rule_idx, env_fp_idx, radius):
         self._W("RULEENV\t%d\t%d\t%d\t%d\n" % (rule_env_idx, rule_idx, env_fp_idx, radius))
@@ -156,7 +154,7 @@ class BaseSqliteIndexWriter(object):
         self.conn.execute(
             "INSERT INTO dataset (id, mmpdb_version, title, creation_date, "
             "    fragment_options, index_options, is_symmetric) "
-            "    VALUES (1, 2, ?, ?, ?, ?, ?)",
+            "    VALUES (1, 4, ?, ?, ?, ?, ?)",
             (
                 self.title,
                 creation_date,
@@ -184,17 +182,16 @@ class BaseSqliteIndexWriter(object):
             (rule_idx, from_smiles_idx, to_smiles_idx),
         )
 
-    def add_environment_fingerprint(self, fp_idx, environment_fingerprint):
+    def add_environment_fingerprint(self, fp_idx, smarts, pseudosmiles, parent_smarts):
+        h = sha256(smarts.encode("ascii")).hexdigest()
+        if parent_smarts is None:
+            parent_h = None
+        else:
+            parent_h = sha256(parent_smarts.encode("ascii")).hexdigest()
         self.conn.execute(
-            "INSERT INTO environment_fingerprint (id, fingerprint) " " VALUES (?, ?)",
-            (fp_idx, environment_fingerprint),
-        )
-
-    # Added to include a parent idx in the EnvironmentFingerprint table
-    def add_environment_fingerprint_parent(self, fp_idx, environment_fingerprint, parent_idx):
-        self.conn.execute(
-            "INSERT INTO environment_fingerprint (id, fingerprint, parent_id) " " VALUES (?, ?, ?)",
-            (fp_idx, environment_fingerprint, parent_idx),
+            "INSERT INTO environment_fingerprint (id, hash, smarts, pseudosmiles, parent_hash) "
+            " VALUES (?, ?, ?, ?, ?)",
+            (fp_idx, h, smarts, pseudosmiles, parent_h)
         )
 
     def add_rule_environment(self, rule_env_idx, rule_idx, env_fp_idx, radius):

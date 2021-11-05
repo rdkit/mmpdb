@@ -727,7 +727,7 @@ class EnvironmentCache(object):
         self._centers_cache = {}
         self._radii_cache = {}
         self._environment_cache = {}
-        self._interned_fingerprints = {}
+        self._intern_dict = {}
 
     def get_or_compute_centers(self, constant_smiles):
         centers = self._centers_cache.get(constant_smiles, None)
@@ -755,8 +755,14 @@ class EnvironmentCache(object):
             # Many fingerprints are duplicates. Use an intern dictionary to
             # reduce the memory used. (Is this really needed/useful?)
             for env_fp in env_fps:
-                fp = env_fp.fingerprint
-                env_fp.fingerprint = self._interned_fingerprints.setdefault(fp, fp)
+                smarts = env_fp.smarts
+                env_fp.smarts = self._intern_dict.setdefault(smarts, smarts)
+                
+                parent_smarts = env_fp.parent_smarts
+                env_fp.parent_smarts = self._intern_dict.setdefault(parent_smarts, parent_smarts)
+                
+                pseudosmiles = env_fp.pseudosmiles
+                env_fp.pseudosmiles = self._intern_dict.setdefault(pseudosmiles, pseudosmiles)
 
             self._environment_cache[key] = env_fps
         return env_fps
@@ -1177,32 +1183,23 @@ class RuleEnvironmentTable(dict):
                 yield rule_env
 
 
-class EnvironmentFingerprintTable(dict):
+class EnvironmentFingerprintTable:
     def __init__(self, backend):
         self.backend = backend
+        self._smarts_to_id_dict = {}
 
-    def __missing__(self, env_fp):
-        idx = len(self)
-        self.backend.add_environment_fingerprint(idx, env_fp)
-        self[env_fp] = idx
+    def add(self, env_fp):
+        smarts = env_fp.smarts
+        try:
+            return self._smarts_to_id_dict[smarts]
+        except KeyError:
+            pass
+        idx = len(self._smarts_to_id_dict)
+        self.backend.add_environment_fingerprint(idx, smarts, env_fp.pseudosmiles, env_fp.parent_smarts)
+        self._smarts_to_id_dict[smarts] = idx
         return idx
-
-
-# Introduced to allow parent idx in Env-FP table
-class EnvironmentFingerprintTableParent:
-    def __init__(self, backend):
-        self.backend = backend
-        self.EnvironmentFingerprint = {}
-
-    def check(self, env_fp, parent_idx):
-        if env_fp in self.EnvironmentFingerprint:
-            return self.EnvironmentFingerprint[env_fp]
-        else:
-            idx = len(self.EnvironmentFingerprint)
-            self.backend.add_environment_fingerprint_parent(idx, env_fp, parent_idx)
-            self.EnvironmentFingerprint[env_fp] = idx
-            return idx
-
+        
+        
 
 class CompoundTable(dict):
     def __init__(self, fragment_index, property_name_idxs, properties, backend):
@@ -1250,8 +1247,7 @@ class MMPWriter(BaseWriter):
         self._rule_smiles_table = RuleSmilesTable(self.backend)
         self._constant_smiles_table = ConstantSmilesTable(self.backend)
         self._rule_table = RuleTable(self._rule_smiles_table, self.backend)
-        # self._fingerprint_table = EnvironmentFingerprintTable(self.backend)    # Removed for parent indexing
-        self._fingerprint_table = EnvironmentFingerprintTableParent(self.backend)  # Added for parent indexing
+        self._fingerprint_table = EnvironmentFingerprintTable(self.backend)
         self._compound_table = CompoundTable(self.fragment_index, property_name_idxs, self.properties, self.backend)
         self._rule_environment_table = RuleEnvironmentTable(self.num_properties, self._environment_cache, self.backend)
 
@@ -1332,9 +1328,7 @@ class MMPWriter(BaseWriter):
         rule_envs = []
         parent = -1  # Added for parent indexing
         for env_fp in env_fps:
-            # env_fp_idx = self._fingerprint_table[env_fp.fingerprint]        # Commented out for parent indexing
-            env_fp_idx = self._fingerprint_table.check(env_fp.fingerprint, parent)  # Modified for parent indexing
-            parent = env_fp_idx  # Added for parent indexing
+            env_fp_idx = self._fingerprint_table.add(env_fp)
             # NOTE: "string-encoded-key"
             # Originally I stored the tuple directly. This ends up using a lot of space
             # because there can be tens of millions of rule environments. A 3-element

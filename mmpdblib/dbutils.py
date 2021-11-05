@@ -82,8 +82,8 @@ def open_as_schema_database(playhouse_db):
     id, mmpdb_version = values[0]
     if id != 1:
         raise DBError("The dataset has the wrong id")
-    if mmpdb_version != 2:
-        raise DBError("Expecting mmpdb version 2, not %d" % (mmpdb_version,))
+    if mmpdb_version != 4:
+        raise DBError("Expecting mmpdb version 4, not %d" % (mmpdb_version,))
 
     import peewee
     if isinstance(playhouse_db, peewee.PostgresqlDatabase):

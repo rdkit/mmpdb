@@ -42,7 +42,8 @@ from .click_utils import (
     add_single_database_parameters,
     add_single_property,
     add_rule_selection_options,
-)
+    open_dataset_from_options_or_exit,
+    )
 
 # predict a property for a structure given the known property for
 # another structure, using the MMPA database to identify the possible
@@ -205,7 +206,7 @@ def predict(
     # --smiles 'c1ccccc1C(=O)N(C)C' --reference 'c1ccccc1C(=O)NC' --property MP e.mmpdb --save-details
     start_time = time.time()
 
-    dataset = dbutils.open_dataset_from_options_or_exit(database_options, reporter.quiet)
+    dataset = open_dataset_from_options_or_exit(database_options, reporter.quiet)
     open_time = time.time()
 
     rule_selection_function = rule_selection_options.get_rule_selection_function()

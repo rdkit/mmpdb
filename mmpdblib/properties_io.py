@@ -56,7 +56,7 @@ class Properties(object):
 # them. This seemed like a hacky-but-good-enough solution.)
 def _split(line):
     if "\t" in line:
-        return line.rstrip("\n").split("\t")
+        return line.rstrip("\r\n").split("\t")
     return line.split()
 
 

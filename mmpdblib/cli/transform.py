@@ -45,6 +45,7 @@ from .click_utils import (
     add_multiple_properties,
     add_rule_selection_options,
     get_property_names_or_error,
+    open_dataset_from_options_or_exit,
 )
 
 
@@ -344,7 +345,7 @@ def transform(
     reporter.set_explain(explain)
 
     start_time = time.time()
-    dataset = dbutils.open_dataset_from_options_or_exit(database_options)
+    dataset = open_dataset_from_options_or_exit(database_options)
     open_time = time.time()
 
     property_names = get_property_names_or_error(dataset, property_names=property_names, no_properties=no_properties)
