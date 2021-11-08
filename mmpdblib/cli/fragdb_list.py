@@ -15,6 +15,7 @@ class FragDBInfo:
     num_fragmentations: int
     num_constants: int
     num_variables: int
+    num_estimated_pairs: int
     options: object
 
     def get_cols(self):
@@ -25,6 +26,7 @@ class FragDBInfo:
             str(self.num_fragmentations),
             str(self.num_constants),
             str(self.num_variables),
+            str(self.num_estimated_pairs),
             ]
 
 def write(terms):
@@ -65,6 +67,9 @@ def get_info(filename, reporter):
                 ),
             num_variables = _get_one(
                 "SELECT COUNT(DISTINCT variable_smiles) FROM fragmentation",
+                ),
+            num_estimated_pairs = _get_one(
+                "SELECT SUM(i*(i-1)/2) FROM (SELECT COUNT(*) AS i FROM fragmentation GROUP BY constant_smiles)",
                 ),
             options = db.options,
             )
@@ -108,6 +113,7 @@ def fragdb_list(
         "#frags",
         "#consts",
         "#vars",
+        "#est.pairs",
         ]
     col_sizes = [len(s) for s in col_headers]
         
