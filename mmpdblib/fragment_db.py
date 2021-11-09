@@ -64,6 +64,11 @@ def get_schema_template():
         )
     return _schema_template
 
+def get_fragment_create_index_sql():
+    return importlib.resources.read_text(
+            "mmpdblib",
+            "fragment_create_index.sql",
+        )
 
 def init_fragdb(c, options):
     # Ensure SQL can read the file, and that no records exist
@@ -267,9 +272,7 @@ class FragDBWriter:
     def close(self):
         db, c = self.db, self.c
         if db is not None:
-            c.execute("CREATE INDEX fragmentation_on_record_id ON fragmentation(record_id)")
-            c.execute("CREATE INDEX record_on_title ON record(title)")
-            c.execute("CREATE INDEX error_record_on_title ON error_record(title)")
+            schema._execute_sql(c, get_fragment_create_index_sql())
             self.db = self.c = None
             c.close()
             db.commit()  # don't rollback - keep partial writes too.
