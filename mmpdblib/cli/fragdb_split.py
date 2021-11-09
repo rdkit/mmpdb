@@ -7,7 +7,7 @@ import click
 from .click_utils import (
     command,
     die,
-    positive_int_or_none,
+    positive_int,
     add_single_database_parameters,
     open_fragdb_from_options_or_exit,
     )
@@ -56,12 +56,74 @@ def get_constants_from_file(infile, has_header):
         constants.add(smiles)
     return constants
 
-def get_constants_from_db(db):
+def get_constant_counts(constants, fragdb, reporter):
     c = db.cursor()
-    c.execute("SELECT DISTINCT constant_smiles FROM fragmentation")
-    constants = set(s for (s,) in c)
-    return constants
+    constant_counts = []
+    for constant in constants:
+        c.execute(
+            "SELECT count(*) FROM fragmentation WHERE constant_smiles = ?",
+            (constant,))
+        for (n,) in c:
+            break
+        else:
+            raise AssertionError
+        if n == 0:
+            reporter.warning(f"Constant {constant!r} not in the database - skipping.")
+        constant_counts.append((n, constant))
+    return constant_counts
+        
+    
+def get_constant_counts_from_db(db):
+    c = db.cursor()
+    c.execute("SELECT count(*), constant_smiles FROM fragmentation GROUP BY constant_smiles")
+    return list(c)
 
+def get_estimated_num_pairs(n):
+    return n*(n-1)//2 + 1
+
+def _largest_subset_sort_key(pair):
+    tot_num_pairs, subset = pair
+    return (-tot_num_pairs, len(subset), subset)
+
+# first-fit to the subset with the smallest number of estimated pairs
+def subset_by_max_files(constant_counts, num_files):
+    assert num_files > 0, num_files
+    import heapq
+    heap = [(0, []) for i in range(num_files)]
+    for count, constant in constant_counts:
+        num_pairs = get_estimated_num_pairs(count)
+        tot_num_pairs, subset = heapq.heappop(heap)
+        subset.append(constant)
+        heapq.heappush(heap, (tot_num_pairs + num_pairs, subset))
+
+    heap.sort(key = _largest_subset_sort_key)
+    return [subset for (_, subset) in heap]
+
+# first-fit to the subset with the smallest number of estimated pairs
+# but add a new subset if too full
+def subset_by_max_pairs(constant_counts, max_pairs):
+    assert max_pairs > 0, max_pairs
+    import heapq
+    heap = [(0, [])]
+    
+    for count, constant in constant_counts:
+        num_pairs = get_estimated_num_pairs(count)
+
+        tot_num_pairs, subset = heap[0]
+        
+        if (not tot_num_pairs) or (tot_num_pairs + num_pairs <= max_pairs):
+            # Add if the smallest is empty, or if there's room.
+            subset.append(constant)
+            heapq.heapreplace(heap, (tot_num_pairs + num_pairs, subset))
+        else:
+            # Doesn't fit into the smallest available subset.
+            # Need a new one.
+            # (If num_pairs > max_pairs could append to a special 'full' list.)
+            heapq.heappush(heap, (num_pairs, [constant]))
+            
+    heap.sort(key = _largest_subset_sort_key)
+    return [subset for (_, subset) in heap]
+    
 
 def restrict_to_subset(output_filename, constant_smiles):
     import sqlite3
@@ -121,6 +183,30 @@ system, then:
 
 """
 
+# --num-files 10
+# --max-estimated-pairs 100000
+# 
+
+SET_LIMIT = "mmpdblib.fragdb_split.limit"
+def set_num_files(ctx, param, value):
+    if value is not None:
+        prev = ctx.meta.get(SET_LIMIT, None)
+        if prev is None:
+            ctx.meta[SET_LIMIT] = "num-files"
+        elif prev != "num-files":
+            raise click.UsageError("Cannot use both --num-files and --max-estimated-pairs")
+    return value
+
+def set_max_estimated_pairs(ctx, param, value):
+    if value is not None:
+        prev = ctx.meta.get(SET_LIMIT, None)
+        if prev is None:
+            ctx.meta[SET_LIMIT] = "max-estimated-pairs"
+        elif prev != "max-estimated-pairs":
+            raise click.UsageError("Cannot specify both --num-files and --set_max_estimated_pairs")
+    return value
+    
+
 @command(
     epilog = fragdb_split_epilog,
     name = "fragdb_split",
@@ -129,9 +215,18 @@ system, then:
 @click.option(
     "--num-files",
     "-n",
-    type = positive_int_or_none(),
-    default = 10,
-    help = "maximum number of files to generate, or 'none' for 1 constant per file (default: 10)",
+    type = positive_int(),
+    default = None,
+    callback = set_num_files,
+    help = "maximum number of files to generate",
+    )
+
+@click.option(
+    "--max-estimated-pairs",
+    type = positive_int(),
+    default = None,
+    callback = set_max_estimated_pairs,
+    help = "maximum number of estimated pairs per file",
     )
 
 
@@ -158,22 +253,16 @@ system, then:
     help = "Use --has-header to skip the first line of the constants file. Default is --no-header",
     )
 
-@click.option(
-    "--seed",
-    type = click.INT,
-    help = "seed used to randomize how the constants are assigned to files",
-    )
-
 @add_single_database_parameters()
 @click.pass_obj
 def fragdb_split(
         reporter,
         database_options,
         num_files,
+        max_estimated_pairs,
         template,
         constants_file,
         has_header,
-        seed,
         ):
     """split a fragdb based on common constants
 
@@ -190,34 +279,44 @@ def fragdb_split(
     database_parent = database_path.parent
     database_stem = database_path.stem
     database_prefix = str(database_path.parent / database_path.stem)
-    
+
+
     if constants_file is not None:
         with constants_file:
             constants = get_constants_from_file(constants_file, has_header)
         src = f"file {constants_file.name!r}"
+        if not constants:
+            reporter.report("No constants found in {src}. Exiting.")
+            return
+        constant_counts = get_constant_counts(constants, fragdb, reporter)
+        if not constant_counts:
+            reporter.report("No constants from {src} found in {database_options.database!r}. Exiting.")
+            return
     else:
-        constants = get_constants_from_db(fragdb)
+        constant_counts = get_constant_counts_from_db(fragdb)
         src = f"database {database_options.database!r}"
-        
-    if not constants:
-        reporter.report("No constants found in {src}. Exiting with no output.")
-        return
+        if not constant_counts:
+            reporter.report("No constants from {src}. Exiting.")
     
-    reporter.report(f"Using {len(constants)} constants from {src}.")
+    reporter.report(f"Using {len(constant_counts)} constants from {src}.")
 
-    if num_files == "none":
-        num_files = len(constants)
-
-    # Randomize the contants
-    constants = list(constants)
-    random.Random(seed).shuffle(constants)
-
+    # Sort from the most common to the least so we can use a first-fit algorithm.
+    # (Decreasing count, increasing constant)
+    constant_counts.sort(key = lambda pair: (-pair[0], pair[1]))
+    
     # Assign to bins
-    constant_bins = collections.defaultdict(set)
-    for i, constant in enumerate(constants):
-        constant_bins[i % num_files].add(constant)
-
-    for i, subset in sorted(constant_bins.items()):
+    if num_files is None:
+        if max_estimated_pairs is None:
+            # Is this a good default?
+            constant_subsets = subset_by_max_files(constant_counts, 10)
+        else:
+            constant_subsets = subset_by_max_pairs(constant_counts, max_estimated_pairs)
+    else:
+        constant_subsets = subset_by_max_files(constant_counts, num_files)
+        
+    
+    # Save to files
+    for i, subset in enumerate(constant_subsets):
         output_filename = template.format(
             parent = database_parent,
             stem = database_stem,
