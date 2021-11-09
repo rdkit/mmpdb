@@ -486,7 +486,7 @@ def get_property_names_or_error(dataset, *, property_names, no_properties=False,
     return unique_names
 
 
-def open_fragdb_from_options_or_exit(options):
+def open_fragdb_from_options_or_exit(options, apsw_warning=False):
     from .. import fragment_db
     if isinstance(options, str):
         database = options
@@ -494,23 +494,34 @@ def open_fragdb_from_options_or_exit(options):
         database = options.database
 
     try:
-        return fragment_db.open_fragdb(database)
+        return fragment_db.open_fragdb(
+            database,
+            apsw_warning=apsw_warning,
+            )
     except IOError as err:
         die(f"Unable to open fragdb file: {err}")
     except Exception as err:
         die(f"Unable to use fragdb file: {err}")
 
-def open_database_from_options_or_exit(db_options, quiet=False):
+def open_database_from_options_or_exit(db_options, quiet=False, apsw_warning=False):
     from .. import dbutils
     dbinfo = dbutils.get_dbinfo(db_options.database)
     try:
-        return dbinfo.open_database(copy_to_memory=db_options.copy_to_memory, quiet=quiet)
+        return dbinfo.open_database(
+            copy_to_memory=db_options.copy_to_memory,
+            quiet=quiet,
+            apsw_warning=apsw_warning,
+            )
     except dbutils.DBError as err:
         die(f"Cannot connect to {dbinfo.get_human_name()}: {err}\n")
 
 
-def open_dataset_from_options_or_exit(db_options, quiet=False):
-    db = open_database_from_options_or_exit(db_options, quiet)
+def open_dataset_from_options_or_exit(db_options, quiet=False, apsw_warning=False):
+    db = open_database_from_options_or_exit(
+        db_options,
+        quiet=quiet,
+        apsw_warning=apsw_warning,
+        )
     return db.get_dataset()
 
         
