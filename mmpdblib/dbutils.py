@@ -50,20 +50,20 @@ from . import schema
 _sqlite_adapter = None
 
 
-def get_default_sqlite_adapter(quiet):
+def get_default_sqlite_adapter(quiet, apsw_warning=True):
     global _sqlite_adapter
     if _sqlite_adapter is None:
-        _sqlite_adapter = _get_default_sqlite_adapter(quiet)
+        _sqlite_adapter = _get_default_sqlite_adapter(quiet, apsw_warning=apsw_warning)
     return _sqlite_adapter
 
 
-def _get_default_sqlite_adapter(quiet):
+def _get_default_sqlite_adapter(quiet, apsw_warning):
     try:
         import apsw
 
         return "apsw"
     except ImportError:
-        if not quiet:
+        if not quiet and apsw_warning:
             sys.stderr.write("WARNING: APSW not installed. Falling back to Python's sqlite3 module.\n")
         return "sqlite"
 
@@ -157,10 +157,12 @@ class DBFile(DBInfo):
     def get_human_name(self):
         return "file %r" % (self.name,)
 
-    def open_database(self, *, copy_to_memory=False, quiet=False):
+    def open_database(self, *, copy_to_memory=False, quiet=False, apsw_warning=True):
         if not os.path.exists(self.name):
             raise DBError("File does not exist")
-        database_class = playhouse_db_url.schemes[get_default_sqlite_adapter(quiet)]
+        database_class = playhouse_db_url.schemes[
+            get_default_sqlite_adapter(quiet, apsw_warning=apsw_warning)
+            ]
         try:
             db = database_class(database=self.name)
         except Exception as err:
@@ -177,7 +179,7 @@ class DBUrl(DBInfo):
     def get_human_name(self):
         return "database url %r" % (self.name,)
 
-    def open_database(self, copy_to_memory, quiet=False):
+    def open_database(self, copy_to_memory, quiet=False, apsw_warning=True):
         try:
             db = playhouse_db_url.connect(self.name)
         except Exception as err:
@@ -307,7 +309,7 @@ def iter_dbinfo(databases, reporter):
             reporter.report(f"Not a file, directory, or supported database URL:{database!r}")
 
 
-def iter_dbinfo_and_dataset(databases, reporter):
+def iter_dbinfo_and_dataset(databases, reporter, apsw_warning=True):
     for dbinfo in iter_dbinfo(databases, reporter):
         reporter.update("Opening %s ... " % (dbinfo.get_human_name(),))
         database = None
@@ -327,8 +329,12 @@ def iter_dbinfo_and_dataset(databases, reporter):
             database.close()
 
 
-def open_database(dburl, copy_to_memory=False, quiet=False):
-    return get_dbinfo(dburl).open_database(copy_to_memory=copy_to_memory, quiet=quiet)
+def open_database(dburl, copy_to_memory=False, quiet=False, apsw_warning=True):
+    return get_dbinfo(dburl).open_database(
+        copy_to_memory=copy_to_memory,
+        quiet=quiet,
+        apsw_warning=apsw_warning,
+        )
 
 
 #####
