@@ -8,32 +8,10 @@ from .click_utils import (
     command,
     die,
     positive_int,
+    template_type,
     add_single_database_parameters,
     open_fragdb_from_options_or_exit,
     )
-
-
-class template_type(click.ParamType):
-    name = "STR"
-    def convert(self, value, param, ctx):
-        if value is None:
-            return value
-
-        reference_d = {
-            "prefix": "blah",
-            "parent": "blah",
-            "stem": "blah",
-            "sep": os.sep,
-            "i": 1,
-            }
-        try:
-            value.format(**reference_d)
-        except ValueError as err:
-            self.fail(f"Unable to evaluate: {err}", param, ctx)
-        except KeyError as err:
-            self.fail(f"Unsupported field: {err}", param, ctx)
-
-        return value
 
 
 def get_constants_from_file(infile, has_header):

@@ -33,7 +33,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-
+import os
 import click
 
 from .. import config
@@ -200,7 +200,29 @@ class frequency_type(click.ParamType):
             self.fail(msg, param, ctx)
         return value
 
+class template_type(click.ParamType):
+    name = "STR"
+    def convert(self, value, param, ctx):
+        if value is None:
+            return value
 
+        reference_d = {
+            "prefix": "blah",
+            "parent": "blah",
+            "stem": "blah",
+            "sep": os.sep,
+            "i": 1,
+            }
+        try:
+            value.format(**reference_d)
+        except ValueError as err:
+            self.fail(f"Unable to evaluate: {err}", param, ctx)
+        except KeyError as err:
+            self.fail(f"Unsupported field: {err}", param, ctx)
+
+        return value
+
+    
 def name_to_command_line(s):
     return "--" + s.replace("_", "-")
 
