@@ -69,6 +69,7 @@ def get_info(filename, reporter):
                 "SELECT COUNT(DISTINCT variable_smiles) FROM fragmentation",
                 ),
             num_estimated_pairs = _get_one(
+                # XXX Should I have a +1 for single-cut constants?
                 "SELECT SUM(i*(i-1)/2) FROM (SELECT COUNT(*) AS i FROM fragmentation GROUP BY constant_smiles)",
                 ),
             options = db.options,
