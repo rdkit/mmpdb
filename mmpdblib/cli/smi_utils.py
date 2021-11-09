@@ -43,7 +43,16 @@ class SmiInputOptions:
         self.format = format
         self.delimiter = delimiter
         self.has_header = has_header
-
+        
+    def read_smiles_file(self, filename):
+        from .. import fileio
+        return fileio.read_smiles_file(
+            filename,
+            self.format,
+            self.delimiter,
+            self.has_header,
+            )
+        
 
 def add_input_options(command):
     def add_option(*args, **kwargs):

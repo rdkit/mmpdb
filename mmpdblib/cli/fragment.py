@@ -251,12 +251,7 @@ def fragment(
 
     try:
         try:
-            with fileio.read_smiles_file(
-                structure_filename,
-                input_options.format,
-                input_options.delimiter,
-                input_options.has_header,
-            ) as reader:
+            with input_options.read_smiles_file(structure_filename) as reader:
 
                 with fragment_db.open_fragment_writer(
                     output_filename,
