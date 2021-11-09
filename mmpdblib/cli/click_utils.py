@@ -494,10 +494,7 @@ def open_fragdb_from_options_or_exit(options, apsw_warning=False):
         database = options.database
 
     try:
-        return fragment_db.open_fragdb(
-            database,
-            apsw_warning=apsw_warning,
-            )
+        return fragment_db.open_fragdb(database)
     except IOError as err:
         die(f"Unable to open fragdb file: {err}")
     except Exception as err:
