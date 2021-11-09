@@ -57,7 +57,7 @@ def get_constants_from_file(infile, has_header):
     return constants
 
 def get_constant_counts(constants, fragdb, reporter):
-    c = db.cursor()
+    c = fragdb.cursor()
     constant_counts = []
     for constant in constants:
         c.execute(
@@ -239,6 +239,15 @@ def set_max_estimated_pairs(ctx, param, value):
     type = click.File("r"),
     help = "only export fragmentations containing the constants specified in the named file",
     )
+@click.option(
+    "--has-header / --no-header",
+    "has_header",
+    default = True,
+    help = (
+        "With --has-header (the default), skip the first line of the constants file. "
+        "With --no-header, interpret the first line as a SMARTS"
+        ),
+    )
 
 @click.option(
     "--template",
@@ -247,12 +256,6 @@ def set_max_estimated_pairs(ctx, param, value):
     type = template_type(),
     show_default = True,
     help = "template for the output filenames",
-    )
-
-@click.option(
-    "--has-header/--no-header",
-    default = False,
-    help = "Use --has-header to skip the first line of the constants file. Default is --no-header",
     )
 
 @add_single_database_parameters()
