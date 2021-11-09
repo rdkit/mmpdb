@@ -314,7 +314,10 @@ def iter_dbinfo_and_dataset(databases, reporter, apsw_warning=True):
         reporter.update("Opening %s ... " % (dbinfo.get_human_name(),))
         database = None
         try:
-            database = dbinfo.open_database(quiet=reporter.quiet)
+            database = dbinfo.open_database(
+                quiet=reporter.quiet,
+                apsw_warning=apsw_warning,
+                )
             dataset = database.get_dataset()
         except DBError as err:
             reporter.update("")

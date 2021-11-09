@@ -486,7 +486,7 @@ def get_property_names_or_error(dataset, *, property_names, no_properties=False,
     return unique_names
 
 
-def open_fragdb_from_options_or_exit(options, apsw_warning=False):
+def open_fragdb_from_options_or_exit(options):
     from .. import fragment_db
     if isinstance(options, str):
         database = options

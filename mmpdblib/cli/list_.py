@@ -157,6 +157,7 @@ def list_(
     for dbinfo, dataset in dbutils.iter_dbinfo_and_dataset(
         databases_options.databases,
         reporter,
+        apsw_warning = False,
     ):
 
         name = dbinfo.name
