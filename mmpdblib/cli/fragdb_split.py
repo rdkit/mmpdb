@@ -331,6 +331,8 @@ def fragdb_split(
             )
 
         # Copy to the destination
+        if not subset:
+            continue
         reporter.report(f"Exporting {len(subset)} constants to {output_filename!r}")
         try:
             shutil.copy(database, output_filename)
