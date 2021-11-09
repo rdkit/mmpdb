@@ -270,6 +270,9 @@ def fragment(
         except fileio.FileFormatError as err:
             die(f"Cannot parse input file: {err}")
 
+        except UnicodeDecodeError as err:
+            die(f"Error processing input file: {err} at {reader.location.where()}")
+
     except KeyboardInterrupt:
         config.update("Shutting down process pool")
         pool.terminate()
