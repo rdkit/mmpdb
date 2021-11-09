@@ -154,7 +154,10 @@ def list_(
 
     all_fragment_options = []
     all_index_options = []
-    for dbinfo, dataset in dbutils.iter_dbinfo_and_dataset(databases_options.databases, reporter):
+    for dbinfo, dataset in dbutils.iter_dbinfo_and_dataset(
+        databases_options.databases,
+        reporter,
+    ):
 
         name = dbinfo.name
         name_width = max(name_width, len(name))
