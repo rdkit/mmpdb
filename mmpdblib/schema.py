@@ -306,7 +306,14 @@ class PostgresMMPDatabase(MMPDatabase):
     ##     assert mid == "VALUES", ("Unexpected SQL", sql)
     ##     cursor.
 
-
+class Rule:
+    def __init__(self, id, from_smiles, to_smiles):
+        self.id = id
+        self.from_smiles = from_smiles
+        self.to_smiles = to_smiles
+    def __repr__(self):
+        return f"Rule({self.id}, {self.from_smiles!r}, {self.to_smiles!r})"
+    
 class Pair(object):
     def __init__(self, pair_id, rule_environment_id, compound1_id, compound2_id, constant_id):
         self.pair_id = pair_id
@@ -544,6 +551,15 @@ SELECT property_name.name, count(property_name_id)
                 fpids.update(fpid for (fpid,) in c)
 
         return fpids
+
+    def iter_rules(self, cursor=None):
+        c = self.mmpa_db.execute("""
+SELECT rule.id, from_smiles.smiles, to_smiles.smiles
+  FROM rule, rule_smiles AS from_smiles, rule_smiles AS to_smiles
+ WHERE rule.from_smiles_id = from_smiles.id
+   AND rule.to_smiles_id = to_smiles.id
+""", (), cursor=cursor)
+        return (Rule(*row) for row in c)
     
     def iter_selected_property_rules(self, from_smiles, to_smiles, property_id, *, min_count=None, cursor=None):
         if from_smiles is not None and to_smiles is not None:
