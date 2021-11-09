@@ -79,6 +79,8 @@ def get_constant_counts_from_db(db):
     return list(c)
 
 def get_estimated_num_pairs(n):
+    # +1 to include the possibility of matching to a hydrogen SMILES
+    # and to keep from dumping everything into a single file.
     return n*(n-1)//2 + 1
 
 def _largest_subset_sort_key(pair):

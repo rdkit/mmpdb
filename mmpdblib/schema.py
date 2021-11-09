@@ -36,9 +36,6 @@ import datetime
 
 import importlib.resources
 
-from hashlib import sha256
-
-
 _schema_template = None
 
 
@@ -502,8 +499,7 @@ SELECT property_name.name, count(property_name_id)
         assert len(possible_env_fps) > 0, possible_env_fps
         cursor = self.mmpa_db.get_cursor(cursor)
 
-        possible_env_fps = [sha256(smarts.encode("ascii")).hexdigest() for smarts in possible_env_fps]
-        test_fp_in = " OR ".join(("environment_fingerprint.hash = ?",) * len(possible_env_fps))
+        test_fp_in = " OR ".join(("environment_fingerprint.smarts = ?",) * len(possible_env_fps))
 
         execute_args = (smiles_id,) + tuple(possible_env_fps) + (max_variable_size,)
 
@@ -542,8 +538,9 @@ SELECT property_name.name, count(property_name_id)
             cursor = self.mmpa_db.get_cursor(cursor)
             for smarts in smarts_list:
                 c = self.mmpa_db.execute(
-                    "SELECT id FROM environment_fingerprint WHERE hash = ?",
-                    (sha256(smarts.encode("ascii")).hexdigest(),), cursor=cursor)
+                    "SELECT id FROM environment_fingerprint WHERE smarts = ?",
+                    (smarts,),
+                    cursor=cursor)
                 fpids.update(fpid for (fpid,) in c)
 
         return fpids

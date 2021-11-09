@@ -147,16 +147,13 @@ CREATE TABLE rule (
 
 
 -- Fingerprints are based on the RDKit Morgan (ECFP-like) circular
--- fingerprints. They are only used for equality testing. To save
--- space, they are SHA2 hashed then base64 coded, so only 43 bytes
--- (344 bits) are needed.  They cannot be used for similarity testing.
+-- fingerprints, interpreted as a canonical SMARTS pattern.
 
 CREATE TABLE environment_fingerprint (
  id INTEGER $PRIMARY_KEY$,
- hash VARCHAR(43) NOT NULL $COLLATE$,  -- the base64-encoded SHA2 of the SMARTS
- smarts VARCHAR(1024) $COLLATE$,  -- the environment as a SMARTS string
- pseudosmiles VARCHAR(400) $COLLATE$,  -- the environment as a SMILES-like string
- parent_hash VARCHAR(43)  $COLLATE$  --Allow figuring out the parent of a given Env-FP
+ smarts VARCHAR(1024) $COLLATE$ NOT NULL,  -- the environment as a SMARTS string
+ pseudosmiles VARCHAR(400) $COLLATE$  NOT NULL,  -- the environment as a SMILES-like string
+ parent_smarts VARCHAR(1024) $COLLATE$  -- the parent SMARTS to this environment
  );
 
 

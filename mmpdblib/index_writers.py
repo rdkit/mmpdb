@@ -41,8 +41,6 @@ import sqlite3
 import datetime
 import json
 
-from hashlib import sha256
-
 # To install apsw, do:
 # pip install --user https://github.com/rogerbinns/apsw/releases/download/3.16.2-r1/apsw-3.16.2-r1.zip \
 # --global-option=fetch --global-option=--version --global-option=3.16.2 --global-option=--all \
@@ -183,15 +181,10 @@ class BaseSqliteIndexWriter(object):
         )
 
     def add_environment_fingerprint(self, fp_idx, smarts, pseudosmiles, parent_smarts):
-        h = sha256(smarts.encode("ascii")).hexdigest()
-        if parent_smarts is None:
-            parent_h = None
-        else:
-            parent_h = sha256(parent_smarts.encode("ascii")).hexdigest()
         self.conn.execute(
-            "INSERT INTO environment_fingerprint (id, hash, smarts, pseudosmiles, parent_hash) "
-            " VALUES (?, ?, ?, ?, ?)",
-            (fp_idx, h, smarts, pseudosmiles, parent_h)
+            "INSERT INTO environment_fingerprint (id, smarts, pseudosmiles, parent_smarts) "
+            " VALUES (?, ?, ?, ?)",
+            (fp_idx, smarts, pseudosmiles, parent_smarts)
         )
 
     def add_rule_environment(self, rule_env_idx, rule_idx, env_fp_idx, radius):
