@@ -56,6 +56,7 @@ from . import (
     fragdb_list,
     fragdb_constants,
     fragdb_split,
+    fragdb_merge,
     merge,
     drop_index,
     create_index,
@@ -163,6 +164,7 @@ main.add_command(smi_split.smi_split)
 main.add_command(fragdb_list.fragdb_list)
 main.add_command(fragdb_constants.fragdb_constants)
 main.add_command(fragdb_split.fragdb_split)
+main.add_command(fragdb_merge.fragdb_merge)
 #main.add_command(merge.merge)
 main.add_command(drop_index.drop_index)
 main.add_command(create_index.create_index)
