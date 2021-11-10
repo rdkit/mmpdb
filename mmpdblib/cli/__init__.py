@@ -50,6 +50,7 @@ from . import (
     list_,
     rulecat,
     loadprops,
+    smicat,
     propcat,
     proprulecat,
     smi_split,
@@ -158,6 +159,7 @@ main.add_command(rgroup2smarts.rgroup2smarts)
 main.add_command(list_.list_)
 main.add_command(rulecat.rulecat)
 main.add_command(loadprops.loadprops)
+main.add_command(smicat.smicat)
 main.add_command(propcat.propcat)
 main.add_command(proprulecat.proprulecat)
 main.add_command(smi_split.smi_split)
