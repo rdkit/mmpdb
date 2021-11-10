@@ -284,6 +284,9 @@ class FragDBWriter:
     def __exit__(self, *args):
         self.close()
 
+    def cursor(self):
+        return self.db.cursor()
+
     def write_version(self):
         raise NotImplementedError("cannot write version twice")
 
