@@ -91,6 +91,8 @@ class TableIndexWriter(object):
         self._W("RULE\t%d\t%d\t%d\n" % (rule_idx, from_smiles_idx, to_smiles_idx))
 
     def add_environment_fingerprint(self, fp_idx, smarts, pseudosmiles, parent_smarts):
+        if parent_smarts is None:
+            parent_smarts = ""
         self._W(f"FINGERPRINT\t{fp_idx}\t{smarts}\t{pseudosmiles}\t{parent_smarts}\n")
 
     def add_rule_environment(self, rule_env_idx, rule_idx, env_fp_idx, radius):
@@ -181,6 +183,8 @@ class BaseSqliteIndexWriter(object):
         )
 
     def add_environment_fingerprint(self, fp_idx, smarts, pseudosmiles, parent_smarts):
+        if parent_smarts is None:
+            parent_smarts = ""
         self.conn.execute(
             "INSERT INTO environment_fingerprint (id, smarts, pseudosmiles, parent_smarts) "
             " VALUES (?, ?, ?, ?)",
