@@ -290,19 +290,20 @@ class BaseSqliteIndexWriter(object):
         self.conn.execute("ANALYZE")
 
         reporter.update("Computing sizes ...")
-        num_compounds = schema._get_one(self.conn.execute("SELECT count(*) from compound"))
-        num_rules = schema._get_one(self.conn.execute("SELECT count(*) from rule"))
-        num_pairs = schema._get_one(self.conn.execute("SELECT count(*) from pair"))
-        num_envs = schema._get_one(self.conn.execute("SELECT count(*) from rule_environment"))
-        num_stats = schema._get_one(self.conn.execute("SELECT count(*) from rule_environment_statistics"))
-        self.conn.execute(
-            "UPDATE dataset set num_compounds=?, num_rules=?, num_pairs=?, "
-            "num_rule_environments=?, num_rule_environment_stats=? WHERE id = 1",
-            (num_compounds, num_rules, num_pairs, num_envs, num_stats),
-        )
-
+        update_counts(self.conn)
         reporter.update("")
 
+def update_counts(conn):
+    conn.execute("""
+UPDATE dataset
+   SET num_compounds = (SELECT count(*) FROM compound), 
+       num_rules = (SELECT count(*) FROM rule),
+       num_pairs = (SELECT count(*) FROM pair), 
+       num_rule_environments = (SELECT count(*) from rule_environment),
+       num_rule_environment_stats = (SELECT count(*) from rule_environment_statistics)
+WHERE id = 1
+""")
+        
 
 class SQLiteIndexWriter(BaseSqliteIndexWriter):
     def close(self):
