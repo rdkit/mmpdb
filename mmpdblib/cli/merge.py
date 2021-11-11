@@ -20,6 +20,11 @@ CREATE TEMPORARY TABLE rule_map (
   new_id INTEGER
 );
 
+CREATE TEMPORARY TABLE env_fp_map (
+  old_id INTEGER PRIMARY KEY,
+  new_id INTEGER
+);
+
 CREATE TEMPORARY TABLE rule_env_map (
   old_id INTEGER PRIMARY KEY,
   new_id INTEGER
@@ -81,6 +86,8 @@ INSERT OR IGNORE INTO rule (from_smiles_id, to_smiles_id)
 
 -- This simplifies steps 6 and 7
 
+DELETE FROM rule_map;
+
 INSERT INTO rule_map (old_id, new_id) 
  SELECT old_rule.id, new_rule.id
    FROM old.rule AS old_rule,
@@ -108,43 +115,47 @@ INSERT OR IGNORE INTO environment_fingerprint (smarts, pseudosmiles, parent_smar
     FROM old.environment_fingerprint
          ;
 
+DELETE FROM env_fp_map;
+
+INSERT INTO env_fp_map (old_id, new_id)
+  SELECT old_env_fp.id, new_env_fp.id
+    FROM old.environment_fingerprint as old_env_fp,
+         environment_fingerprint as new_env_fp
+   WHERE old_env_fp.smarts = new_env_fp.smarts
+     AND (    old_env_fp.parent_smarts = new_env_fp.parent_smarts
+          OR (old_env_fp.parent_smarts IS NULL AND new_env_fp.parent_smarts IS NULL))
+         ;
+
 -- Step 6: Merge rule_environment
 
 -- Must have UNIQUE INDEX ON rule_environment (rule_id, environment_fingerprint_id, radius)
 
 
 INSERT OR IGNORE INTO rule_environment (rule_id, environment_fingerprint_id, radius)
-  SELECT rule_map.new_id, new_env_fp.id, old_rule_env.radius
+  SELECT rule_map.new_id, env_fp_map.new_id, old_rule_env.radius
     FROM old.rule_environment AS old_rule_env,
          rule_map,
-         old.environment_fingerprint AS old_env_fp,
-         environment_fingerprint AS new_env_fp
+         env_fp_map
    WHERE old_rule_env.rule_id = rule_map.old_id
-     AND old_rule_env.environment_fingerprint_id = old_env_fp.id
-     AND (    old_env_fp.smarts = new_env_fp.smarts
-          AND (   old_env_fp.parent_smarts = new_env_fp.parent_smarts
-               OR (old_env_fp.parent_smarts IS NULL AND new_env_fp.parent_smarts IS NULL)))
+     AND old_rule_env.environment_fingerprint_id = env_fp_map.old_id
          ;
 
 -- Step 7: Table mapping old rule environment to new rule environment
 
+
+DELETE FROM rule_env_map;
 
 INSERT INTO rule_env_map (old_id, new_id)
   SELECT old_rule_env.id, new_rule_env.id
     FROM old.rule_environment AS old_rule_env,
          rule_environment AS new_rule_env,
          rule_map,
-         old.environment_fingerprint AS old_env_fp,
-         environment_fingerprint AS new_env_fp
+         env_fp_map
    WHERE old_rule_env.rule_id = rule_map.old_id
      AND new_rule_env.rule_id = rule_map.new_id
-     AND old_rule_env.environment_fingerprint_id = old_env_fp.id
-     AND (    old_env_fp.smarts = new_env_fp.smarts
-          AND (   old_env_fp.parent_smarts = new_env_fp.parent_smarts 
-               OR (old_env_fp.parent_smarts IS NULL AND new_env_fp.parent_smarts IS NULL)))
-     AND (    new_rule_env.environment_fingerprint_id = new_env_fp.id
-          AND new_rule_env.radius = old_rule_env.radius
-          AND new_rule_env.rule_id = rule_map.new_id)
+     AND old_rule_env.environment_fingerprint_id = env_fp_map.old_id
+     AND new_rule_env.environment_fingerprint_id = env_fp_map.new_id
+     AND old_rule_env.radius = new_rule_env.radius
          ;
 
 
@@ -179,9 +190,6 @@ INSERT INTO pair (rule_environment_id, compound1_id, compound2_id, constant_id)
     AND old_compound2.public_id = new_compound2.public_id
     AND old_constant.smiles = new_constant.smiles
         ;
-
-DELETE FROM rule_env_map;
-DELETE FROM rule_map;
 
 """
 
@@ -353,7 +361,7 @@ def merge(
 
             # Attach and merge
             try:
-                output_db.execute("ATTACH DATABASE ? AS old", (database,))
+                output_c.execute("ATTACH DATABASE ? AS old", (database,))
             except sqlite3.OperationalError as err:
                 die(f"Cannot attach {database!r} to {output_file!r}: {err}")
 
@@ -384,16 +392,35 @@ SELECT old_compound.public_id, old_compound.clean_smiles, new_compound.clean_smi
                         )
 
                 # Merge
-                schema._execute_sql(output_c, MERGE_DATABASE_SQL)
+                try:
+                    schema._execute_sql(output_c, MERGE_DATABASE_SQL)
+                except Exception:
+                    breakpoint()
+                    raise
+
 
             except:
+                try:
+                    output_c.execute("COMMIT")
+                except sqlite3.OperationalError:
+                    pass
+                output_c.execute("DETACH DATABASE old")
+                output_c.close()
+                output_db.close()
+                output_c = output_db = None
                 raise
             else:
+                output_c.execute("COMMIT")
                 output_c.execute("DETACH DATABASE old")
                 
 
     finally:
         if output_c is not None:
+            try:
+                output_c.execute("COMMIT")
+            except sqlite3.OperationalError:
+                pass
+
             schema._execute_sql(output_c, MERGE_DROP_INDEX_SQL)
             index_writers.update_counts(output_c)
             output_c.execute("ANALYZE")
