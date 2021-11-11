@@ -65,6 +65,9 @@ CREATE TABLE error_record (
 	PRIMARY KEY (id)
 );
 
+-- Unfortunately, this 'record' does not use the same colum names as
+-- 'compound' in the mmpdb schema.
+
 CREATE TABLE record (
 	id INTEGER NOT NULL,
 	title VARCHAR(50) NOT NULL,
