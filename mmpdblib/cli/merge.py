@@ -366,7 +366,7 @@ SELECT old_constant_smiles.smiles
  WHERE old_constant_smiles.smiles = new_constant_smiles.smiles
 """):
                     die(
-                        "Can only merge mmpdb databases with no shared constants."
+                        "Can only merge mmpdb databases with no shared constants.",
                         f"Duplicate constant {smiles!r} found in {database!r} ."
                     )
                     
