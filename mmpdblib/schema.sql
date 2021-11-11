@@ -79,7 +79,7 @@ CREATE TABLE dataset (
 
 CREATE TABLE compound (
   id $PRIMARY_KEY$,
-  public_id VARCHAR(255) NOT NULL $COLLATE$,    -- the public compound id (should this have a better name?)
+  public_id VARCHAR(255) NOT NULL $COLLATE$ UNIQUE,    -- the public compound id (should this have a better name?)
   input_smiles VARCHAR(255) NOT NULL $COLLATE$, -- the input SMILES, before salt removal
   clean_smiles VARCHAR(255) NOT NULL $COLLATE$, -- the SMILES after salt removal
   clean_num_heavies INTEGER NOT NULL  -- the number of heavies in the cleaned SMILES (needed?)
@@ -90,7 +90,7 @@ CREATE TABLE compound (
 
 CREATE TABLE property_name (
   id $PRIMARY_KEY$,
-  name VARCHAR(255) NOT NULL $COLLATE$
+  name VARCHAR(255) NOT NULL $COLLATE$ UNIQUE
   );
 
 
@@ -109,7 +109,7 @@ CREATE TABLE compound_property (
 -- Normalized SMILES for the LHS or RHS of the rule transformation SMILES.
 CREATE TABLE rule_smiles (
   id $PRIMARY_KEY$,
-  smiles VARCHAR(255) NOT NULL $COLLATE$,
+  smiles VARCHAR(255) NOT NULL $COLLATE$ UNIQUE,
   num_heavies INTEGER
 );
 
@@ -150,7 +150,7 @@ CREATE TABLE rule (
 -- fingerprints, interpreted as a canonical SMARTS pattern.
 
 CREATE TABLE environment_fingerprint (
- id INTEGER $PRIMARY_KEY$,
+ id $PRIMARY_KEY$,
  smarts VARCHAR(1024) $COLLATE$ NOT NULL,  -- the environment as a SMARTS string
  pseudosmiles VARCHAR(400) $COLLATE$  NOT NULL,  -- the environment as a SMILES-like string
  parent_smarts VARCHAR(1024) $COLLATE$  -- the parent SMARTS to this environment
@@ -160,7 +160,7 @@ CREATE TABLE environment_fingerprint (
 -- A rule can have multiple rule environment, one per radius.
 
 CREATE TABLE rule_environment (
- id INTEGER $PRIMARY_KEY$,
+ id $PRIMARY_KEY$,
  rule_id INTEGER REFERENCES rule(id),
  environment_fingerprint_id INTEGER REFERENCES environment_fingerprint(id),
  radius INTEGER
