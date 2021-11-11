@@ -153,7 +153,8 @@ CREATE TABLE environment_fingerprint (
  id $PRIMARY_KEY$,
  smarts VARCHAR(1024) $COLLATE$ NOT NULL,  -- the environment as a SMARTS string
  pseudosmiles VARCHAR(400) $COLLATE$  NOT NULL,  -- the environment as a SMILES-like string
- parent_smarts VARCHAR(1024) $COLLATE$  -- the parent SMARTS to this environment
+ parent_smarts VARCHAR(1024) $COLLATE$ NOT NULL -- the parent SMARTS to this environment
+        -- (it's the empty string "" when there is no parent)
  );
 
 
