@@ -1107,7 +1107,7 @@ class RuleSmilesTable(dict):
         self.backend = backend
 
     def __missing__(self, smiles):
-        idx = len(self)
+        idx = len(self) + 1
         self.backend.add_rule_smiles(idx, smiles)
         self[smiles] = idx
         return idx
@@ -1118,7 +1118,7 @@ class ConstantSmilesTable(dict):  # XXX Merge with SmilesTable?
         self.backend = backend
 
     def __missing__(self, smiles):
-        idx = len(self)
+        idx = len(self) + 1
         self.backend.add_constant_smiles(idx, smiles)
         self[smiles] = idx
         return idx
@@ -1133,7 +1133,7 @@ class RuleTable(dict):
         from_smiles, gtgt, to_smiles = smirks.partition(">>")
         assert gtgt == ">>", smirks
 
-        rule_idx = len(self)
+        rule_idx = len(self) + 1
         from_smiles_idx = self.rule_smiles_table[from_smiles]
         to_smiles_idx = self.rule_smiles_table[to_smiles]
 
@@ -1155,7 +1155,7 @@ class RuleEnvironmentTable(dict):
 
         # To save space, if there are no properties then only store the index,
         # otherwise store the index and lists of property values.
-        rule_env_idx = len(self)
+        rule_env_idx = len(self) + 1
         if self.num_properties == 0:
             rule_env = rule_env_idx
         else:
@@ -1194,7 +1194,7 @@ class EnvironmentFingerprintTable:
             return self._smarts_to_id_dict[smarts]
         except KeyError:
             pass
-        idx = len(self._smarts_to_id_dict)
+        idx = len(self._smarts_to_id_dict) + 1
         self.backend.add_environment_fingerprint(idx, smarts, env_fp.pseudosmiles, env_fp.parent_smarts)
         self._smarts_to_id_dict[smarts] = idx
         return idx
@@ -1209,7 +1209,7 @@ class CompoundTable(dict):
         self.backend = backend
 
     def __missing__(self, compound_id):
-        compound_idx = len(self)
+        compound_idx = len(self) + 1
 
         record = self.fragment_index.get_input_record(compound_id)
 
@@ -1235,7 +1235,7 @@ class CompoundTable(dict):
 ## _heap = None
 class MMPWriter(BaseWriter):
     def start(self):
-        self._environment_pair_id_counter = itertools.count(0)
+        self._environment_pair_id_counter = itertools.count(1)
         self._environment_cache = EnvironmentCache()
 
         self.property_name_idxs = property_name_idxs = []
