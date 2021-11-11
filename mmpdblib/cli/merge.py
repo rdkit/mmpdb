@@ -122,8 +122,7 @@ INSERT INTO env_fp_map (old_id, new_id)
     FROM old.environment_fingerprint as old_env_fp,
          environment_fingerprint as new_env_fp
    WHERE old_env_fp.smarts = new_env_fp.smarts
-     AND (    old_env_fp.parent_smarts = new_env_fp.parent_smarts
-          OR (old_env_fp.parent_smarts IS NULL AND new_env_fp.parent_smarts IS NULL))
+     AND old_env_fp.parent_smarts = new_env_fp.parent_smarts
          ;
 
 -- Step 6: Merge rule_environment
