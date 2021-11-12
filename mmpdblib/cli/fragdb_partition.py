@@ -134,7 +134,7 @@ DELETE FROM fragmentation
     
 
         
-fragdb_split_epilog = """
+fragdb_partition_epilog = """
 
 The constants file is a line-oriented format with one constant
 fragment SMILES per line. The SMILES must end with a whitepace or
@@ -167,7 +167,7 @@ system, then:
 # --max-estimated-pairs 100000
 # 
 
-SET_LIMIT = "mmpdblib.fragdb_split.limit"
+SET_LIMIT = "mmpdblib.fragdb_partition.limit"
 def set_num_files(ctx, param, value):
     if value is not None:
         prev = ctx.meta.get(SET_LIMIT, None)
@@ -188,8 +188,8 @@ def set_max_estimated_pairs(ctx, param, value):
     
 
 @command(
-    epilog = fragdb_split_epilog,
-    name = "fragdb_split",
+    epilog = fragdb_partition_epilog,
+    name = "fragdb_partition",
     )
 
 @click.option(
@@ -238,7 +238,7 @@ def set_max_estimated_pairs(ctx, param, value):
 
 @add_single_database_parameters()
 @click.pass_obj
-def fragdb_split(
+def fragdb_partition(
         reporter,
         database_options,
         num_files,
@@ -247,7 +247,7 @@ def fragdb_split(
         constants_file,
         has_header,
         ):
-    """split a fragdb based on common constants
+    """partition a fragdb based on common constants
 
     DATABASE - a fragdb fragments database filename
     """

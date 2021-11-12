@@ -56,7 +56,7 @@ from . import (
     smi_split,
     fragdb_list,
     fragdb_constants,
-    fragdb_split,
+    fragdb_partition,
     fragdb_merge,
     merge,
     drop_index,
@@ -165,7 +165,7 @@ main.add_command(proprulecat.proprulecat)
 main.add_command(smi_split.smi_split)
 main.add_command(fragdb_list.fragdb_list)
 main.add_command(fragdb_constants.fragdb_constants)
-main.add_command(fragdb_split.fragdb_split)
+main.add_command(fragdb_partition.fragdb_partition)
 main.add_command(fragdb_merge.fragdb_merge)
 main.add_command(merge.merge)
 main.add_command(drop_index.drop_index)
