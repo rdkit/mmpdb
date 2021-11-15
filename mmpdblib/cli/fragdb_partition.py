@@ -368,3 +368,6 @@ def fragdb_partition(
         finally:
             output_c.execute("COMMIT")
             output_c.execute("DETACH DATABASE old")
+
+        schema._execute_sql(output_c, fragment_db.get_fragment_create_index_sql())            
+        output_db.close()
