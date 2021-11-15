@@ -332,16 +332,256 @@ def help_admin():
     click.echo("""
 
 The administrative commands are:
-  * list: describe what's inside of a database
+  * fragdb_list: summarize fragment database (".fragdb") contents
+  * list: summarize MMP database (".mmpdb") contents
   * loadprops: add or modify property information
-  * smicat: show the structures in the database
-  * propcat: show the properties in the database
-  * drop_index: drop the database indices
-  * create_index: (re)create the database indices
+  * smicat: list the structures in a fragment or MMP database
+  * rulecat: list the rules in an MMP database
+  * propcat: show the properties in an MMP database
+  * drop_index: drop the MMP database indices
+  * create_index: (re)create the MMP database indices
 
 See the --help options for each command for more details.
 """)
 
+    
+#### mmpdb help-distributed
+@command(name="help-distributed")
+def help_distributed():
+    "Overview of commands to distribute MMP generation."
+    click.echo("""
+
+These commands enable MMP generation on a distributed compute cluster,
+rather than a single machine.
+
+NOTE: This method does not support properties!
+
+These examples assume you work in a queueing environment with a shared
+file system, and a queueing system which lets you submit a command and
+a list of filenames, to enqueue the command once for each filename.
+
+This documentation will use the command 'qsub' as a wrapper around [GNU
+Parallel](https://www.gnu.org/software/parallel/):
+
+  alias qsub="parallel --no-notice -j 1 --max-procs 4"
+
+This alias suppresses the request to cite GNU parallel in scientific
+papers, and has it process one filename at a time, with at most 4
+processes in parallel.
+
+I'll pass the filenames to process via stdin, like this example:
+
+  % ls /etc/passwd ~/.bashrc | qsub wc
+         2       5      88 /Users/dalke/.bashrc
+       120     322    7630 /etc/passwd
+
+This output shows that `wc` received only a single filename because
+with two filenames it also shows a 'total' line.
+
+  % wc /etc/passwd ~/.bashrc
+       120     322    7630 /etc/passwd
+         2       5      88 /Users/dalke/.bashrc
+       122     327    7718 total
+
+# Distributed fragmentation generation
+
+The `fragment` command supports multi-processing with the `-j` flag,
+which scales to about 4 or 8 processors. For larger data sets you can
+break the SMILES dataset into multiple files, fragment each file
+indepenently, then merge the results.
+
+These steps are:
+
+  * smi_split - split the SMILES file into smaller files
+  * fragment - fragment the each smaller SMILES file into its own fragb file.
+  * fragdb_merge - merge the smaller fragdb files together.
+
+## Use smi_split to create N smaller SMILES files
+
+I'll start with a SMILES file containing a header and 20267 SMILES lines:
+
+  % head -3 ChEMBL_CYP3A4_hERG.smi
+  SMILES	CMPD_CHEMBLID
+  [2H]C([2H])([2H])Oc1cc(ncc1C#N)C(O)CN2CCN(C[C@H](O)c3ccc4C(=O)OCc4c3C)CC2	CHEMBL3612928
+  [2H]C([2H])(N[C@H]1C[S+]([O-])C[C@@H](Cc2cc(F)c(N)c(O[C@H](COC)C(F)(F)F)c2)[C@@H]1O)c3cccc(c3)C(C)(C)C	CHEMBL2425617
+  % wc -l ChEMBL_CYP3A4_hERG.smi
+     20268 ChEMBL_CYP3A4_hERG.smi
+
+By default the "smi_split" command splits a SMILES file into 10
+files. (Use `-n` or `--num-files` to change the number of files, or
+use `--num-records` to have N records per file.)
+
+  % mmpdb smi_split ChEMBL_CYP3A4_hERG.smi
+  Created 10 SMILES files containing 20268 SMILES records.
+
+That "20268 SMILES record" shows that all 20268 lines were used to
+generate SMILES records, which is a mistake as it includes the header
+line. I'll re-do the command with `--has-header` to have it skip the
+header:
+
+  % mmpdb smi_split ChEMBL_CYP3A4_hERG.smi --has-header
+  Created 10 SMILES files containing 20267 SMILES records.
+
+By default this generates files which look like:
+
+  % ls -l ChEMBL_CYP3A4_hERG.*.smi
+  -rw-r--r--  1 dalke  admin  141307 Nov 15 14:41 ChEMBL_CYP3A4_hERG.0000.smi
+  -rw-r--r--  1 dalke  admin  152002 Nov 15 14:41 ChEMBL_CYP3A4_hERG.0001.smi
+  -rw-r--r--  1 dalke  admin  127397 Nov 15 14:41 ChEMBL_CYP3A4_hERG.0002.smi
+  -rw-r--r--  1 dalke  admin  137930 Nov 15 14:41 ChEMBL_CYP3A4_hERG.0003.smi
+  -rw-r--r--  1 dalke  admin  130585 Nov 15 14:41 ChEMBL_CYP3A4_hERG.0004.smi
+  -rw-r--r--  1 dalke  admin  150072 Nov 15 14:41 ChEMBL_CYP3A4_hERG.0005.smi
+  -rw-r--r--  1 dalke  admin  139620 Nov 15 14:41 ChEMBL_CYP3A4_hERG.0006.smi
+  -rw-r--r--  1 dalke  admin  133347 Nov 15 14:41 ChEMBL_CYP3A4_hERG.0007.smi
+  -rw-r--r--  1 dalke  admin  131310 Nov 15 14:41 ChEMBL_CYP3A4_hERG.0008.smi
+  -rw-r--r--  1 dalke  admin  129344 Nov 15 14:41 ChEMBL_CYP3A4_hERG.0009.smi
+
+The output filenames are determined by the `--template` option, which
+defaults to `{prefix}.{i:04}.smi`, where `i` is the output file
+index. See `smi_split --help` for details.
+
+## Fragment the SMILES files
+
+These files can be fragmented in parallel:
+
+  % ls ChEMBL_CYP3A4_hERG.*.smi | qsub mmpdb fragment -j 1
+
+I used the `-j 1` flag to have `mmpdb fragment` use only a single
+thread, otherwise each of the four fragment commands will use 4
+threads even though my laptop only has 4 cores. You should adjust the
+value to match the resources available on your compute node.
+
+The `parallel` command doesn't forward output until the program is
+done, so it takes a while to see messages like:
+
+  Using 'ChEMBL_CYP3A4_hERG.0002.fragdb' as the default --output file.
+  Fragmented record 249/2026 (12.3%)[15:04:16] Conflicting single bond
+  directions around double bond at index 5.
+  [15:04:16]   BondStereo set to STEREONONE and single bond directions set to NONE.
+
+If no `-o`/`--output` is specified, the `fragment` command uses a
+named based on the input name, for example, if the input file is
+`ChEMBL_CYP3A4_hERG.0002.smi` then the default output file is
+`ChEMBL_CYP3A4_hERG.0002.mmpdb`.
+
+## Merge the fragment files
+
+About 28 minutes later I have 10 fragdb files:
+
+  % ls -l ChEMBL_CYP3A4_hERG.*.fragdb
+  -rw-r--r--  1 dalke  admin  13701120 Nov 15 15:12 ChEMBL_CYP3A4_hERG.0000.fragdb
+  -rw-r--r--  1 dalke  admin  30453760 Nov 15 15:28 ChEMBL_CYP3A4_hERG.0001.fragdb
+  -rw-r--r--  1 dalke  admin  11313152 Nov 15 15:11 ChEMBL_CYP3A4_hERG.0002.fragdb
+  -rw-r--r--  1 dalke  admin  12333056 Nov 15 15:11 ChEMBL_CYP3A4_hERG.0003.fragdb
+  -rw-r--r--  1 dalke  admin  14024704 Nov 15 15:21 ChEMBL_CYP3A4_hERG.0004.fragdb
+  -rw-r--r--  1 dalke  admin  15949824 Nov 15 15:22 ChEMBL_CYP3A4_hERG.0005.fragdb
+  -rw-r--r--  1 dalke  admin  19251200 Nov 15 15:26 ChEMBL_CYP3A4_hERG.0006.fragdb
+  -rw-r--r--  1 dalke  admin  12759040 Nov 15 15:29 ChEMBL_CYP3A4_hERG.0007.fragdb
+  -rw-r--r--  1 dalke  admin   9306112 Nov 15 15:29 ChEMBL_CYP3A4_hERG.0008.fragdb
+  -rw-r--r--  1 dalke  admin     20480 Nov 15 15:26 ChEMBL_CYP3A4_hERG.0009.fragdb
+
+I'll merge these with the `fragdb_merge` command:
+
+  % mmpdb fragdb_merge ChEMBL_CYP3A4_hERG.*.fragdb -o ChEMBL_CYP3A4_hERG.fragdb
+  Merge complete. #files: 10 #records: 18759 #error records: 1501
+
+This took about 4 seconds.
+
+## Use the merged fragment file as cache
+
+The merged file can be used a a cache file for future fragmentations, such as:
+
+  % ls ChEMBL_CYP3A4_hERG.*.smi | qsub mmpdb fragment --cache ChEMBL_CYP3A4_hERG.fragdb -j 1
+
+This re-build using cache takes about 20 seconds.
+
+# Distributed indexing
+
+The `mmpdb index` command is single-threaded. It's possible to
+parallelize indexing by partitioning the fragments with the same
+constant SMILES into their own fragdb data sets, indexing those files,
+then merging the results back into a full MMP database.
+
+Note: the merge command can only be used to merge MMP databases with
+distinct constants. It cannot be used to merge arbitrary MMP
+databases.
+
+Note: the MMP database only stores aggregate information about pair
+properties, and the aggregate values cannot be meaningfully merged, so
+the merge command will ignore any properties in the database.
+
+## Partitioning on constants
+
+The `mmpdb fragdb_partition` command splits a fragment database into N
+smaller files. All of the fragmentations with the same constant are in
+the same file.
+
+  % mmpdb fragdb_partition ChEMBL_CYP3A4_hERG.fragdb
+  Using 467865 constants from database 'ChEMBL_CYP3A4_hERG.fragdb'.
+  Exporting 1 constants to 'ChEMBL_CYP3A4_hERG.0000.fragdb'
+  Exporting 1 constants to 'ChEMBL_CYP3A4_hERG.0001.fragdb'
+  Exporting 1 constants to 'ChEMBL_CYP3A4_hERG.0002.fragdb'
+  Exporting 1 constants to 'ChEMBL_CYP3A4_hERG.0003.fragdb'
+  Exporting 77977 constants to 'ChEMBL_CYP3A4_hERG.0004.fragdb'
+  Exporting 77978 constants to 'ChEMBL_CYP3A4_hERG.0005.fragdb'
+  Exporting 77975 constants to 'ChEMBL_CYP3A4_hERG.0006.fragdb'
+  Exporting 77976 constants to 'ChEMBL_CYP3A4_hERG.0007.fragdb'
+  Exporting 77977 constants to 'ChEMBL_CYP3A4_hERG.0008.fragdb'
+  Exporting 77978 constants to 'ChEMBL_CYP3A4_hERG.0009.fragdb'
+
+The command's `--template` option lets you specify how to generate the
+output filenames.
+
+Why are there so few constants in first files and so many in the other?
+
+I'll use the `fragdb_constants` command to show the distinct constants
+in each file and the number of occurrences.
+
+  % mmpdb fragdb_constants ChEMBL_CYP3A4_hERG.0000.fragdb
+  constant	N
+  *C	25869
+
+That'a a lot of methyls.
+
+I'll next list the three most common and least constants in
+ChEMBL_CYP3A4_hERG.0004.fragdb:
+
+  % mmpdb fragdb_constants ChEMBL_CYP3A4_hERG.0004.fragdb --limit 3
+  constant	N
+  *C.*C.*OC	7076
+  *C.*Cl	4388
+  *C.*C.*CC	3261
+  % mmpdb fragdb_constants ChEMBL_CYP3A4_hERG.0004.fragdb | tail -3
+  *n1nnnc1SCC(=O)Nc1nc(-c2ccc(Cl)cc2)cs1	1
+  *n1nnnc1SCc1nc(N)nc(N2CCOCC2)n1	1
+  *n1s/c(=N/C)nc1-c1ccccc1	1
+
+The `fragdb_partition` command weights each constant by `N*(N-1)/2+1`
+to estimate the number of comparisons used during indexing. 
+
+By default the partition command tries to split the constants evenly
+(by weight) across `-n` / `--num-files` files, defaulting to 10, which
+combined with the quadratic weighting is why the first few files have
+only a single, very common, constant, and why all of the "1" counts
+are used to fill space in the remaining files
+
+You can alternatively use `--max-estimated-pairs` to set an upper
+bound for the weights in each file:
+
+  % mmpdb fragdb_partition ChEMBL_CYP3A4_hERG.fragdb --max-estimated-pairs 10000
+  constant	N
+  *C	25869
+  *C.*C	23256
+  *C.*C.*C	21245
+  *C.*C.*O	15356
+  *C.*O	8125
+  *C.*C.*OC	7076
+  *C.*OC	6878
+  *F	6201
+  *C.*F	6198
+  *C.*c1ccccc1	5124
+
+""")
 
 #### mmpdb help-smiles
 @command(name="help-smiles-format")
