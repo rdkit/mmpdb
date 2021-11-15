@@ -64,11 +64,11 @@ def smi_split(
 
 
     # Get values used for template generation
-    smiles_path = pathlib.Path("stdin.smi" if smiles_filename is None else smiles_filename)
-    smiles_filename = str(smiles_path)
-    smiles_parent = smiles_path.parent
-    smiles_stem = smiles_path.stem
-    smiles_prefix = str(smiles_path.parent / smiles_path.stem)
+    smi_path = pathlib.Path("stdin.smi" if smiles_filename is None else smiles_filename)
+    smi_filename = str(smi_path)
+    smi_parent = smi_path.parent
+    smi_stem = smi_path.stem
+    smi_prefix = str(smi_path.parent / smi_path.stem)
 
     # Read the SMILES
     try:
@@ -101,9 +101,9 @@ def smi_split(
 
 
         output_filename = template.format(
-            parent = smiles_parent,
-            stem = smiles_stem,
-            prefix = smiles_prefix,
+            parent = smi_parent,
+            stem = smi_stem,
+            prefix = smi_prefix,
             sep = os.sep,
             i = i,
             )
