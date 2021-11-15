@@ -56,53 +56,53 @@ def get_constant_counts_from_db(db):
     c.execute("SELECT count(*), constant_smiles FROM fragmentation GROUP BY constant_smiles")
     return list(c)
 
-def get_estimated_num_pairs(n):
+def get_weight(n):
     # +1 to include the possibility of matching to a hydrogen SMILES
     # and to keep from dumping everything into a single file.
     return n*(n-1)//2 + 1
 
 def _largest_subset_sort_key(pair):
-    tot_num_pairs, subset = pair
-    return (-tot_num_pairs, len(subset), subset)
+    tot_weight, subset = pair
+    return (-tot_weight, len(subset), subset)
 
-# first-fit to the subset with the smallest number of estimated pairs
+# first-fit to the subset with the smallest weight
 def subset_by_max_files(constant_counts, num_files):
     assert num_files > 0, num_files
     import heapq
     heap = [(0, []) for i in range(num_files)]
     for count, constant in constant_counts:
-        num_pairs = get_estimated_num_pairs(count)
-        tot_num_pairs, subset = heapq.heappop(heap)
+        weight = get_weight(count)
+        tot_weight, subset = heapq.heappop(heap)
         subset.append(constant)
-        heapq.heappush(heap, (tot_num_pairs + num_pairs, subset))
+        heapq.heappush(heap, (tot_weight + weight, subset))
 
     heap.sort(key = _largest_subset_sort_key)
-    return [subset for (_, subset) in heap]
+    return heap
 
-# first-fit to the subset with the smallest number of estimated pairs
+# first-fit to the subset with the smallest weight
 # but add a new subset if too full
-def subset_by_max_pairs(constant_counts, max_pairs):
-    assert max_pairs > 0, max_pairs
+def subset_by_max_weight(constant_counts, max_weight):
+    assert max_weight > 0, max_weight
     import heapq
     heap = [(0, [])]
     
     for count, constant in constant_counts:
-        num_pairs = get_estimated_num_pairs(count)
+        weight = get_weight(count)
 
-        tot_num_pairs, subset = heap[0]
+        tot_weight, subset = heap[0]
         
-        if (not tot_num_pairs) or (tot_num_pairs + num_pairs <= max_pairs):
+        if (not tot_weight) or (tot_weight + weight <= max_weight):
             # Add if the smallest is empty, or if there's room.
             subset.append(constant)
-            heapq.heapreplace(heap, (tot_num_pairs + num_pairs, subset))
+            heapq.heapreplace(heap, (tot_weight + weight, subset))
         else:
             # Doesn't fit into the smallest available subset.
             # Need a new one.
-            # (If num_pairs > max_pairs could append to a special 'full' list.)
-            heapq.heappush(heap, (num_pairs, [constant]))
+            # (If weight > max_weight could append to a special 'full' list.)
+            heapq.heappush(heap, (weight, [constant]))
             
     heap.sort(key = _largest_subset_sort_key)
-    return [subset for (_, subset) in heap]
+    return heap
     
 
 def copy_to_subset(output_c, subset):
@@ -192,7 +192,7 @@ system, then:
 """
 
 # --num-files 10
-# --max-estimated-pairs 100000
+# --max-weight 100000
 # 
 
 SET_LIMIT = "mmpdblib.fragdb_partition.limit"
@@ -202,16 +202,16 @@ def set_num_files(ctx, param, value):
         if prev is None:
             ctx.meta[SET_LIMIT] = "num-files"
         elif prev != "num-files":
-            raise click.UsageError("Cannot use both --num-files and --max-estimated-pairs")
+            raise click.UsageError("Cannot use both --num-files and --max-weight")
     return value
 
-def set_max_estimated_pairs(ctx, param, value):
+def set_max_weight(ctx, param, value):
     if value is not None:
         prev = ctx.meta.get(SET_LIMIT, None)
         if prev is None:
-            ctx.meta[SET_LIMIT] = "max-estimated-pairs"
-        elif prev != "max-estimated-pairs":
-            raise click.UsageError("Cannot specify both --num-files and --set_max_estimated_pairs")
+            ctx.meta[SET_LIMIT] = "max-weight"
+        elif prev != "max-weight":
+            raise click.UsageError("Cannot specify both --num-files and --max-weight")
     return value
     
 
@@ -230,11 +230,14 @@ def set_max_estimated_pairs(ctx, param, value):
     )
 
 @click.option(
-    "--max-estimated-pairs",
+    "--max-weight",
     type = positive_int(),
     default = None,
-    callback = set_max_estimated_pairs,
-    help = "maximum number of estimated pairs per file",
+    callback = set_max_weight,
+    help = (
+        "maximum weight per file (weight = N*(N-1)/2+1 where N "
+        "is the number of occurance of the constant"
+        ),
     )
 
 
@@ -270,7 +273,7 @@ def fragdb_partition(
         reporter,
         database_options,
         num_files,
-        max_estimated_pairs,
+        max_weight,
         template,
         constants_file,
         has_header,
@@ -321,17 +324,17 @@ def fragdb_partition(
     
     # Assign to bins
     if num_files is None:
-        if max_estimated_pairs is None:
+        if max_weight is None:
             # Is this a good default?
             constant_subsets = subset_by_max_files(constant_counts, 10)
         else:
-            constant_subsets = subset_by_max_pairs(constant_counts, max_estimated_pairs)
+            constant_subsets = subset_by_max_weight(constant_counts, max_weight)
     else:
         constant_subsets = subset_by_max_files(constant_counts, num_files)
         
     
     # Save to files
-    for i, subset in enumerate(constant_subsets):
+    for i, (total_weight, subset) in enumerate(constant_subsets):
         output_filename = template.format(
             parent = database_parent,
             stem = database_stem,
@@ -343,7 +346,10 @@ def fragdb_partition(
         # Copy to the destination
         if not subset:
             continue
-        reporter.report(f"Exporting {len(subset)} constants to {output_filename!r}")
+        reporter.report(
+            f"Exporting {len(subset)} constants to {output_filename!r} "
+            f"(weight: {total_weight})",
+            )
 
         try:
             os.unlink(output_filename)
