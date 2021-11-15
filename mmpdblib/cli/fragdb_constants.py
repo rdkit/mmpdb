@@ -62,6 +62,11 @@ fragdb_constants_epilog = """
     type = click.File("w"),
     help = "write the result to the named file (default: stdout)",
     )
+@click.option(
+    "--header / --no-header",
+    default = True,
+    help = "The default, --header, includes the header in output",
+    )
 @add_single_database_parameters()
 @click.pass_obj
 def fragdb_constants(
@@ -75,6 +80,7 @@ def fragdb_constants(
     min_heavies_total_const_frag,
     limit,
     output_file,
+    header,
 ):
     """list constants in a fragdb DATABASE and their frequencies"""
     from ..index_algorithm import get_num_heavies
@@ -126,7 +132,8 @@ ORDER BY n DESC
         # 4611686018427387904 constants ought to be good enough for anyone
         limit = 2**63
 
-    output_file.write(f"constant\tN\n")
+    if header:
+        output_file.write(f"constant\tN\n")
     i = 0
     for constant_smiles, n in c:
         # Can't put the --limit in the SQL because of
