@@ -43,32 +43,50 @@ from .click_utils import FormatEpilog
 # Map from command to the mmpdb.cli.{module_name}.{function_name} handler.
 # This is used to load the appropriate command dynamically.
 
-_commands = {
-    "fragment": "fragment.fragment",
-    "smifrag": "smifrag.smifrag",
-    "index": "index.index",
-    "predict": "predict.predict",
-    "transform": "transform.transform",
-    "rgroup2smarts": "rgroup2smarts.rgroup2smarts",
-    "list": "list_.list_",
-    "rulecat": "rulecat.rulecat",
-    "loadprops": "loadprops.loadprops",
-    "smicat": "smicat.smicat",
-    "propcat": "propcat.propcat",
-    "proprulecat": "proprulecat.proprulecat",
-    "smi_split": "smi_split.smi_split",
-    "fragdb_list": "fragdb_list.fragdb_list",
-    "fragdb_constants": "fragdb_constants.fragdb_constants",
-    "fragdb_partition": "fragdb_partition.fragdb_partition",
-    "fragdb_merge": "fragdb_merge.fragdb_merge",
-    "merge": "merge.merge",
-    "drop_index": "drop_index.drop_index",
-    "create_index": "create_index.create_index",
-    "help-analysis": "help_.help_analysis",
-    "help-admin": "help_.help_admin",
-    "help-smiles-format": "help_.help_smiles_format",
-    "help-property-format": "help_.help_property_format",
-}
+command_groups = [
+    (
+        "Matched molecular pair generation commands (see 'help-analysis')", [
+            ("fragment", "fragment.fragment"),
+            ("smifrag", "smifrag.smifrag"),
+            ("index", "index.index"),
+            ("predict", "predict.predict"),
+            ("transform", "transform.transform"),
+            ("rgroup2smarts", "rgroup2smarts.rgroup2smarts"),
+            ],
+    ), (
+        "Distributed generation commands (see 'help-distributed')", [
+            ("smi_split", "smi_split.smi_split"),
+            ("fragdb_constants", "fragdb_constants.fragdb_constants"),
+            ("fragdb_partition", "fragdb_partition.fragdb_partition"),
+            ("fragdb_merge", "fragdb_merge.fragdb_merge"),
+            ("merge", "merge.merge"),
+            ],
+    ), (
+        "Administration commands (see 'help-admin')", [
+            ("fragdb_list", "fragdb_list.fragdb_list"),
+            ("list", "list_.list_"),
+            ("loadprops", "loadprops.loadprops"),
+            ("smicat", "smicat.smicat"),
+            ("rulecat", "rulecat.rulecat"),
+            ("propcat", "propcat.propcat"),
+            ("proprulecat", "proprulecat.proprulecat"),
+            ("drop_index", "drop_index.drop_index"),
+            ("create_index", "create_index.create_index"),
+            ],
+    ), (
+        "Help commands", [
+            ("help-analysis", "help_.help_analysis"),
+            ("help-admin", "help_.help_admin"),
+            ("help-distributed", "help_.help_distributed"),
+            ("help-smiles-format", "help_.help_smiles_format"),
+            ("help-property-format", "help_.help_property_format"),
+            ]
+    )
+    ]
+_commands = {}
+for (title, command_pairs) in command_groups:
+    _commands.update(command_pair for command_pair in command_pairs)
+del title, command_pairs
 
 
 epilog = """\
@@ -139,6 +157,7 @@ class CmdConfig:
 
     def set_explain(self, use_explain):
         self.explain = get_explain(use_explain, self.reporter)
+        
 
 # The 'main' command uses the MultiCommand click group.
 # This lets me use my own methods to resolve the available commands.
@@ -156,7 +175,27 @@ class MultiCommand(FormatEpilog, click.MultiCommand):
         module_name, func_name = path.split(".")
         mod = importlib.import_module("." + module_name, __name__)
         return getattr(mod, func_name)
+    
+    def format_commands(self, ctx, formatter):
+        # Use my own command formatter so I can group them by theme.
+        limit = formatter.width - 6 - max(len(cmd[0]) for cmd in _commands)
 
+        old_value = formatter.indent_increment
+        formatter.indent_increment = 1
+        try:
+            with formatter.section("Commands"):
+                for title, command_pairs in command_groups:
+                    rows = []
+                    for subcommand, _ in command_pairs:
+                        cmd = self.get_command(ctx, subcommand)
+                        help = cmd.get_short_help_str(limit)
+                        rows.append((subcommand, help))
+
+                    assert rows
+                    with formatter.section(title):
+                        formatter.write_dl(rows)
+        finally:
+            formatter.indent_increment = old_value
         
 @click.group(epilog=epilog, cls=MultiCommand)
 @click.option("--quiet", "-q", is_flag=True, help="do not show progress or status information")
