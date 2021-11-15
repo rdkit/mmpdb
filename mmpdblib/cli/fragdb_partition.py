@@ -105,32 +105,60 @@ def subset_by_max_pairs(constant_counts, max_pairs):
     return [subset for (_, subset) in heap]
     
 
-def restrict_to_subset(output_filename, constant_smiles):
+def copy_to_subset(output_c, subset):
     import sqlite3
 
-    db = sqlite3.connect(output_filename)
-    c = db.cursor()
-    
     # Create a new table containing the constant smiles
-    c.execute("""
+    output_c.execute("""
 CREATE TEMPORARY TABLE required_constants (
   constant_smiles TEXT
 )""")
-    c.executemany("""
+    output_c.executemany("""
 INSERT INTO required_constants (constant_smiles) VALUES (?)
-""", ((smiles,) for smiles in constant_smiles)
+""", ((smiles,) for smiles in subset)
      )
-    ## # Index
-    ## c.execute("CREATE INDEX required_constants_idx ON required_constants(constant_smiles)")
+    # Index
+    output_c.execute("CREATE INDEX required_constants_idx ON required_constants(constant_smiles)")
 
-    # Remove fragmentations which don't have the required constant
-    c.execute("""
-DELETE FROM fragmentation
-      WHERE constant_smiles NOT IN (
-           SELECT constant_smiles FROM required_constants
-         )
+    # Copy the options
+    output_c.execute("INSERT INTO options SELECT * FROM old.options")
+
+    # Copy the erorr_record rows
+    output_c.execute("INSERT INTO error_record SELECT * FROM old.error_record")
+    
+    # Copy the record rows
+    output_c.execute("INSERT INTO record SELECT * FROM old.record")
+
+    # Copy the relevant fragmentations
+    output_c.execute("""
+INSERT INTO fragmentation (
+    record_id,
+    num_cuts,
+    enumeration_label,
+    variable_num_heavies,
+    variable_symmetry_class,
+    variable_smiles,
+    attachment_order,
+    constant_num_heavies,
+    constant_symmetry_class,
+    constant_smiles,
+    constant_with_H_smiles) 
+  SELECT record_id,
+         num_cuts,
+         enumeration_label,
+         variable_num_heavies,
+         variable_symmetry_class,
+         variable_smiles,
+         attachment_order,
+         constant_num_heavies,
+         constant_symmetry_class,
+         old_fragmentation.constant_smiles,
+         constant_with_H_smiles
+    FROM old.fragmentation as old_fragmentation,
+         required_constants
+   WHERE old_fragmentation.constant_smiles = required_constants.constant_smiles
+   ;
 """)
-    c.execute("COMMIT")
     
 
         
@@ -251,8 +279,11 @@ def fragdb_partition(
 
     DATABASE - a fragdb fragments database filename
     """
+    import sqlite3
     import pathlib
     import shutil
+    from .. import fragment_db
+    from .. import schema
 
     fragdb = open_fragdb_from_options_or_exit(database_options)
 
@@ -280,7 +311,8 @@ def fragdb_partition(
         src = f"database {database_options.database!r}"
         if not constant_counts:
             reporter.report("No constants from {src}. Exiting.")
-    
+
+    fragdb.close()
     reporter.report(f"Using {len(constant_counts)} constants from {src}.")
 
     # Sort from the most common to the least so we can use a first-fit algorithm.
@@ -312,9 +344,27 @@ def fragdb_partition(
         if not subset:
             continue
         reporter.report(f"Exporting {len(subset)} constants to {output_filename!r}")
-        try:
-            shutil.copy(database, output_filename)
-        except IOError as err:
-            die(f"Cannot copy {database!r} to {output_filename!r}: {err}")
 
-        restrict_to_subset(output_filename, subset)
+        try:
+            os.unlink(output_filename)
+        except IOError:
+            pass
+
+        try:
+            output_db = sqlite3.connect(output_filename)
+        except sqlite3.OperationalError as err:
+            die("Cannot create output file {output_filename!r}: {err}")
+
+        output_c = output_db.cursor()
+        schema._execute_sql(output_c, fragment_db.get_schema_template())
+        output_c.execute("BEGIN TRANSACTION")
+        try:
+            output_c.execute("ATTACH DATABASE ? AS old", (database_options.database,))
+        except sqlite3.OperationalError as err:
+            die("Cannot attach file {database_options.database} to {output_filename!r}: {err}")
+
+        try:
+            copy_to_subset(output_c, subset)
+        finally:
+            output_c.execute("COMMIT")
+            output_c.execute("DETACH DATABASE old")
