@@ -36,28 +36,16 @@
 
 import click
 
-from .click_utils import OrderedGroup
+from .click_utils import command
 
-help_group = OrderedGroup()
-
-
-def add_help(name, about, text):
-    def print_help():
-        "print help"
-        click.echo(text)
-
-    print_help.__name__ = name
-    print_help.__doc__ = about
-
-    help_group.add_command(click.command(name=name)(print_help))
 
 
 #### mmpdb help-analysis
 
-add_help(
-    "help-analysis",
-    "overview on how to use mmpdb for structure analysis",
-    """
+@command(name="help-analysis")
+def help_analysis():
+    "overview on how to use mmpdb for structure analysis"
+    click.echo("""
 The overall process is:
 
   1) Fragment structures in a SMILES file, to produce fragments.
@@ -334,16 +322,14 @@ selected a given transformation, or use "`--save-details`" to save the
 list of possible rules to the file 'pred_detail_rules.txt' and to save 
 the list of rule pairs to "pred_detail_pairs.txt".
 
-""",
-)
+""")
 
 
 #### mmpdb help-admin
-
-add_help(
-    "help-admin",
-    "overview on how to use administor an mmpdb database",
-    """
+@command(name="help-admin")
+def help_admin():
+    "overview on how to use administor an mmpdb database"
+    click.echo("""
 
 The administrative commands are:
   * list: describe what's inside of a database
@@ -354,16 +340,14 @@ The administrative commands are:
   * create_index: (re)create the database indices
 
 See the --help options for each command for more details.
-""",
-)
+""")
 
 
 #### mmpdb help-smiles
-
-add_help(
-    "help-smiles-format",
-    "description of the SMILES file parsing options",
-    """
+@command(name="help-smiles-format")
+def help_smiles_format():
+    "description of the SMILES file parsing options"
+    click.echo("""
 This help topic explains how the "--delimiter" and "--has-header"
 options  of the "mmpa fragment" command affect SMILES parsing.
 
@@ -409,15 +393,14 @@ Example command-line parameters:
    --delimiter to-eol           -- Daylight-style SMILES format
    --delimiter tab --has-header -- tab-delimited CSV, with a header line
 
-""",
-)
+""")
 
+    
 #### mmpdb help-properties-format
-
-add_help(
-    "help-property-format",
-    "description of the property file format",
-    """
+@command(name="help-property-format")
+def help_property_format():
+    "description of the property file format"
+    click.echo("""
 This describes the file format used by the --properties option of
 "mmpdb index" and "mmpdb loadprops" commands.
 
@@ -451,5 +434,4 @@ identifiers. The MP value of GEJYOJ is 3, which is interpreted as
 has the MP property 5.0 but the "*" indicates that its CHR1 and CHR2
 properties are not known.
 
-""",
-)
+""")

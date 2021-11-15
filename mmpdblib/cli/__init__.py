@@ -38,36 +38,37 @@ from .. import __version__
 import sys
 import click
 
-from .click_utils import ordered_group
+from .click_utils import FormatEpilog
 
-from . import (
-    fragment,
-    smifrag,
-    index,
-    predict,
-    transform,
-    rgroup2smarts,
-    list_,
-    rulecat,
-    loadprops,
-    smicat,
-    propcat,
-    proprulecat,
-    smi_split,
-    fragdb_list,
-    fragdb_constants,
-    fragdb_partition,
-    fragdb_merge,
-    merge,
-    drop_index,
-    create_index,
-    help_,
-)
+# Map from command to the mmpdb.cli.{module_name}.{function_name} handler.
+# This is used to load the appropriate command dynamically.
 
-
-def add_commands(group):
-    for name, cmd in group.commands.items():
-        main.add_command(cmd, name=name)
+_commands = {
+    "fragment": "fragment.fragment",
+    "smifrag": "smifrag.smifrag",
+    "index": "index.index",
+    "predict": "predict.predict",
+    "transform": "transform.transform",
+    "rgroup2smarts": "rgroup2smarts.rgroup2smarts",
+    "list": "list_.list_",
+    "rulecat": "rulecat.rulecat",
+    "loadprops": "loadprops.loadprops",
+    "smicat": "smicat.smicat",
+    "propcat": "propcat.propcat",
+    "proprulecat": "proprulecat.proprulecat",
+    "smi_split": "smi_split.smi_split",
+    "fragdb_list": "fragdb_list.fragdb_list",
+    "fragdb_constants": "fragdb_constants.fragdb_constants",
+    "fragdb_partition": "fragdb_partition.fragdb_partition",
+    "fragdb_merge": "fragdb_merge.fragdb_merge",
+    "merge": "merge.merge",
+    "drop_index": "drop_index.drop_index",
+    "create_index": "create_index.create_index",
+    "help-analysis": "help_.help_analysis",
+    "help-admin": "help_.help_admin",
+    "help-smiles-format": "help_.help_smiles_format",
+    "help-property-format": "help_.help_property_format",
+}
 
 
 epilog = """\
@@ -139,8 +140,25 @@ class CmdConfig:
     def set_explain(self, use_explain):
         self.explain = get_explain(use_explain, self.reporter)
 
+# The 'main' command uses the MultiCommand click group.
+# This lets me use my own methods to resolve the available commands.
+class MultiCommand(FormatEpilog, click.MultiCommand):
+    def list_commands(self, ctx):
+        return list(_commands)
 
-@ordered_group(epilog=epilog)
+    def get_command(self, ctx, name):
+        path = _commands.get(name, None)
+        if path is None:
+            # Return None to indicate the command is not available.
+            return None
+        # Import the submodule then get and return the correct function.
+        import importlib
+        module_name, func_name = path.split(".")
+        mod = importlib.import_module("." + module_name, __name__)
+        return getattr(mod, func_name)
+
+        
+@click.group(epilog=epilog, cls=MultiCommand)
 @click.option("--quiet", "-q", is_flag=True, help="do not show progress or status information")
 @click.version_option(version=__version__)
 @click.pass_context
@@ -148,31 +166,6 @@ def main(ctx, quiet):
     "Matched-molecular pair database loader"
     if ctx.obj is None:
         ctx.obj = CmdConfig(quiet)
-
-
-main.add_command(fragment.fragment)
-main.add_command(smifrag.smifrag)
-main.add_command(index.index)
-main.add_command(transform.transform)
-main.add_command(predict.predict)
-main.add_command(rgroup2smarts.rgroup2smarts)
-main.add_command(list_.list_)
-main.add_command(rulecat.rulecat)
-main.add_command(loadprops.loadprops)
-main.add_command(smicat.smicat)
-main.add_command(propcat.propcat)
-main.add_command(proprulecat.proprulecat)
-main.add_command(smi_split.smi_split)
-main.add_command(fragdb_list.fragdb_list)
-main.add_command(fragdb_constants.fragdb_constants)
-main.add_command(fragdb_partition.fragdb_partition)
-main.add_command(fragdb_merge.fragdb_merge)
-main.add_command(merge.merge)
-main.add_command(drop_index.drop_index)
-main.add_command(create_index.create_index)
-
-add_commands(help_.help_group)
-## add_commands(cli_fragdb.fragdb_utils)
 
 if __name__ == "__main__":
     main()
