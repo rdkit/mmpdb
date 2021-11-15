@@ -38,6 +38,20 @@ import click
 
 from .click_utils import command
 
+import shutil
+
+def wrap(text):
+    width = shutil.get_terminal_size()[0]
+    if width < 10:
+        width = 10
+    else:
+        width = width - 2
+
+    text = text.strip("\r\n")
+        
+    text = click.wrap_text(text, width=width, preserve_paragraphs=True)
+    click.echo(text)
+
 
 
 #### mmpdb help-analysis
@@ -349,8 +363,7 @@ See the --help options for each command for more details.
 @command(name="help-distributed")
 def help_distributed():
     "Overview of commands to distribute MMP generation."
-    click.echo("""
-
+    wrap("""
 These commands enable MMP generation on a distributed compute cluster,
 rather than a single machine.
 
@@ -363,6 +376,7 @@ a list of filenames, to enqueue the command once for each filename.
 This documentation will use the command 'qsub' as a wrapper around [GNU
 Parallel](https://www.gnu.org/software/parallel/):
 
+\b
   alias qsub="parallel --no-notice -j 1 --max-procs 4"
 
 This alias suppresses the request to cite GNU parallel in scientific
@@ -371,6 +385,7 @@ processes in parallel.
 
 I'll pass the filenames to process via stdin, like this example:
 
+\b
   % ls /etc/passwd ~/.bashrc | qsub wc
          2       5      88 /Users/dalke/.bashrc
        120     322    7630 /etc/passwd
@@ -378,6 +393,7 @@ I'll pass the filenames to process via stdin, like this example:
 This output shows that `wc` received only a single filename because
 with two filenames it also shows a 'total' line.
 
+\b
   % wc /etc/passwd ~/.bashrc
        120     322    7630 /etc/passwd
          2       5      88 /Users/dalke/.bashrc
@@ -392,6 +408,7 @@ indepenently, then merge the results.
 
 These steps are:
 
+\b
   * smi_split - split the SMILES file into smaller files
   * fragment - fragment the each smaller SMILES file into its own fragb file.
   * fragdb_merge - merge the smaller fragdb files together.
@@ -400,6 +417,7 @@ These steps are:
 
 I'll start with a SMILES file containing a header and 20267 SMILES lines:
 
+\b
   % head -3 ChEMBL_CYP3A4_hERG.smi
   SMILES	CMPD_CHEMBLID
   [2H]C([2H])([2H])Oc1cc(ncc1C#N)C(O)CN2CCN(C[C@H](O)c3ccc4C(=O)OCc4c3C)CC2	CHEMBL3612928
@@ -411,6 +429,7 @@ By default the "smi_split" command splits a SMILES file into 10
 files. (Use `-n` or `--num-files` to change the number of files, or
 use `--num-records` to have N records per file.)
 
+\b
   % mmpdb smi_split ChEMBL_CYP3A4_hERG.smi
   Created 10 SMILES files containing 20268 SMILES records.
 
@@ -419,11 +438,13 @@ generate SMILES records, which is a mistake as it includes the header
 line. I'll re-do the command with `--has-header` to have it skip the
 header:
 
+\b
   % mmpdb smi_split ChEMBL_CYP3A4_hERG.smi --has-header
   Created 10 SMILES files containing 20267 SMILES records.
 
 By default this generates files which look like:
 
+\b
   % ls -l ChEMBL_CYP3A4_hERG.*.smi
   -rw-r--r--  1 dalke  admin  141307 Nov 15 14:41 ChEMBL_CYP3A4_hERG.0000.smi
   -rw-r--r--  1 dalke  admin  152002 Nov 15 14:41 ChEMBL_CYP3A4_hERG.0001.smi
@@ -444,6 +465,7 @@ index. See `smi_split --help` for details.
 
 These files can be fragmented in parallel:
 
+\b
   % ls ChEMBL_CYP3A4_hERG.*.smi | qsub mmpdb fragment -j 1
 
 I used the `-j 1` flag to have `mmpdb fragment` use only a single
@@ -454,6 +476,7 @@ value to match the resources available on your compute node.
 The `parallel` command doesn't forward output until the program is
 done, so it takes a while to see messages like:
 
+\b
   Using 'ChEMBL_CYP3A4_hERG.0002.fragdb' as the default --output file.
   Fragmented record 249/2026 (12.3%)[15:04:16] Conflicting single bond
   directions around double bond at index 5.
@@ -468,6 +491,7 @@ named based on the input name, for example, if the input file is
 
 About 28 minutes later I have 10 fragdb files:
 
+\b
   % ls -l ChEMBL_CYP3A4_hERG.*.fragdb
   -rw-r--r--  1 dalke  admin  13701120 Nov 15 15:12 ChEMBL_CYP3A4_hERG.0000.fragdb
   -rw-r--r--  1 dalke  admin  30453760 Nov 15 15:28 ChEMBL_CYP3A4_hERG.0001.fragdb
@@ -482,6 +506,7 @@ About 28 minutes later I have 10 fragdb files:
 
 I'll merge these with the `fragdb_merge` command:
 
+\b
   % mmpdb fragdb_merge ChEMBL_CYP3A4_hERG.*.fragdb -o ChEMBL_CYP3A4_hERG.fragdb
   Merge complete. #files: 10 #records: 18759 #error records: 1501
 
@@ -491,7 +516,9 @@ This took about 4 seconds.
 
 The merged file can be used a a cache file for future fragmentations, such as:
 
-  % ls ChEMBL_CYP3A4_hERG.*.smi | qsub mmpdb fragment --cache ChEMBL_CYP3A4_hERG.fragdb -j 1
+\b
+  % ls ChEMBL_CYP3A4_hERG.*.smi | \\
+      qsub mmpdb fragment --cache ChEMBL_CYP3A4_hERG.fragdb -j 1
 
 This re-build using cache takes about 20 seconds.
 
@@ -510,42 +537,64 @@ Note: the MMP database only stores aggregate information about pair
 properties, and the aggregate values cannot be meaningfully merged, so
 the merge command will ignore any properties in the database.
 
-## Partitioning on constants
+## Partitioning on all constants
+
+BEFORE GOING FURTHER, be aware that I've split the SMILES files into
+multiple files, fragmented the results into files named
+`ChEMBL_CYP3A4_hERG.*.fragdb`, then merged the results back to
+`ChEMBL_CYP3A4_hERG.fragdb`. I'm about to partition
+`ChEMBL_CYP3A4_hERG.fragdb` into new files also with the pattern
+`ChEMBL_CYP3A4_hERG.*.fragdb`. To keep the confusion down, I'll remove
+the old files now:
+
+  % rm ChEMBL_CYP3A4_hERG.*.fragdb
+
+You should probably use a naming scheme to keep these two sets of
+fragdb files distinct.
 
 The `mmpdb fragdb_partition` command splits a fragment database into N
 smaller files. All of the fragmentations with the same constant are in
 the same file.
 
+\b
   % mmpdb fragdb_partition ChEMBL_CYP3A4_hERG.fragdb
   Using 467865 constants from database 'ChEMBL_CYP3A4_hERG.fragdb'.
-  Exporting 1 constants to 'ChEMBL_CYP3A4_hERG.0000.fragdb'
-  Exporting 1 constants to 'ChEMBL_CYP3A4_hERG.0001.fragdb'
-  Exporting 1 constants to 'ChEMBL_CYP3A4_hERG.0002.fragdb'
-  Exporting 1 constants to 'ChEMBL_CYP3A4_hERG.0003.fragdb'
-  Exporting 77977 constants to 'ChEMBL_CYP3A4_hERG.0004.fragdb'
-  Exporting 77978 constants to 'ChEMBL_CYP3A4_hERG.0005.fragdb'
-  Exporting 77975 constants to 'ChEMBL_CYP3A4_hERG.0006.fragdb'
-  Exporting 77976 constants to 'ChEMBL_CYP3A4_hERG.0007.fragdb'
-  Exporting 77977 constants to 'ChEMBL_CYP3A4_hERG.0008.fragdb'
-  Exporting 77978 constants to 'ChEMBL_CYP3A4_hERG.0009.fragdb'
+  Exporting 1 constants to 'ChEMBL_CYP3A4_hERG.0000.fragdb' (weight: 334589647)
+  Exporting 1 constants to 'ChEMBL_CYP3A4_hERG.0001.fragdb' (weight: 270409141)
+  Exporting 1 constants to 'ChEMBL_CYP3A4_hERG.0002.fragdb' (weight: 225664391)
+  Exporting 1 constants to 'ChEMBL_CYP3A4_hERG.0003.fragdb' (weight: 117895691)
+  Exporting 77977 constants to 'ChEMBL_CYP3A4_hERG.0004.fragdb' (weight: 52836587)
+  Exporting 77978 constants to 'ChEMBL_CYP3A4_hERG.0005.fragdb' (weight: 52836587)
+  Exporting 77975 constants to 'ChEMBL_CYP3A4_hERG.0006.fragdb' (weight: 52836586)
+  Exporting 77976 constants to 'ChEMBL_CYP3A4_hERG.0007.fragdb' (weight: 52836586)
+  Exporting 77977 constants to 'ChEMBL_CYP3A4_hERG.0008.fragdb' (weight: 52836586)
+  Exporting 77978 constants to 'ChEMBL_CYP3A4_hERG.0009.fragdb' (weight: 52836586)
 
 The command's `--template` option lets you specify how to generate the
 output filenames.
 
-Why are there so few constants in first files and so many in the other?
+Why are there so few constants in first files and so many in the
+other? And what are the "weight"s?
 
 I'll use the `fragdb_constants` command to show the distinct constants
 in each file and the number of occurrences.
 
+\b
   % mmpdb fragdb_constants ChEMBL_CYP3A4_hERG.0000.fragdb
   constant	N
   *C	25869
 
-That'a a lot of methyls.
+That's a lot of methyls (25,869 to be precise).
+
+The indexing command does `N*(N-1)/2` indexing comparisions, plus a
+1-cut hydrogen match, so the cost estimate for the methyls is
+`25869*(25869-1)/2+1 = 334589647`, which is the `weight` value listed
+above.
 
 I'll next list the three most common and least constants in
 ChEMBL_CYP3A4_hERG.0004.fragdb:
 
+\b
   % mmpdb fragdb_constants ChEMBL_CYP3A4_hERG.0004.fragdb --limit 3
   constant	N
   *C.*C.*OC	7076
@@ -556,8 +605,8 @@ ChEMBL_CYP3A4_hERG.0004.fragdb:
   *n1nnnc1SCc1nc(N)nc(N2CCOCC2)n1	1
   *n1s/c(=N/C)nc1-c1ccccc1	1
 
-The `fragdb_partition` command weights each constant by `N*(N-1)/2+1`
-to estimate the number of comparisons used during indexing. 
+The values of N are much smaller, so the corresponding weight is
+significantly smaller.
 
 By default the partition command tries to split the constants evenly
 (by weight) across `-n` / `--num-files` files, defaulting to 10, which
@@ -565,10 +614,36 @@ combined with the quadratic weighting is why the first few files have
 only a single, very common, constant, and why all of the "1" counts
 are used to fill space in the remaining files
 
-You can alternatively use `--max-estimated-pairs` to set an upper
+You can alternatively use `--max-weight` to set an upper
 bound for the weights in each file:
 
-  % mmpdb fragdb_partition ChEMBL_CYP3A4_hERG.fragdb --max-estimated-pairs 10000
+\b
+  % mmpdb fragdb_partition ChEMBL_CYP3A4_hERG.fragdb --max-weight 50000000
+  Exporting 1 constants to 'ChEMBL_CYP3A4_hERG.0000.fragdb' (weight: 334589647)
+  Exporting 1 constants to 'ChEMBL_CYP3A4_hERG.0001.fragdb' (weight: 270409141)
+  Exporting 1 constants to 'ChEMBL_CYP3A4_hERG.0002.fragdb' (weight: 225664391)
+  Exporting 1 constants to 'ChEMBL_CYP3A4_hERG.0003.fragdb' (weight: 117895691)
+  Exporting 10 constants to 'ChEMBL_CYP3A4_hERG.0004.fragdb' (weight: 49918518)
+  Exporting 11 constants to 'ChEMBL_CYP3A4_hERG.0005.fragdb' (weight: 49916276)
+  Exporting 13 constants to 'ChEMBL_CYP3A4_hERG.0006.fragdb' (weight: 49899719)
+  Exporting 7 constants to 'ChEMBL_CYP3A4_hERG.0007.fragdb' (weight: 49896681)
+  Exporting 43 constants to 'ChEMBL_CYP3A4_hERG.0008.fragdb' (weight: 49893145)
+  Exporting 9 constants to 'ChEMBL_CYP3A4_hERG.0009.fragdb' (weight: 49879752)
+  Exporting 467768 constants to 'ChEMBL_CYP3A4_hERG.0010.fragdb' (weight: 17615427)
+
+Odds are, you don't want to index the most common fragments. The next
+two sections help limits which constants are used.
+
+## Selecting constants
+
+As you saw, the `mmpdb fragdb_constants` command can be used to list
+the constants. It can also be used to list a subset of the constants.
+
+The count for each constant quickly decreases to something a bit more
+manageable.
+
+\b
+  % mmpdb fragdb_constants ChEMBL_CYP3A4_hERG.fragdb --limit 20
   constant	N
   *C	25869
   *C.*C	23256
@@ -580,6 +655,125 @@ bound for the weights in each file:
   *F	6201
   *C.*F	6198
   *C.*c1ccccc1	5124
+  *C.*O.*O	5117
+  *c1ccccc1	5073
+  *OC	4944
+  *Cl	4436
+  *C.*Cl	4388
+  *O	4300
+  *F.*F	4281
+  *C.*F.*F	3935
+  *C.*C.*F	3656
+  *F.*F.*F	3496
+
+I'll select those constants which occur only 2,000 matches or fewer,
+and limit the output to the first 5.
+
+  % mmpdb fragdb_constants ChEMBL_CYP3A4_hERG.fragdb --max-count 2000 --limit 5
+  constant	N
+  *C.*CC.*O	1954
+  *C.*C(F)(F)F	1915
+  *C.*C.*OC(C)=O	1895
+  *C(F)(F)F	1892
+  *Cl.*Cl	1738
+
+or count the number of constants which only occur once (the 1-cut
+constants might match with a hydrogen substitution while the others
+will never match). I'll use `--no-header` so the number of lines of
+output matches the number of constants:
+
+  % mmpdb fragdb_constants ChEMBL_CYP3A4_hERG.fragdb --max-count 1 --no-header | wc -l
+    370524
+
+These frequent constants are for small fragments. I'll limit the
+selection to constants where each part of the constant has at least 5
+heavy atoms:
+
+\b
+  % mmpdb fragdb_constants ChEMBL_CYP3A4_hERG.fragdb --min-heavies-per-const-frag 5 --limit 4
+  constant	N
+  *c1ccccc1	5073
+  *c1ccccc1.*c1ccccc1	1116
+  *Cc1ccccc1	1050
+  *c1ccc(F)cc1	921
+
+I'll also require `N` be between 10 and 1000.
+
+\b 
+  % mmpdb fragdb_constants ChEMBL_CYP3A4_hERG.fragdb --min-heavies-per-const-frag 5 \\
+     --min-count 10 --max-count 1000 --no-header | wc -l
+  1940
+
+That's a much more tractable size for this example.
+
+## Partitioning on selected constants
+
+Before going futher, I'm going to clear out any old files which might
+have been generated by the above commands:
+
+  % rm ChEMBL_CYP3A4_hERG.*.fragdb
+
+As you saw earlier, the `mmpdb fragdb_partition` command by default
+partitions on all constants. Alternatively, use the `--constants` flag
+to pass in a list of constants to use. This can be a file name, or `-`
+to accept constants from stdin, as in the following three lines:
+
+\b
+  % mmpdb fragdb_constants ChEMBL_CYP3A4_hERG.fragdb --min-heavies-per-const-frag 5 \\
+       --min-count 10 --max-count 1000 | \\
+       mmpdb fragdb_partition ChEMBL_CYP3A4_hERG.fragdb --constants -
+  Using 1940 constants from file '<stdin>'.
+  Exporting 1 constants to 'ChEMBL_CYP3A4_hERG.0000.fragdb' (weight: 423661)
+  Exporting 1 constants to 'ChEMBL_CYP3A4_hERG.0001.fragdb' (weight: 382376)
+  Exporting 109 constants to 'ChEMBL_CYP3A4_hERG.0002.fragdb' (weight: 382044)
+  Exporting 261 constants to 'ChEMBL_CYP3A4_hERG.0003.fragdb' (weight: 382013)
+  Exporting 261 constants to 'ChEMBL_CYP3A4_hERG.0004.fragdb' (weight: 382013)
+  Exporting 260 constants to 'ChEMBL_CYP3A4_hERG.0005.fragdb' (weight: 382010)
+  Exporting 261 constants to 'ChEMBL_CYP3A4_hERG.0006.fragdb' (weight: 382010)
+  Exporting 262 constants to 'ChEMBL_CYP3A4_hERG.0007.fragdb' (weight: 382010)
+  Exporting 262 constants to 'ChEMBL_CYP3A4_hERG.0008.fragdb' (weight: 382009)
+  Exporting 262 constants to 'ChEMBL_CYP3A4_hERG.0009.fragdb' (weight: 382003)
+
+Note: the `--constants` parser expects the first line to be a header,
+which is why I don't use `--no-header` in the `fragdb_constants`
+command. Alternatively, also use `--no-header` in the
+`fragdb_partition` command if the input does not have a header.
+
+## Indexing in parallel
+
+The partitioned fragdb files can be indexed in parallel:
+
+\b
+  % ls ChEMBL_CYP3A4_hERG.*.fragdb | qsub mmpdb index
+  WARNING: No --output filename specified. Saving to 'ChEMBL_CYP3A4_hERG.0000.mmpdb'.
+  WARNING: No --output filename specified. Saving to 'ChEMBL_CYP3A4_hERG.0001.mmpdb'.
+  WARNING: No --output filename specified. Saving to 'ChEMBL_CYP3A4_hERG.0002.mmpdb'.
+  WARNING: No --output filename specified. Saving to 'ChEMBL_CYP3A4_hERG.0003.mmpdb'.
+  WARNING: No --output filename specified. Saving to 'ChEMBL_CYP3A4_hERG.0004.mmpdb'.
+  WARNING: No --output filename specified. Saving to 'ChEMBL_CYP3A4_hERG.0005.mmpdb'.
+  WARNING: No --output filename specified. Saving to 'ChEMBL_CYP3A4_hERG.0006.mmpdb'.
+  WARNING: No --output filename specified. Saving to 'ChEMBL_CYP3A4_hERG.0007.mmpdb'.
+  WARNING: No --output filename specified. Saving to 'ChEMBL_CYP3A4_hERG.0008.mmpdb'.
+  WARNING: No --output filename specified. Saving to 'ChEMBL_CYP3A4_hERG.0009.mmpdb'.
+
+(If you don't like these warning messages, use the `--quiet` flag.)
+
+## Merging partitioned mmpdb files
+
+The last step is to merge the partitioned mmpdb files with the `merge`
+option, which only works if no two mmpdb files share the same constant:
+
+\b
+  % mmpdb merge ChEMBL_CYP3A4_hERG.*.mmpdb -o ChEMBL_CYP3A4_hERG.mmpdb
+
+Let's take a look:
+
+\b
+  % mmpdb list ChEMBL_CYP3A4_hERG.mmpdb
+            Name           #cmpds #rules #pairs #envs  #stats  |-------- Title --------| Properties
+  ChEMBL_CYP3A4_hERG.mmpdb   4428  21282 203856 143661      0  Merged MMPs from 10 files <none>
+
+
 
 """)
 
