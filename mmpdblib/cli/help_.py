@@ -435,7 +435,8 @@ def help_distributed(readme):
 These commands enable MMP generation on a distributed compute cluster,
 rather than a single machine.
 
-NOTE: This method does not support properties!
+NOTE: This method does not support properties, and you must use the
+SQLite-based "mmpdb" files, not Postgres.
 
 These examples assume you work in a queueing environment with a shared
 file system, and a queueing system which lets you submit a command and
