@@ -123,11 +123,31 @@ def _execute_sql(c, bulk_sql):
             sys.stderr.flush()
             raise
 
+SCHEMA_TABLE_NAMES = [
+        "dataset",
+        "compound",
+        "property_name",
+        "compound_property",
+        "rule_smiles",
+        "rule",
+        "rule_environment",
+        "environment_fingerprint",
+        ## "environment_smarts",
+        ## "environment_smiles",
+        "pair",
+        "constant_smiles",
+        "rule_environment_statistics",
+        ]
+        
 
 def create_schema_for_sqlite(sqlite_db):
     c = sqlite_db.cursor()
     _execute_sql(c, get_schema_for_database(SQLiteConfig))
 
+
+def create_schema(db, config):
+    c = db.cursor()
+    _execute_sql(c, get_schema_for_database(config))
 
 def create_index(c):
     _execute_sql(c, get_create_index_sql())

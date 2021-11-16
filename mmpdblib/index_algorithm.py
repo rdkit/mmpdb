@@ -44,7 +44,6 @@ from . import environment
 from . import fileio, reporters
 from . import fragment_algorithm
 from . import fragment_records
-from . import index_writers
 
 from rdkit import Chem
 
@@ -1353,42 +1352,20 @@ def open_mmpa_writer(
     index_options,
     properties,
     environment_cache,
+    replace = False,
 ):
-    if format is None:
-        if destination is None:
-            format = "mmpa"
-        else:
-            s = destination.lower()
-            for suffix, format_name in (
-                (".csv", "csv"),
-                (".csv.gz", "csv.gz"),
-                (".mmpa", "mmpa"),
-                (".mmpa.gz", "mmpa.gz"),
-                (".mmpdb", "mmpdb"),
-                (".mmpz", "mmpz"),  # XXX REMOVE
-            ):
-                if s.endswith(suffix):
-                    format = format_name
-                    break
-            else:
-                format = "mmpdb"
-
-    if format in ("csv", "csv.gz"):
-        # Can be a helpful summary
-        outfile = fileio.open_output(destination, format)
-        return CSVPairWriter(outfile, fragment_options, fragment_index, index_options, properties)
-    elif format in ("mmpa", "mmpa.gz"):
-        # Text-based version somewhat useful for debugging
-        outfile = fileio.open_output(destination, format)
-        index_writer = index_writers.open_table_index_writer(outfile)
-    elif format == "mmpdb":
-        # The preferred output format.
-        index_writer = index_writers.open_sqlite_index_writer(destination, title)
-
-    else:
-        raise AssertionError(format)
-
-    return MMPWriter(index_writer, fragment_options, fragment_index, index_options, properties)
+    from . import index_writers
+    return index_writers.open_mmpa_writer(
+        destination = destination,
+        format = format,
+        title = title,
+        fragment_options = fragment_options,
+        fragment_index = fragment_index,
+        index_options = index_options,
+        properties = properties,
+        environment_cache = environment_cache,
+        replace = replace,
+    )
 
 
 # Parameters

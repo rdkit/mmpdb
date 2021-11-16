@@ -41,7 +41,7 @@ import os
 import sys
 import itertools
 
-from urllib.parse import urlparse  # Python 3
+from urllib.parse import urlparse, urlunparse
 
 from playhouse import db_url as playhouse_db_url
 
@@ -179,7 +179,7 @@ class DBUrl(DBInfo):
     def get_human_name(self):
         return "database url %r" % (self.name,)
 
-    def open_database(self, copy_to_memory, quiet=False, apsw_warning=True):
+    def open_database(self, *, copy_to_memory=False, quiet=False, apsw_warning=True):
         try:
             db = playhouse_db_url.connect(self.name)
         except Exception as err:
@@ -193,7 +193,7 @@ def get_database_server(url):
     parsed = urlparse(url)
     if parsed.scheme not in playhouse_db_url.schemes:
         return None
-    
+
     if parsed.scheme == "postgres":
         # Are we pointing to the server, or a specific database
         if parsed.path in ("", "/", "/postgres"):
@@ -211,7 +211,7 @@ class PostgresServer(object):
         self.db = db
         self._parsed = urlparse(self.url)
         
-    def get_mmpdb_databases(self):
+    def get_mmpdb_databases(self, reporter):
         parsed = self._parsed
         c = self.db.cursor()
         
@@ -221,11 +221,11 @@ class PostgresServer(object):
         
         # See which has the right schema
         for database in databases:
-            if self.is_mmpdb_database(database):
+            if self.is_mmpdb_database(database, reporter):
                 url = urlunparse(parsed._replace(path="/" + database))
                 yield DBUrl(url)
 
-    def is_mmpdb_database(self, database):
+    def is_mmpdb_database(self, database, reporter):
         import psycopg2.errors
         url = urlunparse(self._parsed._replace(path = "/" + database))
         # XXX need error checking
@@ -244,7 +244,11 @@ class PostgresServer(object):
             # Shouldn't happen
             return False
 
-        return values[0] == 2 # what should I do about different versions?
+        mmpdb_version = values[0]
+        if mmpdb_version == 4:
+            return True
+        reporter.warning(f"Unable to use a version {mmpdb_version} database: {url!r}")
+        return False
         
     
 def is_valid_dburl(url):
@@ -292,8 +296,9 @@ def iter_dbinfo(databases, reporter):
     for database in databases:
         server = get_database_server(database)
         if server is not None:
-            for entry in server.get_mmpdb_databases():
+            for entry in server.get_mmpdb_databases(reporter):
                 yield entry
+            return
                 
         if os.path.isdir(database):
             for filename in get_mmpdb_filenames_in_directory(database):
