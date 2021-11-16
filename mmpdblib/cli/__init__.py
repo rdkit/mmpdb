@@ -75,6 +75,7 @@ command_groups = [
             ],
     ), (
         "Help commands", [
+            ("help", "help_.help_"),
             ("help-analysis", "help_.help_analysis"),
             ("help-admin", "help_.help_admin"),
             ("help-distributed", "help_.help_distributed"),
@@ -92,12 +93,19 @@ del title, command_pairs
 epilog = """\
 The 'mmpdb' program implements a set of subcommands to work with
 a matched molecular pair database. The commands are roughly
-categorized as "analysis" and "admin" commands.
+categorized as "analysis", "distributed", and "admin" commands.
 
 The analysis commands fragment a SMILES database, index the fragments
 into matched molecular pairs into a local SQLite database, import
 molecular properties into a database, and searches the database for
 possible transformations or predictions.
+
+The distributed commands are used to parallelize matched molecular
+pair generation in a distributed cluster environment. They include
+ways to split a SMILES file into parts, for parallel fragmentation, to
+merge the fragmentations together for later re-use as a cache, to
+partition the fragmentations by constant for parallel indexing, and to
+merge the generated indices for a final database.
 
 The admin commands are used to administer a database. They include
 include ways to list the available data sets, dump the data as
@@ -107,6 +115,10 @@ re-aggregate the rule dataset should any property values change.
 For a short description of how to generate and use a dataset:
 
   % mmpdb help-analysis
+
+For a short description of how to parallize MMP generation:
+
+  % mmpdb help-distributed
 
 For a short description of how to adminster a database:
 
