@@ -425,7 +425,6 @@ the list of rule pairs to `pred_detail_pairs.txt`.
 
 """)
 
-
 #### mmpdb help-distributed
 @command(name="help-distributed")
 @add_readme_flag
@@ -436,7 +435,10 @@ These commands enable MMP generation on a distributed compute cluster,
 rather than a single machine.
 
 NOTE: This method does not support properties, and you must use the
-SQLite-based "mmpdb" files, not Postgres.
+SQLite-based "mmpdb" files, not Postgres. The 
+[Postgres wiki](https://wiki.postgresql.org/wiki/Converting_from_other_Databases_to_PostgreSQL)
+mentions [pgloader](https://github.com/dimitri/pgloader) as a possible tool
+to have Postgres load a SQLite database.
 
 These examples assume you work in a queueing environment with a shared
 file system, and a queueing system which lets you submit a command and
@@ -902,21 +904,129 @@ ChEMBL_CYP3A4_hERG.mmpdb   4428  21282 203856 143661      0  Merged MMPs from 10
 
 """)
 
+#### mmpdb help-postgres
+@command(name="help-postgres")
+@add_readme_flag
+def help_postgres(readme):
+    "Using a Postgres database"
+    get_wrapper(readme)("""
+This explains how to use mmpdb to generate and use matched molecular
+pairs stored in a Postgres database.
+
+The `help-analysis` command shows how to generate a fragmentation
+database named `test_data.fragdb`, then index it to produce a SQLite
+file named `tests_data.mmpdb` containing the matched molecular
+pairs.
+
+The mmpdb program can also place the results in a Postgres database,
+with one data set per database, by specifying a [peewee database
+URI](http://docs.peewee-orm.com/en/latest/peewee/playhouse.html#db-url). I
+have `test_data.fragdb` in my local directory, and write permissions
+to a Postgres database named `dalke` on the machine 'localhost', so
+I'll index into that database:
+
+```shell
+% mmpdb index test_data.fragdb -o postgres://localhost/dalke
+```
+
+By default the command will not replace any existing dataset unless
+you specify `--replace`:
+
+\b
+```
+% mmpdb index test_data.fragdb -o postgres://localhost/dalke
+Cannot create index because Postgres database 'postgres://localhost/dalke' already exists. Use --replace to overwrite it.
+```
+
+The `list` command knows how to work with a Postgres URL, both given a single database URL:
+
+\b
+```shell
+% mmpdb list postgres://localhost/dalke
+           Name            #cmpds #rules #pairs #envs  #stats  |--------- Title ----------| Properties
+postgres://localhost/dalke      9     47    342    321      0  MMPs from 'test_data.fragdb' <none>
+```
+
+and as a way to list all of the MMP database on the server (though I
+only have one in this example):
+
+\b
+```shell
+% mmpdb list postgres://localhost
+           Name            #cmpds #rules #pairs #envs  #stats  |--------- Title ----------| Properties
+postgres://localhost/dalke      9     47    342    321      0  MMPs from 'test_data.fragdb' <none>
+```
+
+The `loadprops` command knows how to work with a Postgres URL:
+
+\b
+```shell
+% mmpdb loadprops postgres://localhost/dalke --properties tests/test_data.csv
+Using dataset: MMPs from 'test_data.fragdb'
+Reading properties from 'tests/test_data.csv'
+Read 2 properties for 9 compounds from 'tests/test_data.csv'
+Imported 9 'MW' records (9 new, 0 updated).
+Imported 8 'MP' records (8 new, 0 updated).
+Number of rule statistics added: 533 updated: 0 deleted: 0
+Loaded all properties and re-computed all rule statistics.
+% mmpdb list postgres://localhost/dalke
+           Name            #cmpds #rules #pairs #envs  #stats  |--------- Title ----------| Properties
+postgres://localhost/dalke      9     47    342    321    533  MMPs from 'test_data.fragdb' MW MP
+```
+
+So do the `predict` and `tranform` commands:
+
+\b
+```shell
+% mmpdb predict --smiles 'c1cccnc1' --reference 'c1cccnc1O' --property MP postgres://localhost/dalke
+predicted delta: -93 +/- 76.7268
+% mmpdb transform --smiles 'c1cccnc1O' --property MW postgres://localhost/dalke | fold -70
+ID	SMILES	MW_from_smiles	MW_to_smiles	MW_radius	MW_sma
+rts	MW_pseudosmiles	MW_rule_environment_id	MW_count	MW_avg
+	MW_std	MW_kurtosis	MW_skewness	MW_min	MW_q1	MW_med
+ian	MW_q3	MW_max	MW_paired_t	MW_p_value
+1	Clc1ccccn1	[*:1]O	[*:1]Cl	1	[#0;X1;H0;+0;!R:1]-[#6
+;X3;H0;+0;R]	[*:1]-[#6](~*)(~*)	299	1	18.5
+			18.5	18.5	18.5	18.5	18.5
+
+2	Nc1ccccn1	[*:1]O	[*:1]N	1	[#0;X1;H0;+0;!R:1]-[#6
+;X3;H0;+0;R]	[*:1]-[#6](~*)(~*)	276	3	-1	0
+		0	-1	-1	-1	-1	-1	1e+08
+
+3	c1ccncc1	[*:1]O	[*:1][H]	1	[#0;X1;H0;+0;!
+R:1]-[#6;X3;H0;+0;R]	[*:1]-[#6](~*)(~*)	268	4	-16
+	0		0	-16	-16	-16	-16	-16
+	1e+08
+
+However, the distributed cluster indexing does not work. For that
+you'll need to generate the SQLite file and import it into Postgres.
+
+The [Postgres
+wiki](https://wiki.postgresql.org/wiki/Converting_from_other_Databases_to_PostgreSQL),
+says [pgloader](https://github.com/dimitri/pgloader) should be able to
+do this. I haven't tried it - let me know if it works!
+
+""")
+
+#### mmpdb help-csvd
+
+
 #### mmpdb help-smiles
 @command(name="help-smiles-format")
 @add_readme_flag
 def help_smiles_format(readme):
     "description of the SMILES file parsing options"
     get_wrapper(readme)("""
-This is how the `--delimiter` and `--has-header` options of the `mmpa
+This explains how the `--delimiter` and `--has-header` options of the `mmpa
 fragment` command affect SMILES parsing.
 
-The mmpa code support the most common variants of a SMILES file. Every
-SMILES file stores line-oriented records, with the SMILES in the first
-field and the id (also called the title) in the second field. However,
-there are differences in how to handle the first line of the file, and
-in how to distinguish which is the second field. Some people use the
-first line to store a header for each column in the file.
+The mmpdb program supports the most common variants of a SMILES
+file. Every SMILES file stores line-oriented records, with the SMILES
+in the first field and the id (also called the title) in the second
+field. However, there are differences in how to handle the first line
+of the file, and in how to distinguish which is the second field. Some
+people use the first line to store a header for each column in the
+file.
 
 The classic Daylight SMILES file had no header line and interprets the
 each line as a SMILES string followed by a whitespace followed by the

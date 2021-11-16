@@ -79,6 +79,7 @@ command_groups = [
             ("help-analysis", "help_.help_analysis"),
             ("help-admin", "help_.help_admin"),
             ("help-distributed", "help_.help_distributed"),
+            ("help-postgres", "help_.help_postgres"),
             ("help-smiles-format", "help_.help_smiles_format"),
             ("help-property-format", "help_.help_property_format"),
             ]
@@ -115,6 +116,8 @@ re-aggregate the rule dataset should any property values change.
 For a short description of how to generate and use a dataset:
 
   % mmpdb help-analysis
+
+See "help-postgres" for examples using Postgres.
 
 For a short description of how to parallize MMP generation:
 
