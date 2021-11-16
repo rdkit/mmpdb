@@ -247,7 +247,7 @@ class PostgresServer(object):
         mmpdb_version = values[0]
         if mmpdb_version == 4:
             return True
-        reporter.warning(f"Unable to use a version {mmpdb_version} database: {url!r}")
+        reporter.warning(f"Skipping unsupported version {mmpdb_version} database database: {url!r}")
         return False
         
     
