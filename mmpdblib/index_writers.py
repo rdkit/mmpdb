@@ -814,6 +814,10 @@ def open_rdbms_index_writer(filename, title, replace):
             writer_class = APSWIndexWriter
     
     conn = db.cursor()
+    if os.path.exists(filename) and not replace:
+        from .index_algorithm import DatabaseAlreadyExists
+        raise DatabaseAlreadyExists(filename, "File exists")
+    
     writer = writer_class(filename, db, conn, title)
     writer.create_schema(replace=replace)
     return writer
