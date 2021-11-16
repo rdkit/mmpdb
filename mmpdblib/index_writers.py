@@ -634,7 +634,7 @@ class PostgresIndexWriter(TransactionMixin, BatchIndexWriterMixin, BaseRDBMSInde
                 else:
                     msg = f"Requires tables already exist: {tables}"
                 
-                raise DatabaseAlreadyExists(self.uri, msg)
+                raise DatabaseAlreadyExists("Postgres database", self.uri, msg)
         
         schema.create_schema(self.db, schema.PostgresConfig)
 
@@ -707,7 +707,7 @@ class FlatSQLFileCursor(object):
                 sql = _question_mark_pat.sub(lambda m: new_args.pop(), sql)
             else:
                 sql = sql.replace(substitution, " ".join(new_args))
-        if sql[-2:] == ";\n":
+        if sql[-2:] == ";\n" or sql[-1:] == ";":
             self.outfile.write(sql)
         else:
             self.outfile.write(sql + ";\n")
@@ -754,8 +754,8 @@ class PostgresSQLWriter(BaseSQLWriter):
         schema.create_schema(self.db, schema.PostgresConfig)
 
     
-def open_sql_writer(destination, title, variant, compression):
-    outfile = _open_output(destination, compression)
+def open_sql_writer(destination, title, variant, compression, replace):
+    outfile = _open_output(destination, compression, replace=replace)
     db = FlatSQLFile(outfile)
     if variant == "sqlite":
         writer_class = SQLiteSQLWriter
@@ -816,7 +816,7 @@ def open_rdbms_index_writer(filename, title, replace):
     conn = db.cursor()
     if os.path.exists(filename) and not replace:
         from .index_algorithm import DatabaseAlreadyExists
-        raise DatabaseAlreadyExists(filename, "File exists")
+        raise DatabaseAlreadyExists("SQLite file", filename, "File exists")
     
     writer = writer_class(filename, db, conn, title)
     writer.create_schema(replace=replace)
@@ -825,11 +825,15 @@ def open_rdbms_index_writer(filename, title, replace):
 
 
 ### format-specific writers
-def _open_output(destination, compression):
+def _open_output(destination, compression, replace):
     if compression:
         format_hint = ".gz"
     else:
         format_hint = ""
+    if destination is not None and os.path.exists(destination):
+        if not replace:
+            from .index_algorithm import DatabaseAlreadyExists
+            raise DatabaseAlreadyExists("file", destination, "file exists")
     return fileio.open_output(destination, format_hint)
     
 
@@ -837,13 +841,13 @@ def _open_output(destination, compression):
 def _open_csv(destination, compression,
                 title, fragment_options, fragment_index, index_options, properties,
                 environment_cache, replace):
-    outfile = _open_output(destination, compression)
+    outfile = _open_output(destination, compression, replace=replace)
     return CSVPairWriter(outfile, fragment_options, fragment_index,
                          index_options, properties)
 
 # Text-based version somewhat useful for debugging
 def _open_mmpa(destination, compression, title, replace):
-    outfile = _open_output(destination, compression)
+    outfile = _open_output(destination, compression, replace=replace)
     return open_table_index_writer(outfile)
 
 # SQLite database
@@ -854,11 +858,11 @@ def _open_mmpdb(destination, compression, title, replace):
 
 # SQL for SQLite 
 def _open_sqlite_sql(destination, compression, title, replace):
-    return open_sql_writer(destination, title, "sqlite", compression)
+    return open_sql_writer(destination, title, "sqlite", compression, replace=replace)
 
 # SQL for Postgres
 def _open_postgres_sql(destination, compression, title, replace):
-    return open_sql_writer(destination, title, "postgres", compression)
+    return open_sql_writer(destination, title, "postgres", compression, replace=replace)
 
 def NO_TABS(s):
     return s.replace("\t", " ")
@@ -898,11 +902,11 @@ The sqlite loader 'load_mmpdb.sqlite':
 """)
 
 def write_index_files(dirname):
-    import shutil
-    shutil.copy(schema.CREATE_INDEX_FILENAME,
-                    os.path.join(dirname, "create_index.sql"))
-    ## shutil.copy(schema.DROP_INDEX_FILENAME,
-    ##                 os.path.join(dirname, "drop_index.sql"))
+    create_index_sql = schema.get_create_index_sql()
+    filename = os.path.join(dirname, "create_index.sql")
+    with open(filename, "w") as f:
+        f.write(create_index_sql)
+
 
 LOAD_SQLITE_SCRIPT = """\
 .mode csv
@@ -938,7 +942,7 @@ def write_sqlite_files(dirname):
         f.write("ANALYZE\n")
 
     filename = os.path.join(dirname, "load_mmpdb_schema.sqlite")
-    open_sql_writer(filename, None, "sqlite", False).close()
+    open_sql_writer(filename, None, "sqlite", False, replace=True).close()
         
     with open(os.path.join(dirname, "load_mmpdb_data.sqlite"), "w") as f:
         f.write(LOAD_SQLITE_SCRIPT)
@@ -999,7 +1003,7 @@ def write_postgres_files(dirname):
         f.write("\\echo Done.\n")
 
     filename = os.path.join(dirname, "load_mmpdb_schema.psql")
-    open_sql_writer(filename, None, "postgres", False).close()
+    open_sql_writer(filename, None, "postgres", False, replace=True).close()
         
     with open(os.path.join(dirname, "load_mmpdb_data.psql"), "w") as f:
         f.write(LOAD_PSQL_SCRIPT)
@@ -1074,7 +1078,7 @@ class CSVDWriter(StartMixin):
     def add_dataset(self, title, creation_date, fragment_options_str,
                    index_options_str, is_symmetric):
         # Fill in num_compounds, num_rules, ... num_rule_environment_stats with -1
-        self.dataset_file.write("1\t2\t%s\t%s\t%s\t%s\t%d\t-1\t-1\t-1\t-1\t-1\n" % (
+        self.dataset_file.write("1\t4\t%s\t%s\t%s\t%s\t%d\t-1\t-1\t-1\t-1\t-1\n" % (
             (title, NO_TABS(creation_date), NO_TABS(fragment_options_str),
                  NO_TABS(index_options_str), is_symmetric)))
         
@@ -1126,6 +1130,10 @@ class CSVDWriter(StartMixin):
 
 
 def _open_csvd(destination, compression, title, replace):
+    if (not replace) and os.path.exists(destination):
+        from .index_algorithm import DatabaseAlreadyExists
+        raise DatabaseAlreadyExists("directory", destination, "path exists")
+        
     os.makedirs(destination, exist_ok=True)
     writer = CSVDWriter(
         destination = destination,

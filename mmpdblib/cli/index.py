@@ -360,7 +360,11 @@ entire structure, and save the transformation in both A>>B and B>>A
     "--out",
     "output_format",
     metavar="FORMAT",
-    type=click.Choice(["csv", "csv.gz", "mmpa", "mmpa.gz", "mmpdb"]),
+    type=click.Choice([
+        "csv", "csv.gz", "mmpa", "mmpa.gz", "mmpdb",
+        "sql", "sql.gz", "sqlite", "sqlite.gz", "postgres", "postgres.gz",
+        "csvd",
+        ]),
     help=(
         "Output format. One of 'mmpdb' (default), 'csv', 'csv.gz', 'mmpa' or 'mmpa.gz'. "
         "If not present, guess from the filename, and default to 'mmpdb'"
@@ -486,8 +490,11 @@ def index(
             environment_cache=environment_cache,
             replace=replace,
             )
-    except index_algorithm.DatabaseAlreadyExists:
-        die(f"Database {output_filename!r} already exists. Use --replace to overwrite it.")
+    except index_algorithm.DatabaseAlreadyExists as err:
+        die(
+            f"Cannot create index because {err.type} {err.destination!r} already exists. "
+            "Use --replace to overwrite it."
+            )
         
     with pair_writer:
         pair_writer.start()

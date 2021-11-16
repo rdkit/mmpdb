@@ -1344,8 +1344,9 @@ class MMPWriter(BaseWriter):
 
 
 class DatabaseAlreadyExists(Exception):
-    def __init__(self, destination, description):
+    def __init__(self, type, destination, description):
         super().__init__(description)
+        self.type = type
         self.destination = destination
         self.description = description
 
