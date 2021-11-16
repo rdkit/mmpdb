@@ -52,6 +52,13 @@ def wrap(text):
     text = click.wrap_text(text, width=width, preserve_paragraphs=True)
     click.echo(text)
 
+#### mmpdb help
+
+@command(name="help")
+def help_():
+    "summarize the help commands"
+    from . import epilog
+    wrap(epilog)
 
 
 #### mmpdb help-analysis
