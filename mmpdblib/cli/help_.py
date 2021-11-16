@@ -66,7 +66,7 @@ def help_():
 @command(name="help-analysis")
 def help_analysis():
     "overview on how to use mmpdb for structure analysis"
-    click.echo("""
+    wrap("""
 The overall process is:
 
   1) Fragment structures in a SMILES file, to produce fragments.
@@ -115,6 +115,7 @@ to fragment all of the compounds in a SMILES file.
 SMILES will be fragmented and to experiment with the different
 fragmentation options. For example:
 
+\b
 ```shell
   % mmpdb smifrag 'c1ccccc1OC'
                      |-------------  variable  -------------|       |---------------------  constant  --------------------
@@ -131,16 +132,18 @@ Use "`mmpdb fragment`" to fragment a SMILES file and produce a fragment
 file for the MMP analysis. Start with the test data file named
 "test_data.smi" containing the following structures:
 
-Oc1ccccc1 phenol  
-Oc1ccccc1O catechol  
-Oc1ccccc1N 2-aminophenol  
-Oc1ccccc1Cl 2-chlorophenol  
-Nc1ccccc1N o-phenylenediamine  
-Nc1cc(O)ccc1N amidol  
-Oc1cc(O)ccc1O hydroxyquinol  
-Nc1ccccc1 phenylamine  
-C1CCCC1N cyclopentanol  
+\b
+  Oc1ccccc1 phenol  
+  Oc1ccccc1O catechol  
+  Oc1ccccc1N 2-aminophenol  
+  Oc1ccccc1Cl 2-chlorophenol  
+  Nc1ccccc1N o-phenylenediamine  
+  Nc1cc(O)ccc1N amidol  
+  Oc1cc(O)ccc1O hydroxyquinol  
+  Nc1ccccc1 phenylamine  
+  C1CCCC1N cyclopentanol  
 
+\b
 ```shell
   % mmpdb fragment test_data.smi -o test_data.fragments
 ```
@@ -150,6 +153,7 @@ to reuse fragmentations from a previous run. If you do that then the
 fragment command will reuse the old fragmentation parameters. (You
 cannot override them with command-line options.). Here is an example:
 
+\b
 ```shell
   % mmpdb fragment data_file.smi -o new_data_file.fragments \\
          --cache old_data_file.fragments
@@ -175,6 +179,7 @@ fragment`" by their variable fragments, that is, it finds
 fragmentations with the same R-groups and puts them together. Here's
 an example:
 
+\b
 ```shell
   % mmpdb index test_data.fragments -o test_data.mmpdb
 ```
@@ -185,6 +190,7 @@ If you have activity/property data and you do not want the database to
 include structures where there is no data, then you can specify
 the properties file as well:
 
+\b
 ```shell
   % mmpdb index test_data.fragments -o test_data.mmpa --properties test_data.csv
 ```
@@ -200,20 +206,22 @@ Use "`mmpdb loadprops`" to add or modify activity/property data in the
 database. Here's an example property file named 'test_data.csv' with
 molecular weight and melting point properties:
 
-ID      MW      MP  
-phenol  94.1    41  
-catechol        110.1   105  
-2-aminophenol   109.1   174  
-2-chlorophenol  128.6   8  
-o-phenylenediamine      108.1   102  
-amidol  124.1   *  
-hydroxyquinol   126.1   140  
-phenylamine     93.1    -6  
-cyclopentanol   86.1    -19  
+\b
+  ID      MW      MP  
+  phenol  94.1    41  
+  catechol        110.1   105  
+  2-aminophenol   109.1   174  
+  2-chlorophenol  128.6   8  
+  o-phenylenediamine      108.1   102  
+  amidol  124.1   *  
+  hydroxyquinol   126.1   140  
+  phenylamine     93.1    -6  
+  cyclopentanol   86.1    -19  
 
 The following loads the property data to the MMPDB database file
 created in the previous section:
 
+\b
 ```shell
   % mmpdb loadprops -p test_data.csv test_data.mmpdb
 ```
@@ -233,6 +241,7 @@ any properties. The following looks at possible ways to transform
 predict the effect on the "MW" property (the output is reformatted for
 clarity):
 
+\b
 ```shell
   % mmpdb transform --smiles 'c1cccnc1O' test_data.mmpdb --property MW
   ID      SMILES MW_from_smiles MW_to_smiles  MW_radius  \\
@@ -240,16 +249,19 @@ clarity):
    2   Nc1ccccn1         [*:1]O       [*:1]N          1
    3    c1ccncc1         [*:1]O     [*:1][H]          1
 
+\b
                                MW_fingerprint  MW_rule_environment_id  \\
   tLP3hvftAkp3EUY+MHSruGd0iZ/pu5nwnEwNA+NiAh8                     298
   tLP3hvftAkp3EUY+MHSruGd0iZ/pu5nwnEwNA+NiAh8                     275
   tLP3hvftAkp3EUY+MHSruGd0iZ/pu5nwnEwNA+NiAh8                     267
 
+\b
   MW_count  MW_avg  MW_std  MW_kurtosis  MW_skewness  MW_min  MW_q1  \\
          1    18.5     NaN          NaN          NaN    18.5   18.5
          3    -1.0     0.0          NaN          0.0    -1.0   -1.0
          4   -16.0     0.0          NaN          0.0   -16.0  -16.0
 
+\b
   MW_median  MW_q3  MW_max  MW_paired_t  MW_p_value
        18.5   18.5    18.5          NaN         NaN
        -1.0   -1.0    -1.0  100000000.0         NaN
@@ -276,6 +288,7 @@ transformation of 2-pyridone to pyridine there are still 3 matched
 pairs and in this case the average shift is -93C with a standard
 deviation of 76.727C:
 
+\b
 ```shell
   % mmpdb transform --smiles 'c1cccnc1O' test_data.mmpdb --property MP
   ID      SMILES MP_from_smiles MP_to_smiles  MP_radius  \\
@@ -283,16 +296,19 @@ deviation of 76.727C:
   2   Nc1ccccn1         [*:1]O       [*:1]N          1
   3    c1ccncc1         [*:1]O     [*:1][H]          1
 
+\b
                                MP_fingerprint  MP_rule_environment_id  \\
  tLP3hvftAkp3EUY+MHSruGd0iZ/pu5nwnEwNA+NiAh8                     298
  tLP3hvftAkp3EUY+MHSruGd0iZ/pu5nwnEwNA+NiAh8                     275
  tLP3hvftAkp3EUY+MHSruGd0iZ/pu5nwnEwNA+NiAh8                     267
 
+\b
   MP_count  MP_avg  MP_std  MP_kurtosis  MP_skewness  MP_min   MP_q1  \\
         1 -97.000     NaN          NaN          NaN     -97  -97.00
         3 -16.667  75.235         -1.5     -0.33764     -72  -65.75
         3 -93.000  76.727         -1.5      0.32397    -180 -151.00
 
+\b
   MP_median  MP_q3  MP_max  MP_paired_t  MP_p_value
        -97 -97.00     -97          NaN         NaN
        -47  40.00      69       0.3837     0.73815
@@ -314,6 +330,7 @@ when you want to limit the transform results when you know the
 starting and ending structures. The following predicts the effect on
 molecular weight in transforming 2-pyridone to pyridone:
 
+\b
 ```shell
   % mmpdb predict --smiles 'c1cccnc1' --reference 'c1cccnc1O' \\
             test_data.mmpdb --property MP
@@ -323,6 +340,7 @@ molecular weight in transforming 2-pyridone to pyridone:
 This is the same MP_value and MP_std from the previous section using
 '`transform`'.
 
+\b
 ```shell
   % mmpdb predict --smiles 'c1cccnc1' --reference 'c1cccnc1O' \\
             test_data.mmpdb --property MP --value -41.6
@@ -332,6 +350,7 @@ I'll redo the calculation with the molecular weight property, and have
 mmpdb do the trival calculation of adding the known weight to the
 predicted delta:
 
+\b
 ```shell
   % mmpdb predict --smiles 'c1cccnc1' --reference 'c1cccnc1O' \\
             test_data.mmpdb --property MW --value 95.1
@@ -346,26 +365,6 @@ the list of rule pairs to "pred_detail_pairs.txt".
 """)
 
 
-#### mmpdb help-admin
-@command(name="help-admin")
-def help_admin():
-    "overview on how to use administor an mmpdb database"
-    click.echo("""
-
-The administrative commands are:
-  * fragdb_list: summarize fragment database (".fragdb") contents
-  * list: summarize MMP database (".mmpdb") contents
-  * loadprops: add or modify property information
-  * smicat: list the structures in a fragment or MMP database
-  * rulecat: list the rules in an MMP database
-  * propcat: show the properties in an MMP database
-  * drop_index: drop the MMP database indices
-  * create_index: (re)create the MMP database indices
-
-See the --help options for each command for more details.
-""")
-
-    
 #### mmpdb help-distributed
 @command(name="help-distributed")
 def help_distributed():
@@ -875,4 +874,22 @@ identifiers. The MP value of GEJYOJ is 3, which is interpreted as
 has the MP property 5.0 but the "*" indicates that its CHR1 and CHR2
 properties are not known.
 
+""")
+#### mmpdb help-admin
+@command(name="help-admin")
+def help_admin():
+    "overview on how to use administor an mmpdb database"
+    click.echo("""
+
+The administrative commands are:
+  * fragdb_list: summarize fragment database (".fragdb") contents
+  * list: summarize MMP database (".mmpdb") contents
+  * loadprops: add or modify property information
+  * smicat: list the structures in a fragment or MMP database
+  * rulecat: list the rules in an MMP database
+  * propcat: show the properties in an MMP database
+  * drop_index: drop the MMP database indices
+  * create_index: (re)create the MMP database indices
+
+See the --help options for each command for more details.
 """)
