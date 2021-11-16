@@ -224,8 +224,9 @@ def loadprops(
 
         # Update the environment statistics
         reporter.update("Updating environment statistics count ...")
-        num = schema._get_one(c.execute("SELECT count(*) from rule_environment_statistics"))
-        c.execute("UPDATE dataset SET num_rule_environment_stats=?", (num,))
+        c.execute("SELECT count(*) from rule_environment_statistics")
+        num = schema._get_one(c)
+        c.execute(db.SQL("UPDATE dataset SET num_rule_environment_stats=?"), (num,))
 
         reporter.update("Commiting changed ...")
 
