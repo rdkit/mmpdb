@@ -997,6 +997,7 @@ ian	MW_q3	MW_max	MW_paired_t	MW_p_value
 R:1]-[#6;X3;H0;+0;R]	[*:1]-[#6](~*)(~*)	268	4	-16
 	0		0	-16	-16	-16	-16	-16
 	1e+08
+```
 
 However, the distributed cluster indexing does not work. For that
 you'll need to generate the SQLite file and import it into Postgres.
