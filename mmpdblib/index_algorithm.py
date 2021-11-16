@@ -1343,6 +1343,13 @@ class MMPWriter(BaseWriter):
         return rule_envs
 
 
+class DatabaseAlreadyExists(Exception):
+    def __init__(self, destination, description):
+        super().__init__(description)
+        self.destination = destination
+        self.description = description
+
+    
 def open_mmpa_writer(
     destination,
     format,

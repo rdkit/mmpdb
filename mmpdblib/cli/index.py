@@ -367,6 +367,12 @@ entire structure, and save the transformation in both A>>B and B>>A
     ),
 )
 @click.option(
+    "--replace / --no-replace",
+    default = False,
+    help = "With --replace, replace any existing database. Default is --no-replace.",
+    )
+
+@click.option(
     "--title",
     help="A short description of the dataset. If not given, base the title on the filename",
 )
@@ -391,6 +397,7 @@ def index(
     memory,
     output_format,
     output_filename,
+    replace,
     fragment_filename,
 ):
     """index fragments and find matched molecular pairs
@@ -467,16 +474,22 @@ def index(
         reporter=reporter,
     )
 
-    with index_algorithm.open_mmpa_writer(
-        output_filename,
-        format=output_format,
-        title=title,
-        fragment_options=fragment_reader.options,
-        fragment_index=fragment_index,
-        index_options=index_options,
-        properties=properties,
-        environment_cache=environment_cache,
-    ) as pair_writer:
+    try:
+        pair_writer = index_algorithm.open_mmpa_writer(
+            output_filename,
+            format=output_format,
+            title=title,
+            fragment_options=fragment_reader.options,
+            fragment_index=fragment_index,
+            index_options=index_options,
+            properties=properties,
+            environment_cache=environment_cache,
+            replace=replace,
+            )
+    except index_algorithm.DatabaseAlreadyExists:
+        die(f"Database {output_filename!r} already exists. Use --replace to overwrite it.")
+        
+    with pair_writer:
         pair_writer.start()
         pair_writer.write_matched_molecule_pairs(pairs)
         end_mmp_memory = get_memory_use()

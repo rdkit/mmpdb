@@ -627,9 +627,14 @@ class PostgresIndexWriter(TransactionMixin, BatchIndexWriterMixin, BaseRDBMSInde
                 for table_name in existing_table_names:
                     c.execute("DROP TABLE {} CASCADE".format(_quote_postgres_database(c, table_name)))
             else:
-                raise ValueError("Cannot create mmpdb schema for database %r: existing tables(s): %r" % (
-                    self.uri, ", ".join(existing_table_names)))
-            
+                from .index_algorithm import DatabaseAlreadyExists
+                tables = ", ".join(existing_table_names)
+                if len(existing_table_names) == 1:
+                    msg = f"Required table already exists: {tables}"
+                else:
+                    msg = f"Requires tables already exist: {tables}"
+                
+                raise DatabaseAlreadyExists(self.uri, msg)
         
         schema.create_schema(self.db, schema.PostgresConfig)
 
@@ -1185,7 +1190,7 @@ def _init_format_info():
             _extension_table["." + ext] = format_info
 
 _init_format_info()
-    
+
 def open_mmpa_writer(destination, format, title, fragment_options,
                      fragment_index, index_options, properties,
                      environment_cache, replace=False):
