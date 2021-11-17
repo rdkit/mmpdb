@@ -1,4 +1,7 @@
 import os
+import time
+import sqlite3
+
 import click
 
 from .click_utils import (
@@ -6,6 +9,11 @@ from .click_utils import (
     die,
     add_multiple_databases_parameters,
     )
+
+from .. import dbutils
+from .. import index_writers
+from .. import schema
+
 
 MERGE_CREATE_INDEX_SQL = """
 CREATE UNIQUE INDEX idx_compound ON compound(public_id);
@@ -41,20 +49,37 @@ DROP INDEX idx_rule_env;
 DROP INDEX idx_constant_smiles;
 """
 
+# Here's the schema to create the --profile database
+PROFILE_SCHEMA = """
+CREATE TABLE IF NOT EXISTS profiler.mmpdb_times (
+  id integer primary key,
+  label string,
+  t timestamp
+);
+"""
+
 MERGE_DATABASE_SQL = """
 -- This expects the database to import to be attached as 'old'
 -- using something like:
---   attach database "subset.000.mmpdb" as old
+--   ATTACH DATABASE "subset.000.mmpdb" AS old
+-- 
+-- and a timer database (which may be ":memory:") as 'profiler', like:
+--   ATTACH DATABASE "times.db" as profiler;
 
 -- Step 1: Copy over the compound table
 
 -- Must have UNIQUE INDEX ON compound (public_id)
 -- The merge code ensured duplicate entries have the same clean_smiles.
 
+
+INSERT INTO profiler.mmpdb_times (label, t) VALUES ("start merge", julianday("now"));
+
 INSERT OR IGNORE INTO compound (public_id, input_smiles, clean_smiles, clean_num_heavies)
  SELECT public_id, input_smiles, clean_smiles, clean_num_heavies
    FROM old.compound
         ;
+
+INSERT INTO profiler.mmpdb_times (label, t) VALUES ("insert compound", julianday("now"));
 
 -- Step 2: Copy over the rule_smiles
 
@@ -64,6 +89,8 @@ INSERT OR IGNORE INTO rule_smiles (smiles, num_heavies)
  SELECT smiles, num_heavies
    FROM old.rule_smiles
         ;
+
+INSERT INTO profiler.mmpdb_times (label, t) VALUES ("insert rule_smiles", julianday("now"));
 
 -- Step 3: Merge any rules
 
@@ -81,6 +108,8 @@ INSERT OR IGNORE INTO rule (from_smiles_id, to_smiles_id)
     AND (old_from_smiles.smiles = new_from_smiles.smiles
          AND old_to_smiles.smiles = new_to_smiles.smiles)
         ;
+
+INSERT INTO profiler.mmpdb_times (label, t) VALUES ("insert rule", julianday("now"));
 
 -- Step 4. Table mapping old rule id to new rule id
 
@@ -104,6 +133,7 @@ INSERT INTO rule_map (old_id, new_id)
          AND new_rule.to_smiles_id = new_to_smiles.id)
         ;
 
+INSERT INTO profiler.mmpdb_times (label, t) VALUES ("insert rule_map", julianday("now"));
 
 -- Step 5: Merge environment_fingerprint
 
@@ -115,6 +145,8 @@ INSERT OR IGNORE INTO environment_fingerprint (smarts, pseudosmiles, parent_smar
     FROM old.environment_fingerprint
          ;
 
+INSERT INTO profiler.mmpdb_times (label, t) VALUES ("insert env_fp", julianday("now"));
+
 DELETE FROM env_fp_map;
 
 INSERT INTO env_fp_map (old_id, new_id)
@@ -124,6 +156,8 @@ INSERT INTO env_fp_map (old_id, new_id)
    WHERE old_env_fp.smarts = new_env_fp.smarts
      AND old_env_fp.parent_smarts = new_env_fp.parent_smarts
          ;
+
+INSERT INTO profiler.mmpdb_times (label, t) VALUES ("insert env_fp_map", julianday("now"));
 
 -- Step 6: Merge rule_environment
 
@@ -138,6 +172,8 @@ INSERT OR IGNORE INTO rule_environment (rule_id, environment_fingerprint_id, rad
    WHERE old_rule_env.rule_id = rule_map.old_id
      AND old_rule_env.environment_fingerprint_id = env_fp_map.old_id
          ;
+
+INSERT INTO profiler.mmpdb_times (label, t) VALUES ("insert rule_environment", julianday("now"));
 
 -- Step 7: Table mapping old rule environment to new rule environment
 
@@ -157,6 +193,7 @@ INSERT INTO rule_env_map (old_id, new_id)
      AND old_rule_env.radius = new_rule_env.radius
          ;
 
+INSERT INTO profiler.mmpdb_times (label, t) VALUES ("insert rule_env_map", julianday("now"));
 
 -- Step 8: Merge constant_smiles
 
@@ -166,6 +203,8 @@ INSERT OR IGNORE INTO constant_smiles (smiles)
    SELECT smiles
      FROM old.constant_smiles
           ;
+
+INSERT INTO profiler.mmpdb_times (label, t) VALUES ("insert constant_smiles", julianday("now"));
 
 -- Step 9: Merge pairs
 
@@ -189,6 +228,10 @@ INSERT INTO pair (rule_environment_id, compound1_id, compound2_id, constant_id)
     AND old_compound2.public_id = new_compound2.public_id
     AND old_constant.smiles = new_constant.smiles
         ;
+
+INSERT INTO profiler.mmpdb_times (label, t) VALUES ("insert pairs", julianday("now"));
+
+INSERT INTO profiler.mmpdb_times (label, t) VALUES ("end merge", julianday("now"));
 
 """
 
@@ -241,6 +284,55 @@ def open_output_database(
     except sqlite3.OperationalError as err:
         die(f"Unexpected problem re-opening mmpdb file {output_filename!r}: {err}")
 
+def add_time(output_c, label):
+    output_c.execute(
+        'INSERT INTO profiler.mmpdb_times (label, t) VALUES (?, julianday("now"))',
+        (label,),
+        )
+        
+def attach_profiler(output_c, profile_path):
+    if profile_path is None:
+        output_c.execute('ATTACH DATABASE ":memory:" AS profiler')
+    else:
+        try:
+            output_c.execute('ATTACH DATABASE ? AS profiler', (profile_path,))
+        except sqlite3.DatabaseError as err:
+            die(f"Cannot attach profiler database {profile_path!r}: {err}")
+
+    try:
+        output_c.execute(PROFILE_SCHEMA)
+    except sqlite3.OperationalError as err:
+        die(f"Cannot create profiler schema in {profile_path!r}: {err}")
+    
+    add_time(output_c, "start")
+
+def check_for_duplicate_constants(output_c, database):
+    for smiles, in output_c.execute("""
+SELECT old_constant_smiles.smiles
+  FROM old.constant_smiles as old_constant_smiles,
+       constant_smiles as new_constant_smiles
+ WHERE old_constant_smiles.smiles = new_constant_smiles.smiles
+"""):
+        die(
+            "Can only merge mmpdb databases with no shared constants.",
+            f"Duplicate constant {smiles!r} found in {database!r} ."
+            )
+
+
+def check_for_different_clean_smiles(output_c, database):
+    # Check any records with a different clean_smiles
+    for public_id, old_clean_smiles, new_clean_smiles in output_c.execute("""
+SELECT old_compound.public_id, old_compound.clean_smiles, new_compound.clean_smiles
+  FROM old.compound as old_compound,
+       compound as new_compound
+ WHERE old_compound.public_id = new_compound.public_id
+   AND old_compound.clean_smiles != new_compound.clean_smiles
+"""):
+        die(
+            "Cannot merge. Record {public_id!r} in {database!r} has a SMILES {old_clean_smiles!r}",
+            "but a previously merged file has the SMILES {new_clean_smiles!r}.",
+            )
+
         
 @command()
 @click.option(
@@ -259,7 +351,13 @@ def open_output_database(
     default = False,
     help = "With --replace, replace any existing database. Default is --no-replace.",
     )
-    
+@click.option(
+    "--profile",
+    "profile_path",
+    type = click.Path(),
+    default = None,
+    help = "store SQL profile information to this SQLite database",
+    )
 @add_multiple_databases_parameters()
 @click.pass_obj
 def merge(
@@ -268,6 +366,7 @@ def merge(
         title,
         output_filename,
         replace,
+        profile_path,
         ):
     """merge multiple mmpdb databases
 
@@ -275,11 +374,6 @@ def merge(
 
     Properties are ignored because merging them is not meaningful.
     """
-    import sqlite3
-    from .. import dbutils
-    from .. import index_writers
-    from .. import schema
-    
     
     databases = databases_options.databases
     if not databases:
@@ -361,6 +455,8 @@ def merge(
                         output_c = output_db = None
                         raise
 
+                    attach_profiler(output_c, profile_path)
+
                 else:
                     check_options_mismatch(
                             dbinfo,
@@ -372,59 +468,40 @@ def merge(
                             )
 
             # Attach and merge
-            reporter.report(f"Merging {database!r}.")
+            add_time(output_c, f"merging {database!r}")
+            start_time = time.time()
+            reporter.update(f"Merging {database!r}...")
+            
             try:
                 output_c.execute("ATTACH DATABASE ? AS old", (database,))
             except sqlite3.OperationalError as err:
+                reporter.report(f"Merging {database!r}. FAILED!")
                 die(f"Cannot attach {database!r} to {output_file!r}: {err}")
 
             try:
-                # Check for duplicate constants
-                for smiles, in output_c.execute("""
-SELECT old_constant_smiles.smiles
-  FROM old.constant_smiles as old_constant_smiles,
-       constant_smiles as new_constant_smiles
- WHERE old_constant_smiles.smiles = new_constant_smiles.smiles
-"""):
-                    die(
-                        "Can only merge mmpdb databases with no shared constants.",
-                        f"Duplicate constant {smiles!r} found in {database!r} ."
-                    )
-                    
-                # Check any records with a different clean_smiles
-                for public_id, old_clean_smiles, new_clean_smiles in output_c.execute("""
-SELECT old_compound.public_id, old_compound.clean_smiles, new_compound.clean_smiles
-  FROM old.compound as old_compound,
-       compound as new_compound
- WHERE old_compound.public_id = new_compound.public_id
-   AND old_compound.clean_smiles != new_compound.clean_smiles
-"""):
-                    die(
-                        "Cannot merge. Record {public_id!r} in {database!r} has a SMILES {old_clean_smiles!r}",
-                        "but a previously merged file has the SMILES {new_clean_smiles!r}.",
-                        )
-
-                # Merge
                 try:
-                    schema._execute_sql(output_c, MERGE_DATABASE_SQL)
-                except Exception:
-                    breakpoint()
-                    raise
+                    check_for_duplicate_constants(output_c, database)
+                    check_for_different_clean_smiles(output_c, database)
 
-
+                    # Merge
+                    try:
+                        schema._execute_sql(output_c, MERGE_DATABASE_SQL)
+                    except Exception:
+                        ## breakpoint()
+                        raise
+                finally:
+                    try:
+                        output_c.execute("COMMIT")
+                    except sqlite3.OperationalError:
+                        pass
+                    output_c.execute("DETACH DATABASE old")
             except:
-                try:
-                    output_c.execute("COMMIT")
-                except sqlite3.OperationalError:
-                    pass
-                output_c.execute("DETACH DATABASE old")
+                reporter.report(f"Merging {database!r}. FAILED!")
                 output_c.close()
                 output_db.close()
                 output_c = output_db = None
                 raise
-            else:
-                output_c.execute("COMMIT")
-                output_c.execute("DETACH DATABASE old")
+            reporter.report(f"Merged {database!r}. Time: {time.time()-start_time:.2f}")
                 
 
     finally:
@@ -434,10 +511,68 @@ SELECT old_compound.public_id, old_compound.clean_smiles, new_compound.clean_smi
             except sqlite3.OperationalError:
                 pass
 
+            add_time(output_c, "start finalization")
             schema._execute_sql(output_c, MERGE_DROP_INDEX_SQL)
+            add_time(output_c, "drop indices")
+
             index_writers.update_counts(output_c)
+            add_time(output_c, "update counts")
             output_c.execute("ANALYZE")
+            add_time(output_c, "analyze")
+            add_time(output_c, "end finalization")
+            add_time(output_c, "end")
             output_c.execute("COMMIT")
             output_c.close()
             output_db.close()
 
+@command(
+    name="show_merge_profile",
+    )
+@click.argument(
+    "profile_path",
+    type = click.Path(),
+    metavar = "PROF.db",
+    )
+def show_merge_profile(profile_path):
+    "Show information from a merge --profile database"
+    if not os.path.exists(profile_path):
+        die(f"Profile database does not exist: {profile_path!r}")
+
+    try:
+        db = sqlite3.connect(profile_path)
+    except sqlite3.DatabaseError as err:
+        die(f"Cannot connect to SQLite database {profile_path!r}: {err}")
+
+    c = db.cursor()
+
+    try:
+        try:
+            c.execute("SELECT datetime(t), label, t FROM mmpdb_times ORDER BY id")
+        except sqlite3.DatabaseError as err:
+            die(f"Cannot use SQLite database {profile_path!r}: {err}")
+        except sqlite3.OperationalError as err:
+            die(f"Cannot get times from {profile_path!r}: {err}")
+
+        prev_t = None
+        start_t = None
+        click.echo(f"timestamp\tT-T_start\tdelta_T\tlabel")
+        
+        N_secs = 86400 # number of second in a day
+        for datetime_str, label, t in c:
+            if prev_t is None:
+                prev_t = t
+                start_t = t
+            msg = "{}\t{:.3f}\t{:.3f}\t{}".format(
+                datetime_str,
+                (t-start_t)*N_secs, # elapsed since start
+                (t-prev_t)*N_secs,  # delta since previous
+                label,
+                )
+            click.echo(msg)
+            prev_t = t
+        
+        c.close()
+        
+    finally:
+        db.close()
+        

@@ -72,6 +72,7 @@ command_groups = [
             ("proprulecat", "proprulecat.proprulecat"),
             ("drop_index", "drop_index.drop_index"),
             ("create_index", "create_index.create_index"),
+            ("show_merge_profile", "merge.show_merge_profile"),
             ],
     ), (
         "Help commands", [
