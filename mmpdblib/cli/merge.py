@@ -396,7 +396,7 @@ def merge(
     db = None
     c = None
     try:
-        for database in databases:
+        for database_i, database in enumerate(databases, 1):
             # Require it to be a SQLite database
             if not os.path.exists(database):
                 die(f"mmpdb file {database!r} does not exist")
@@ -470,7 +470,7 @@ def merge(
             # Attach and merge
             add_time(output_c, f"merging {database!r}")
             start_time = time.time()
-            reporter.update(f"Merging {database!r}...")
+            reporter.update(f"Merging {database!r} ({database_i}/{len(databases)}) ...")
             
             try:
                 output_c.execute("ATTACH DATABASE ? AS old", (database,))
@@ -501,7 +501,10 @@ def merge(
                 output_db.close()
                 output_c = output_db = None
                 raise
-            reporter.report(f"Merged {database!r}. Time: {time.time()-start_time:.2f}")
+            reporter.report(
+                f"Merged {database!r} ({database_i}/{len(databases)}). "
+                f"Time: {time.time()-start_time:.2f}"
+                )
                 
 
     finally:
