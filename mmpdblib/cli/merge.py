@@ -372,6 +372,7 @@ def merge(
                             )
 
             # Attach and merge
+            reporter.report(f"Merging {database!r}.")
             try:
                 output_c.execute("ATTACH DATABASE ? AS old", (database,))
             except sqlite3.OperationalError as err:
