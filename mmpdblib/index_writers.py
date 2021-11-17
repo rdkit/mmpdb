@@ -771,17 +771,21 @@ def open_sql_writer(destination, title, variant, compression, replace):
 
 ####
 
-def open_rdbms_index_writer(filename, title, replace):
+def open_rdbms_index_writer(filename, title, replace, is_sqlite=False):
     # See if this is a database URI
     from playhouse import db_url
     import peewee
+
+    if is_sqlite:
+        database_class = None
+    else:
+        parsed = db_url.urlparse(filename)
+        if parsed.scheme == "oracle":
+                # peewee doesn't even support Oracle
+                raise NotImplementedError("Oracle not supported")
+
+        database_class = db_url.schemes.get(parsed.scheme, None)
     
-    parsed = db_url.urlparse(filename)
-    if parsed.scheme == "oracle":
-            # peewee doesn't even support Oracle
-            raise NotImplementedError("Oracle not supported")
-        
-    database_class = db_url.schemes.get(parsed.scheme, None)
     if database_class is not None:
         connect_kwargs = db_url.parseresult_to_dict(parsed)
         
@@ -822,7 +826,8 @@ def open_rdbms_index_writer(filename, title, replace):
     writer.create_schema(replace=replace)
     return writer
 
-
+def update_counts(cursor):
+    cursor.execute(UPDATE_DATASET_SQL)
 
 ### format-specific writers
 def _open_output(destination, compression, replace):
