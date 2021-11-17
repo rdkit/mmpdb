@@ -550,7 +550,7 @@ def show_merge_profile(profile_path):
 
     try:
         try:
-            c.execute("SELECT datetime(t), label, t FROM mmpdb_times ORDER BY id")
+            c.execute("SELECT strftime('%Y-%m-%d %H:%M:%f', t), label, t FROM mmpdb_times ORDER BY id")
         except sqlite3.DatabaseError as err:
             die(f"Cannot use SQLite database {profile_path!r}: {err}")
         except sqlite3.OperationalError as err:
@@ -558,17 +558,17 @@ def show_merge_profile(profile_path):
 
         prev_t = None
         start_t = None
-        click.echo(f"timestamp\tT-T_start\tdelta_T\tlabel")
+        click.echo(f"T-T0\tdelta_T\ttimestamp\tlabel")
         
         N_secs = 86400 # number of second in a day
         for datetime_str, label, t in c:
             if prev_t is None:
                 prev_t = t
                 start_t = t
-            msg = "{}\t{:.3f}\t{:.3f}\t{}".format(
-                datetime_str,
+            msg = "{:.3f}\t{:.3f}\t{}\t{}".format(
                 (t-start_t)*N_secs, # elapsed since start
                 (t-prev_t)*N_secs,  # delta since previous
+                datetime_str,
                 label,
                 )
             click.echo(msg)
