@@ -495,6 +495,10 @@ def merge(
                     except sqlite3.OperationalError:
                         pass
                     output_c.execute("DETACH DATABASE old")
+                    # Following the recommendation at
+                    #   https://sqlite.org/lang_analyze.html
+                    output_c.execute("PRAGMA analysis_limit=400")
+                    output_c.execute("PRAGMA optimize")
             except:
                 reporter.report(f"Merging {database!r}. FAILED!")
                 output_c.close()
