@@ -224,7 +224,8 @@ def open_output_database(
     from .. import index_writers, reporters
     
     try:
-        writer = index_writers.open_sqlite_index_writer(output_filename, title)
+        writer = index_writers.open_sql_writer(
+            output_filename, title, "sqlite", compression=None, replace=True)
     except IOError as err:
         die(f"Cannot open SQLite file {output_filename!r}: {err}")
     except sqlite3.OperationalError as err:
@@ -342,6 +343,12 @@ def merge(
                     output_c = output_db.cursor()
                     try:
                         schema._execute_sql(output_c, MERGE_CREATE_INDEX_SQL)
+                    except sqlite3.DatabaseError as err:
+                        output_c.close()
+                        output_db.close()
+                        output_c = output_db = None
+                        die(f"Cannot use {output_filename!r}: {err}")
+                        
                     except Exception:
                         output_c.close()
                         output_db.close()
