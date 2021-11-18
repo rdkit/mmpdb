@@ -278,11 +278,15 @@ def open_output_database(
 
     # Create the index
     writer.end(reporters.Quiet())
-
+    writer.close()
     try:
-        return sqlite3.connect(output_filename)
+        db = sqlite3.connect(output_filename)
     except sqlite3.OperationalError as err:
         die(f"Unexpected problem re-opening mmpdb file {output_filename!r}: {err}")
+
+    db.execute("PRAGMA journal_mode=WAL")
+    db.execute("PRAGMA synchronous=OFF")
+    return db
 
 def add_time(output_c, label):
     output_c.execute(
