@@ -576,7 +576,7 @@ class PostgresIndexWriter(TransactionMixin, BatchIndexWriterMixin, BaseRDBMSInde
 
             # If the database doesn't exist, then create it
             if "database" not in connect_kwargs:
-                raise ValueError("Database URI %r does not contain a database" % (uri,))
+                raise ValueError("Daabtase URI %r does not contain a database" % (uri,))
             database = connect_kwargs["database"]
             if database == "postgres":
                 raise ValueError("Cannot use the Postgres database named 'postgres'")
@@ -808,6 +808,10 @@ def open_rdbms_index_writer(filename, title, replace, is_sqlite=False):
         # Filename. Use the SQLite interface.
 
         if filename != ":memory:":
+            if os.path.exists(filename) and not replace:
+                from .index_algorithm import DatabaseAlreadyExists
+                raise DatabaseAlreadyExists("SQLite file", filename, "File exists")
+            
             if os.path.exists(filename):
                 os.unlink(filename)
         if apsw is None:
@@ -818,9 +822,6 @@ def open_rdbms_index_writer(filename, title, replace, is_sqlite=False):
             writer_class = APSWIndexWriter
     
     conn = db.cursor()
-    if os.path.exists(filename) and not replace:
-        from .index_algorithm import DatabaseAlreadyExists
-        raise DatabaseAlreadyExists("SQLite file", filename, "File exists")
     
     writer = writer_class(filename, db, conn, title)
     writer.create_schema(replace=replace)
