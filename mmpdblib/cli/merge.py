@@ -59,6 +59,7 @@ CREATE TABLE IF NOT EXISTS profiler.mmpdb_times (
 """
 
 MERGE_DATABASE_SQL = """
+
 -- This expects the database to import to be attached as 'old'
 -- using something like:
 --   ATTACH DATABASE "subset.000.mmpdb" AS old
@@ -284,7 +285,7 @@ def open_output_database(
     except sqlite3.OperationalError as err:
         die(f"Unexpected problem re-opening mmpdb file {output_filename!r}: {err}")
 
-    db.execute("PRAGMA journal_mode=WAL")
+    #db.execute("PRAGMA journal_mode=WAL")
     db.execute("PRAGMA synchronous=OFF")
     return db
 
@@ -493,6 +494,32 @@ def merge(
                     except Exception:
                         ## breakpoint()
                         raise
+                    ## Debug code to see the query plan
+##                     output_c.execute("""
+## EXPLAIN
+## INSERT OR IGNORE INTO rule_environment (rule_id, environment_fingerprint_id, radius)
+##   SELECT rule_map.new_id, env_fp_map.new_id, old_rule_env.radius
+##     FROM old.rule_environment AS old_rule_env,
+##          rule_map,
+##          env_fp_map
+##    WHERE old_rule_env.rule_id = rule_map.old_id
+##      AND old_rule_env.environment_fingerprint_id = env_fp_map.old_id
+##          ;
+## """)
+##                     def STR(s, n):
+##                         if s is None:
+##                             s = ""
+##                         return str(s).ljust(n)
+##                     print()
+##                     print("addr  opcode         p1    p2    p3    p4             p5  comment")
+##                     print("----  -------------  ----  ----  ----  -------------  --  -------------")
+##                     for addr, opcode, p1, p2, p3, p4, p5, comment in output_c:
+##                         print(
+##                             f"{STR(addr, 4)}  {STR(opcode, 13)}  {STR(p1, 4)}  {STR(p2, 4)}  "
+##                             f"{STR(p3, 4)}  {STR(p4, 13)}  {STR(p5, 2)}  {STR(comment, 15)}"
+##                             )
+##                     print()
+                            
                 finally:
                     try:
                         output_c.execute("COMMIT")
