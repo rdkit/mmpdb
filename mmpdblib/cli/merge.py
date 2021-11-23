@@ -15,6 +15,25 @@ from .. import index_writers
 from .. import schema
 
 
+LUT_CREATE_TABLE = """
+
+CREATE TABLE lut.rule_map (
+  old_id INTEGER PRIMARY KEY,
+  new_id INTEGER
+);
+
+CREATE TABLE lut.env_fp_map (
+  old_id INTEGER PRIMARY KEY,
+  new_id INTEGER
+);
+
+CREATE TABLE lut.rule_env_map (
+  old_id INTEGER PRIMARY KEY,
+  new_id INTEGER
+);
+
+"""
+
 MERGE_CREATE_INDEX_SQL = """
 CREATE UNIQUE INDEX idx_compound ON compound(public_id);
 CREATE UNIQUE INDEX idx_rule_smiles ON rule_smiles(smiles);
@@ -22,22 +41,6 @@ CREATE UNIQUE INDEX idx_rule ON rule (from_smiles_id, to_smiles_id);
 CREATE UNIQUE INDEX idx_env_fp ON environment_fingerprint (smarts, parent_smarts);
 CREATE UNIQUE INDEX idx_rule_env ON rule_environment (rule_id, environment_fingerprint_id, radius);
 CREATE UNIQUE INDEX idx_constant_smiles ON constant_smiles(smiles);
-
-CREATE TEMPORARY TABLE rule_map (
-  old_id INTEGER PRIMARY KEY,
-  new_id INTEGER
-);
-
-CREATE TEMPORARY TABLE env_fp_map (
-  old_id INTEGER PRIMARY KEY,
-  new_id INTEGER
-);
-
-CREATE TEMPORARY TABLE rule_env_map (
-  old_id INTEGER PRIMARY KEY,
-  new_id INTEGER
-);
-
 """
 
 MERGE_DROP_INDEX_SQL = """
@@ -116,9 +119,9 @@ INSERT INTO profiler.mmpdb_times (label, t) VALUES ("insert rule", julianday("no
 
 -- This simplifies steps 6 and 7
 
-DELETE FROM rule_map;
+DELETE FROM lut.rule_map;
 
-INSERT INTO rule_map (old_id, new_id) 
+INSERT INTO lut.rule_map (old_id, new_id) 
  SELECT old_rule.id, new_rule.id
    FROM old.rule AS old_rule,
         old.rule_smiles AS old_from_smiles,
@@ -148,9 +151,9 @@ INSERT OR IGNORE INTO environment_fingerprint (smarts, pseudosmiles, parent_smar
 
 INSERT INTO profiler.mmpdb_times (label, t) VALUES ("insert env_fp", julianday("now"));
 
-DELETE FROM env_fp_map;
+DELETE FROM lut.env_fp_map;
 
-INSERT INTO env_fp_map (old_id, new_id)
+INSERT INTO lut.env_fp_map (old_id, new_id)
   SELECT old_env_fp.id, new_env_fp.id
     FROM old.environment_fingerprint as old_env_fp,
          environment_fingerprint as new_env_fp
@@ -168,8 +171,8 @@ INSERT INTO profiler.mmpdb_times (label, t) VALUES ("insert env_fp_map", juliand
 INSERT OR IGNORE INTO rule_environment (rule_id, environment_fingerprint_id, radius)
   SELECT rule_map.new_id, env_fp_map.new_id, old_rule_env.radius
     FROM old.rule_environment AS old_rule_env,
-         rule_map,
-         env_fp_map
+         lut.rule_map AS rule_map,
+         lut.env_fp_map AS env_fp_map
    WHERE old_rule_env.rule_id = rule_map.old_id
      AND old_rule_env.environment_fingerprint_id = env_fp_map.old_id
          ;
@@ -179,14 +182,14 @@ INSERT INTO profiler.mmpdb_times (label, t) VALUES ("insert rule_environment", j
 -- Step 7: Table mapping old rule environment to new rule environment
 
 
-DELETE FROM rule_env_map;
+DELETE FROM lut.rule_env_map;
 
-INSERT INTO rule_env_map (old_id, new_id)
+INSERT INTO lut.rule_env_map (old_id, new_id)
   SELECT old_rule_env.id, new_rule_env.id
     FROM old.rule_environment AS old_rule_env,
          rule_environment AS new_rule_env,
-         rule_map,
-         env_fp_map
+         lut.rule_map AS rule_map,
+         lut.env_fp_map AS env_fp_map
    WHERE old_rule_env.rule_id = rule_map.old_id
      AND new_rule_env.rule_id = rule_map.new_id
      AND old_rule_env.environment_fingerprint_id = env_fp_map.old_id
@@ -214,7 +217,7 @@ INSERT INTO profiler.mmpdb_times (label, t) VALUES ("insert constant_smiles", ju
 INSERT INTO pair (rule_environment_id, compound1_id, compound2_id, constant_id) 
  SELECT rule_env_map.new_id, new_compound1.id, new_compound2.id, new_constant.id
    FROM old.pair AS old_pair,
-        rule_env_map,
+        lut.env_fp_map AS rule_env_map,
         old.compound as old_compound1,
         old.compound as old_compound2,
         compound as new_compound1,
@@ -294,7 +297,11 @@ def add_time(output_c, label):
         'INSERT INTO profiler.mmpdb_times (label, t) VALUES (?, julianday("now"))',
         (label,),
         )
-        
+
+def attach_lut(output_c):
+    output_c.execute('ATTACH DATABASE ":memory:" AS lut')
+    schema._execute_sql(output_c, LUT_CREATE_TABLE)
+    
 def attach_profiler(output_c, profile_path):
     if profile_path is None:
         output_c.execute('ATTACH DATABASE ":memory:" AS profiler')
@@ -310,6 +317,7 @@ def attach_profiler(output_c, profile_path):
         die(f"Cannot create profiler schema in {profile_path!r}: {err}")
     
     add_time(output_c, "start")
+    
 
 def check_for_duplicate_constants(output_c, database):
     for smiles, in output_c.execute("""
@@ -460,6 +468,7 @@ def merge(
                         output_c = output_db = None
                         raise
 
+                    attach_lut(output_c)
                     attach_profiler(output_c, profile_path)
 
                 else:
@@ -500,8 +509,8 @@ def merge(
 ## INSERT OR IGNORE INTO rule_environment (rule_id, environment_fingerprint_id, radius)
 ##   SELECT rule_map.new_id, env_fp_map.new_id, old_rule_env.radius
 ##     FROM old.rule_environment AS old_rule_env,
-##          rule_map,
-##          env_fp_map
+##          lut.rule_map AS rule_map,
+##          lut.env_fp_map AS env_fp_map
 ##    WHERE old_rule_env.rule_id = rule_map.old_id
 ##      AND old_rule_env.environment_fingerprint_id = env_fp_map.old_id
 ##          ;
@@ -548,6 +557,7 @@ def merge(
                 output_c.execute("COMMIT")
             except sqlite3.OperationalError:
                 pass
+            output_c.execute("DETACH DATABASE lut")
 
             add_time(output_c, "start finalization")
             schema._execute_sql(output_c, MERGE_DROP_INDEX_SQL)
