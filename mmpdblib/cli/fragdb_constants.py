@@ -1,16 +1,107 @@
 import math
 import click
+import collections
+import contextlib
 
 from .click_utils import (
     command,
     die,
-    add_single_database_parameters,
+    add_multiple_databases_parameters,
     open_fragdb_from_options_or_exit,
     positive_int,
     nonnegative_int,
     frequency_type,
 )
 
+COUNT_FRAGMENTATIONS_SQL = "SELECT COUNT(*) FROM fragmentation"
+def _get_num_fragmentations(c):
+    (num_fragmentations,) = next(c.execute(COUNT_FRAGMENTATIONS_SQL))
+    return num_fragmentations
+    
+
+class SingleDatabase:
+    def __init__(self, database):
+        self.database = database
+        self.db = self.c = None
+
+    def __enter__(self):
+        self.db = open_fragdb_from_options_or_exit(self.database)
+        self.c = self.db.cursor()
+        return self
+
+    def __exit__(self, *args):
+        self.c.close()
+        self.db.close()
+        self.db = self.c = None
+        
+    def get_num_fragmentations(self):
+        return _get_num_fragmentations(self.c)
+
+    def iter_constants(self, min_constant_num_heavies, min_count, max_count):
+        query = """
+  SELECT constant_smiles, n
+    FROM (
+      SELECT constant_smiles, count(*) AS n
+        FROM fragmentation
+       WHERE constant_num_heavies >= ?
+    GROUP BY constant_smiles
+    )
+   WHERE ? <= n AND n <= ?
+ORDER BY n DESC
+"""
+        args = (min_constant_num_heavies, min_count, max_count)
+
+        self.c.execute(query, args)
+        return self.c
+    
+
+class MultipleDatabases:
+    def __init__(self, databases):
+        self.databases = databases
+
+    def __enter__(self):
+        return self
+    
+    def __exit__(self, *args):
+        pass
+    
+    def get_num_fragmentations(self):
+        n = 0
+        for database in self.databases:
+            with contextlib.closing(open_fragdb_from_options_or_exit(database)) as db:
+                with contextlib.closing(db.cursor()) as c:
+                    n += _get_num_fragmentations(c)
+        return n
+
+    def iter_constants(self, min_constant_num_heavies, min_count, max_count):
+        # We need to load all of the constant SMILES counts
+        query = """
+   SELECT constant_smiles, count(*)
+     FROM fragmentation
+    WHERE constant_num_heavies >= ?
+ GROUP BY constant_smiles
+"""
+        constant_counts = collections.Counter()
+        for database in self.databases:
+            with contextlib.closing(open_fragdb_from_options_or_exit(database)) as db:
+                with contextlib.closing(db.cursor()) as c:
+                    c.execute(query, (min_constant_num_heavies,))
+                    for constant_smiles, n in c:
+                        constant_counts[constant_smiles] += n
+                        
+        for constant_smiles, n in constant_counts.most_common():
+            if min_count <= n <= max_count:
+                yield constant_smiles, n
+
+def open_frag_dbs(databases_options):
+    databases = databases_options.databases
+    assert databases
+    if len(databases) == 1:
+        return SingleDatabase(databases[0])
+    else:
+        return MultipleDatabases(databases)
+
+                
 fragdb_constants_epilog = """
 """
 
@@ -67,11 +158,11 @@ fragdb_constants_epilog = """
     default = True,
     help = "The default, --header, includes the header in output",
     )
-@add_single_database_parameters()
+@add_multiple_databases_parameters()
 @click.pass_obj
 def fragdb_constants(
     reporter,
-    database_options,
+    databases_options,
     min_count,
     max_count,
     min_frequency,
@@ -85,68 +176,51 @@ def fragdb_constants(
     """list constants in a fragdb DATABASE and their frequencies"""
     from ..index_algorithm import get_num_heavies
 
-    fragdb = open_fragdb_from_options_or_exit(database_options)
+    with open_frag_dbs(databases_options) as frag_dbs:
+        num_fragmentations = frag_dbs.get_num_fragmentations()
 
-    c = fragdb.cursor()
+        const_frag_filter = min_heavies_per_const_frag is not None and min_heavies_per_const_frag > 0
 
-    (num_constants,) = next(c.execute("SELECT COUNT(*) FROM fragmentation"))
+        if min_count is None:
+            min_count = 0
 
-    # TODO: push this into the database?
-    const_frag_filter = min_heavies_per_const_frag is not None and min_heavies_per_const_frag > 0
+        if max_count is None:
+            max_count = num_fragmentations
 
-    if min_count is None:
-        min_count = 0
+        # minimum frequency
+        if min_frequency is not None:
+            min_freq_count = int(math.ceil(min_frequency * num_fragmentations))
+            min_count = max(min_count, min_freq_count)
 
-    if max_count is None:
-        max_count = num_constants
+        # maximum frequency
+        if max_frequency is not None:
+            max_freq_count = int(math.floor(max_frequency * num_fragmentations))
+            max_count = min(max_count, max_freq_count)
 
-    # minimum frequency
-    if min_frequency is not None:
-        min_freq_count = int(math.ceil(min_frequency * num_constants))
-        min_count = max(min_count, min_freq_count)
+        assert isinstance(min_count, int)
+        assert isinstance(max_count, int)
 
-    # maximum frequency
-    if max_frequency is not None:
-        max_freq_count = int(math.floor(max_frequency * num_constants))
-        max_count = min(max_count, max_freq_count)
-
-    assert isinstance(min_count, int)
-    assert isinstance(max_count, int)
-
-    query = """
-  SELECT constant_smiles, n
-    FROM (
-      SELECT constant_smiles, count(*) AS n
-        FROM fragmentation
-       WHERE constant_num_heavies >= ?
-    GROUP BY constant_smiles
-    )
-   WHERE ? <= n AND n <= ?
-ORDER BY n DESC
-"""
-    args = (min_heavies_total_const_frag, min_count, max_count)
-
-    c.execute(query, args)
-
-    if limit is None:
-        # 4611686018427387904 constants ought to be good enough for anyone
-        limit = 2**63
-
-    if header:
-        output_file.write(f"constant\tN\n")
-    i = 0
-    for constant_smiles, n in c:
-        # Can't put the --limit in the SQL because of
-        # possible additional filtering by
-        # --min-heavies-per-constant-frag 
-        # after the SQL query
-        if i >= limit:
-            break
+        c = frag_dbs.iter_constants(min_heavies_total_const_frag, min_count, max_count)
         
-        if const_frag_filter:
-            terms = constant_smiles.split(".")
-            if any(get_num_heavies(term) < min_heavies_per_const_frag for term in terms):
-                continue
-        
-        i += 1
-        output_file.write(f"{constant_smiles}\t{n}\n")
+        if limit is None:
+            # 4611686018427387904 constants ought to be good enough for anyone
+            limit = 2**63
+
+        if header:
+            output_file.write(f"constant\tN\n")
+        i = 0
+        for constant_smiles, n in c:
+            # Can't put the --limit in the SQL because of
+            # possible additional filtering by
+            # --min-heavies-per-constant-frag 
+            # after the SQL query
+            if i >= limit:
+                break
+
+            if const_frag_filter:
+                terms = constant_smiles.split(".")
+                if any(get_num_heavies(term) < min_heavies_per_const_frag for term in terms):
+                    continue
+
+            i += 1
+            output_file.write(f"{constant_smiles}\t{n}\n")
