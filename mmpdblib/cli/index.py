@@ -127,6 +127,14 @@ def add_index_options(command):
     )
 
     add_option(
+        "--min-radius",
+        type=IntChoice(["0", "1", "2", "3", "4", "5"]),
+        default=0,
+        metavar="N",
+        help="Minimum Environment Radius to be indexed in the MMPDB database",
+    )
+
+    add_option(
         "--max-radius",
         type=IntChoice(["0", "1", "2", "3", "4", "5"]),
         default=DEFAULT_INDEX_OPTIONS.max_radius,
@@ -186,6 +194,10 @@ def check_validity(kwargs):
         if min_variable_heavies > max_variable_heavies:
             raise click.UsageError("--min-variable-heavies must not be larger than --max-variable-heavies")
 
+    min_radius = kwargs["min_radius"]
+    max_radius = kwargs["max_radius"]
+    if min_radius > max_radius:
+        raise click.UsageError("--min-radius must not be larger than --max-radius")
 
 ##### Get memory size
 
@@ -474,6 +486,7 @@ def index(
         fragment_reader,
         index_options,
         environment_cache,
+        min_radius=index_options.min_radius,
         max_radius=index_options.max_radius,
         reporter=reporter,
     )

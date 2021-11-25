@@ -42,6 +42,7 @@ class IndexOptions(object):
         "max_variable_heavies",
         "min_variable_ratio",
         "max_variable_ratio",
+        "min_radius",
         "max_radius",
         "symmetric",
         "max_heavies_transf",
@@ -57,6 +58,7 @@ class IndexOptions(object):
         max_variable_ratio = None,
         max_heavies_transf = None,
         max_frac_trans = None,
+        min_radius = 0,
         max_radius = 5,
         symmetric = False,
         smallest_transformation_only = False,
@@ -87,6 +89,11 @@ class IndexOptions(object):
 
         assert max_frac_trans is None or max_frac_trans >= 0, max_heavies_transf
         self.max_frac_trans = max_frac_trans
+
+        assert min_radius <= max_radius, (min_radius, max_radius)
+        
+        assert min_radius >= 0, min_radius
+        self.min_radius = min_radius
 
         assert max_radius >= 0, max_radius
         self.max_radius = max_radius

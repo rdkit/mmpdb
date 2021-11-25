@@ -582,13 +582,15 @@ def load_fragment_index(fragment_reader, fragment_filter=None, selected_ids=None
 
 
 class MatchedMolecularPair(object):
-    __slots__ = ("id1", "id2", "smirks", "constant_smiles", "max_constant_radius")
+    __slots__ = ("id1", "id2", "smirks", "constant_smiles",
+                     "min_constant_radius", "max_constant_radius")
 
-    def __init__(self, id1, id2, smirks, constant_smiles, max_constant_radius):
+    def __init__(self, id1, id2, smirks, constant_smiles, min_constant_radius, max_constant_radius):
         self.id1 = id1
         self.id2 = id2
         self.smirks = smirks
         self.constant_smiles = constant_smiles
+        self.min_constant_radius = min_constant_radius
         self.max_constant_radius = max_constant_radius
 
 
@@ -642,7 +644,8 @@ class _NumHeaviesCache(dict):
 _num_heavies_cache = _NumHeaviesCache()
 
 
-def get_max_radius_for_fraction_transfer(max_frac_trans, smirks, constant_smiles, max_radius, environment_cache):
+def get_max_constant_radius_for_fraction_transfer(
+        max_frac_trans, smirks, constant_smiles, min_radius, max_radius, environment_cache):
     # Need to figure out the maximum radius to use
 
     # A pair has compounds C1 and C2. There are N1 and N2 atoms in each, respectively.
@@ -698,9 +701,9 @@ def get_max_radius_for_fraction_transfer(max_frac_trans, smirks, constant_smiles
 
     # If I just cache the center then my test case took
     #    radii = environment_cache.get_or_compute_center_radii(constant_smiles, MAX_RADIUS)
-    radii = environment_cache.get_or_compute_center_radii(constant_smiles, max_radius)
+    radii = environment_cache.get_or_compute_center_radii(constant_smiles, min_radius, max_radius)
 
-    ## print("get_max_radius_for_fraction_transfer()")
+    ## print("get_max_constant_radius_for_fraction_transfer()")
     ## print("n", n, "N1", N1, "V1", V1, "N2", N2, "V2", V2)
     best_radius = None
     for radius, num_atom_in_radius in radii:
@@ -735,22 +738,22 @@ class EnvironmentCache(object):
             self._centers_cache[constant_smiles] = centers
         return centers
 
-    def get_or_compute_center_radii(self, constant_smiles, max_radius):
-        key = (constant_smiles, max_radius)
+    def get_or_compute_center_radii(self, constant_smiles, min_radius, max_radius):
+        key = (constant_smiles, min_radius, max_radius)
         radii = self._radii_cache.get(key, None)
         if radii is None:
             centers = self.get_or_compute_centers(constant_smiles)
-            radii = list(enumerate(environment.iter_num_atoms_for_radii(centers, max_radius)))
+            radii = list(enumerate(environment.iter_num_atoms_for_radii(centers, min_radius, max_radius)))
             self._radii_cache[key] = radii
         return radii
 
-    def get_or_compute_constant_environment(self, constant_smiles, max_radius):
-        key = (constant_smiles, max_radius)
+    def get_or_compute_constant_environment(self, constant_smiles, min_radius, max_radius):
+        key = (constant_smiles, min_radius, max_radius)
         env_fps = self._environment_cache.get(key, None)
         if env_fps is None:
             centers = self.get_or_compute_centers(constant_smiles)
-            env_fps = environment.compute_constant_environment_from_centers(centers, max_radius)
-            assert len(env_fps) == (max_radius + 1), (len(env_fps), max_radius)
+            env_fps = environment.compute_constant_environment_from_centers(centers, min_radius, max_radius)
+            assert len(env_fps) == (max_radius + 1 - min_radius), (len(env_fps), max_radius)
             # Many fingerprints are duplicates. Use an intern dictionary to
             # reduce the memory used. (Is this really needed/useful?)
             for env_fp in env_fps:
@@ -852,6 +855,7 @@ def find_matched_molecular_pairs(
     fragment_reader,
     index_options=config.DEFAULT_INDEX_OPTIONS,
     environment_cache=EnvironmentCache(),
+    min_radius=0,
     max_radius=5,
     reporter=None,
 ):
@@ -1020,21 +1024,23 @@ def find_matched_molecular_pairs(
 
                         # Figure out the max radius allowed for environment fingerprints
                         if max_frac_trans is None or max_frac_trans >= 1.0:
-                            pass
+                            max_constant_radius = max_radius
                         else:
                             # XXX this changes max_radius?? FIXME??
-                            max_radius = get_max_radius_for_fraction_transfer(
+                            max_constant_radius = get_max_constant_radius_for_fraction_transfer(
                                 max_frac_trans,
                                 smirks,
                                 tmp_constant_smiles,
+                                min_radius,
                                 max_radius,
                                 environment_cache,
                             )
-                            if max_radius is None:
+                            if max_possible_radius is None:
                                 # skip this pair
                                 continue
 
-                        yield MatchedMolecularPair(tmp_id1, tmp_id2, smirks, tmp_constant_smiles, max_radius)
+                        yield MatchedMolecularPair(tmp_id1, tmp_id2, smirks, tmp_constant_smiles,
+                                                       min_radius, max_constant_radius)
 
 
 class BaseWriter(object):
@@ -1287,7 +1293,8 @@ class MMPWriter(BaseWriter):
             rule_idx = self._rule_table[pair.smirks]
 
             # Get the environment for the constant part, at different radii.
-            rule_envs = self._get_rule_environments(rule_idx, pair.constant_smiles, pair.max_constant_radius)
+            rule_envs = self._get_rule_environments(rule_idx, pair.constant_smiles,
+                                                        pair.min_constant_radius, pair.max_constant_radius)
             if rule_envs:
                 compound1_idx = self._compound_table[pair.id1]
                 compound2_idx = self._compound_table[pair.id2]
@@ -1321,9 +1328,9 @@ class MMPWriter(BaseWriter):
 
         self.num_pairs += pair_i + 1
 
-    def _get_rule_environments(self, rule_idx, constant_smiles, max_radius):
+    def _get_rule_environments(self, rule_idx, constant_smiles, min_radius, max_radius):
         # XXX Add another layer of cache? I don't think it makes much sense.
-        env_fps = self._environment_cache.get_or_compute_constant_environment(constant_smiles, max_radius)
+        env_fps = self._environment_cache.get_or_compute_constant_environment(constant_smiles, min_radius, max_radius)
         rule_envs = []
         parent = -1  # Added for parent indexing
         for env_fp in env_fps:

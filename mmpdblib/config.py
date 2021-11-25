@@ -239,6 +239,7 @@ DEFAULT_INDEX_OPTIONS = index_types.IndexOptions(
     max_variable_ratio=None,
     max_heavies_transf=None,
     max_frac_trans=None,  # XXX can this be 1.0?,
+    min_radius=0,
     max_radius=5,
     symmetric=False,
     smallest_transformation_only=False,
