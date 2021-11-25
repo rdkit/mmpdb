@@ -1026,7 +1026,6 @@ def find_matched_molecular_pairs(
                         if max_frac_trans is None or max_frac_trans >= 1.0:
                             max_constant_radius = max_radius
                         else:
-                            # XXX this changes max_radius?? FIXME??
                             max_constant_radius = get_max_constant_radius_for_fraction_transfer(
                                 max_frac_trans,
                                 smirks,
