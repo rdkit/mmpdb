@@ -95,7 +95,8 @@ class MultipleDatabases:
 
 def open_frag_dbs(databases_options):
     databases = databases_options.databases
-    assert databases
+    if not databases:
+        raise click.BadArgumentUsage("must specify at least one fragment database")
     if len(databases) == 1:
         return SingleDatabase(databases[0])
     else:
