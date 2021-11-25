@@ -1034,7 +1034,7 @@ def find_matched_molecular_pairs(
                                 max_radius,
                                 environment_cache,
                             )
-                            if max_possible_radius is None:
+                            if max_constant_radius is None:
                                 # skip this pair
                                 continue
 
