@@ -34,10 +34,10 @@ class SingleDatabase:
         self.db.close()
         self.db = self.c = None
         
-    def get_num_fragmentations(self):
+    def get_num_fragmentations(self, reporter):
         return _get_num_fragmentations(self.c)
 
-    def iter_constants(self, min_constant_num_heavies, min_count, max_count):
+    def iter_constants(self, min_constant_num_heavies, min_count, max_count, reporter):
         query = """
   SELECT constant_smiles, n
     FROM (
@@ -65,15 +65,21 @@ class MultipleDatabases:
     def __exit__(self, *args):
         pass
     
-    def get_num_fragmentations(self):
+    def get_num_fragmentations(self, reporter):
         n = 0
-        for database in self.databases:
-            with contextlib.closing(open_fragdb_from_options_or_exit(database)) as db:
-                with contextlib.closing(db.cursor()) as c:
-                    n += _get_num_fragmentations(c)
+        num_databases = len(self.databases)
+        for database_i, database in enumerate(self.databases, 1):
+            reporter.update(f"Analyzing {database!r} (#{database_i}/{num_databases})")
+            try:
+                with contextlib.closing(open_fragdb_from_options_or_exit(database)) as db:
+                    with contextlib.closing(db.cursor()) as c:
+                        n += _get_num_fragmentations(c)
+            finally:
+                reporter.update("")
         return n
 
-    def iter_constants(self, min_constant_num_heavies, min_count, max_count):
+    def iter_constants(self, min_constant_num_heavies, min_count, max_count,
+                           reporter):
         # We need to load all of the constant SMILES counts
         query = """
    SELECT constant_smiles, count(*)
@@ -82,12 +88,17 @@ class MultipleDatabases:
  GROUP BY constant_smiles
 """
         constant_counts = collections.Counter()
-        for database in self.databases:
-            with contextlib.closing(open_fragdb_from_options_or_exit(database)) as db:
-                with contextlib.closing(db.cursor()) as c:
-                    c.execute(query, (min_constant_num_heavies,))
-                    for constant_smiles, n in c:
-                        constant_counts[constant_smiles] += n
+        num_databases = len(self.databases)
+        for database_i, database in enumerate(self.databases, 1):
+            reporter.update(f"Selecting constants from {database!r} (#{database_i}/{num_databases})")
+            try:
+                with contextlib.closing(open_fragdb_from_options_or_exit(database)) as db:
+                    with contextlib.closing(db.cursor()) as c:
+                        c.execute(query, (min_constant_num_heavies,))
+                        for constant_smiles, n in c:
+                            constant_counts[constant_smiles] += n
+            finally:
+                reporter.update("")
                         
         for constant_smiles, n in constant_counts.most_common():
             if min_count <= n <= max_count:
@@ -178,7 +189,7 @@ def fragdb_constants(
     from ..index_algorithm import get_num_heavies
 
     with open_frag_dbs(databases_options) as frag_dbs:
-        num_fragmentations = frag_dbs.get_num_fragmentations()
+        num_fragmentations = frag_dbs.get_num_fragmentations(reporter=reporter)
 
         const_frag_filter = min_heavies_per_const_frag is not None and min_heavies_per_const_frag > 0
 
@@ -201,16 +212,23 @@ def fragdb_constants(
         assert isinstance(min_count, int)
         assert isinstance(max_count, int)
 
-        c = frag_dbs.iter_constants(min_heavies_total_const_frag, min_count, max_count)
+        c = frag_dbs.iter_constants(min_heavies_total_const_frag, min_count, max_count,
+                                        reporter=reporter)
         
         if limit is None:
             # 4611686018427387904 constants ought to be good enough for anyone
             limit = 2**63
 
-        if header:
-            output_file.write(f"constant\tN\n")
         i = 0
         for constant_smiles, n in c:
+            # Don't write the header until we have the first output line.
+            # This makes the status reports easier to read as they are
+            # not placed between the header and the constant lines.
+            if header:
+                output_file.write(f"constant\tN\n")
+                # Only write the header once.
+                header = False
+            
             # Can't put the --limit in the SQL because of
             # possible additional filtering by
             # --min-heavies-per-constant-frag 
