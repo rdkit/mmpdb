@@ -1,7 +1,11 @@
 
-import os
 import collections
+import contextlib
+import heapq
+import os
+import pathlib
 import random
+import sqlite3
 
 import click
 from .click_utils import (
@@ -9,11 +13,73 @@ from .click_utils import (
     die,
     positive_int,
     template_type,
-    add_single_database_parameters,
+    add_multiple_databases_parameters,
     open_fragdb_from_options_or_exit,
     )
 
+from .. import fragment_db
+from .. import schema
 
+def check_for_duplicate_titles(seen_titles, database, c):
+    c.execute("SELECT title FROM record")
+    for title, in c:
+        if title in seen_titles:
+            prev_field, prev_database = seen_titles[title]
+            die(
+                f"Cannot merge. Duplicate record {title!r} found as record in {database!r} and "
+                f"{prev_field} in {prev_database!r}"
+                )
+        seen_titles[title] = ("record", database)
+        
+    c.execute("SELECT title FROM error_record")
+    for title, in c:
+        if title in seen_titles:
+            prev_field, prev_database = seen_titles[title]
+            die(
+                f"Cannot merge. Duplicate record {title!r} found as error record in {database!r} and "
+                f"{prev_field} in {prev_database!r}"
+                )
+        seen_titles[title] = ("error record", database)
+        
+        
+
+def get_all_constant_counts(databases, reporter):
+    num_databases = len(databases)
+    assert num_databases > 0
+    constant_counts = collections.defaultdict(int)
+
+    seen_titles = {}
+    
+    for database in databases:
+        with contextlib.closing(open_fragdb_from_options_or_exit(database)) as db:
+            with contextlib.closing(db.cursor()) as c:
+                check_for_duplicate_titles(seen_titles, database, c)
+                
+                num_constant_smiles = 0
+                num_fragmentations = 0
+                c.execute(
+                    "SELECT constant_smiles, COUNT(*) FROM fragmentation GROUP BY constant_smiles"
+                    )
+                for constant_smiles, n in c:
+                    constant_counts[constant_smiles] += n
+                    num_constant_smiles += 1
+                    num_fragmentations += n
+                    
+                reporter.report(
+                    f"Analyzed {database!r}: "
+                    f"#constants: {num_constant_smiles} "
+                    f"#fragmentations: {num_fragmentations}"
+                    )
+    if num_databases > 1:
+        reporter.report(
+            f"Analyzed {num_databases} databases. Found "
+            f"#constants: {len(constant_counts)} "
+            f"#fragmentations: {sum(constant_counts.values())}"
+            )
+    
+    return list(constant_counts.items())
+    
+    
 def get_constants_from_file(infile, has_header):
     constants = set()
     line_iter = iter(infile)
@@ -34,27 +100,79 @@ def get_constants_from_file(infile, has_header):
         constants.add(smiles)
     return constants
 
-def get_constant_counts(constants, fragdb, reporter):
-    c = fragdb.cursor()
-    constant_counts = []
-    for constant in constants:
-        c.execute(
-            "SELECT count(*) FROM fragmentation WHERE constant_smiles = ?",
-            (constant,))
-        for (n,) in c:
-            break
-        else:
-            raise AssertionError
-        if n == 0:
+
+
+def get_specified_constant_counts(constants, databases, reporter):
+    constant_counts = dict((constant, 0) for constant in constants)
+
+    # Use an in-memory database to help with the selection.
+    constants_db = sqlite3.connect(":memory:")
+    constants_c = constants_db.cursor()
+    constants_c.execute("""
+CREATE TABLE constant (
+  constant_smiles TEXT
+)""")
+    constants_c.executemany(
+        "INSERT INTO constant (constant_smiles) VALUES (?)",
+        [(constant,) for constant in constants]
+        )
+    constants_c.execute("CREATE UNIQUE INDEX constant_on_smiles ON constant(constant_smiles)")
+    constants_c.execute("COMMIT")
+
+    seen_titles = {}
+    try:
+        for database in databases:
+            # Verify it's valid
+            with open_fragdb_from_options_or_exit(database) as db:
+                check_for_duplicate_titles(seen_titles, database, db.cursor())
+            
+
+            constants_c.execute("ATTACH DATABASE ? AS fragdb", (database,))
+            try:
+                constants_c.execute("""
+  SELECT fragmentation.constant_smiles, COUNT(*)
+    FROM fragdb.fragmentation as fragmentation,
+         constant
+   WHERE constant.constant_smiles = fragmentation.constant_smiles
+GROUP BY fragmentation.constant_smiles
+""")
+                num_constant_smiles = 0
+                num_fragmentations = 0
+                for constant_smiles, n in constants_c:
+                    constant_counts[constant_smiles] += n
+                    num_constant_smiles += 1
+                    num_fragmentations += n
+                
+                reporter.report(
+                    f"Counts from {database!r}: "
+                    f"#constants: {num_constant_smiles} "
+                    f"#fragmentations: {num_fragmentations}"
+                    )
+                
+            finally:
+                constants_c.execute("DETACH DATABASE fragdb")
+                
+    finally:
+        constants_c.close()
+        constants_db.close()
+
+
+    num_databases = len(databases)
+    if num_databases > 1:
+        reporter.report(
+            f"Counts from {num_databases} databases. Found "
+            f"#constants: {len(constant_counts)} "
+            f"#fragmentations: {sum(constant_counts.values())}"
+            )
+
+    final_counts = []
+    for constant, count in constant_counts.items():
+        if count == 0:
             reporter.warning(f"Constant {constant!r} not in the database - skipping.")
-        constant_counts.append((n, constant))
-    return constant_counts
+        else:
+            final_counts.append((constant, count))
+    return final_counts
         
-    
-def get_constant_counts_from_db(db):
-    c = db.cursor()
-    c.execute("SELECT count(*), constant_smiles FROM fragmentation GROUP BY constant_smiles")
-    return list(c)
 
 def get_weight(n):
     # +1 to include the possibility of matching to a hydrogen SMILES
@@ -68,9 +186,8 @@ def _largest_subset_sort_key(pair):
 # first-fit to the subset with the smallest weight
 def subset_by_max_files(constant_counts, num_files):
     assert num_files > 0, num_files
-    import heapq
     heap = [(0, []) for i in range(num_files)]
-    for count, constant in constant_counts:
+    for constant, count in constant_counts:
         weight = get_weight(count)
         tot_weight, subset = heapq.heappop(heap)
         subset.append(constant)
@@ -83,10 +200,9 @@ def subset_by_max_files(constant_counts, num_files):
 # but add a new subset if too full
 def subset_by_max_weight(constant_counts, max_weight):
     assert max_weight > 0, max_weight
-    import heapq
     heap = [(0, [])]
     
-    for count, constant in constant_counts:
+    for constant, count in constant_counts:
         weight = get_weight(count)
 
         tot_weight, subset = heap[0]
@@ -105,29 +221,78 @@ def subset_by_max_weight(constant_counts, max_weight):
     return heap
     
 
-def copy_to_subset(output_c, subset):
-    import sqlite3
+def init_output_database(output_c, subset):
+    # Create the schema
+    schema._execute_sql(output_c, fragment_db.get_schema_template())
+    
+    # Create some in-memory/temporary tables
+    schema._execute_sql(output_c, """
+ATTACH DATABASE ":memory:" AS merge;
 
-    # Create a new table containing the constant smiles
-    output_c.execute("""
-CREATE TEMPORARY TABLE required_constants (
+CREATE TABLE merge.required_constants (
   constant_smiles TEXT
-)""")
+);
+    """)
+
+    # Add the constants for this database subset
     output_c.executemany("""
-INSERT INTO required_constants (constant_smiles) VALUES (?)
+INSERT INTO merge.required_constants (constant_smiles) VALUES (?)
 """, ((smiles,) for smiles in subset)
      )
+    
     # Index
-    output_c.execute("CREATE INDEX required_constants_idx ON required_constants(constant_smiles)")
+    output_c.execute("CREATE INDEX merge.required_constants_idx ON required_constants(constant_smiles)")
 
+
+def check_for_duplicates(output_c, input_filename, output_filename, reporter):
+    # Check for duplicate record titles 
+    output_c.execute("""
+SELECT old_record.title
+  FROM old.record AS old_record,
+       record AS new_record
+ WHERE old_record.title = new_record.title
+ LIMIT 1
+""")
+    for (title,) in output_c:
+        reporter.update("")
+        die(
+            f"ERROR! Cannot merge {input_filename!r}. "
+            f"Record {title!r} already in {output_filename!r}."
+            )
+        
+    # Check for duplicate error record titles
+    output_c.execute("""
+SELECT old_error_record.title
+  FROM old.error_record AS old_error_record,
+       error_record AS new_error_record
+ WHERE old_error_record.title = new_error_record.title
+ LIMIT 1
+""")
+    for (title,) in output_c:
+        die(
+            f"Cannot merge {input_filename!r} ",
+            f"Error record {title!r} already in {output_filename!r}."
+            )
+    
+    
+def export_options(output_c):
     # Copy the options
     output_c.execute("INSERT INTO options SELECT * FROM old.options")
-
+    
+def export_subset(output_c):
     # Copy the erorr_record rows
-    output_c.execute("INSERT INTO error_record SELECT * FROM old.error_record")
+    output_c.execute("""
+INSERT INTO error_record (title, input_smiles, errmsg)
+SELECT title, input_smiles, errmsg
+  FROM old.error_record
+""")
     
     # Copy the record rows
-    output_c.execute("INSERT INTO record SELECT * FROM old.record")
+    output_c.execute("""
+INSERT INTO record (title, input_smiles, num_normalized_heavies, normalized_smiles)
+SELECT title, input_smiles, num_normalized_heavies, normalized_smiles
+  FROM old.record
+""")
 
     # Copy the relevant fragmentations
     output_c.execute("""
@@ -154,8 +319,8 @@ INSERT INTO fragmentation (
          constant_symmetry_class,
          old_fragmentation.constant_smiles,
          constant_with_H_smiles
-    FROM old.fragmentation as old_fragmentation,
-         required_constants
+    FROM old.fragmentation AS old_fragmentation,
+         merge.required_constants AS required_constants
    WHERE old_fragmentation.constant_smiles = required_constants.constant_smiles
    ;
 """)
@@ -267,14 +432,22 @@ def set_max_weight(ctx, param, value):
     help = "template for the output filenames",
     )
 
-@add_single_database_parameters()
+@click.option(
+    "--reference",
+    metavar = "STR",
+    default = None,
+    help = "reference filename to use for the template",
+    )
+
+@add_multiple_databases_parameters()
 @click.pass_obj
 def fragdb_partition(
         reporter,
-        database_options,
+        databases_options,
         num_files,
         max_weight,
         template,
+        reference,
         constants_file,
         has_header,
         ):
@@ -282,50 +455,46 @@ def fragdb_partition(
 
     DATABASE - a fragdb fragments database filename
     """
-    import sqlite3
-    import pathlib
-    import shutil
-    from .. import fragment_db
-    from .. import schema
 
-    fragdb = open_fragdb_from_options_or_exit(database_options)
+    databases = databases_options.databases
+    if not databases:
+        raise click.BadArgumentUsage("must specify at least one fragment database")
+    
+    num_databases = len(databases)
+
+    if reference is None:
+        if num_databases == 1:
+            reference = databases[0]
+        else:
+            reference = "partition.fragdb"
 
     # Get values used for template generation
-    database_path = pathlib.Path(database_options.database)
-    database = str(database_path)
-    database_parent = database_path.parent
-    database_stem = database_path.stem
-    database_prefix = str(database_path.parent / database_path.stem)
+    reference_path = pathlib.Path(reference)
+    reference_str = str(reference_path)
+    reference_parent = reference_path.parent
+    reference_stem = reference_path.stem
+    reference_prefix = str(reference_path.parent / reference_path.stem)    
 
-
-    if constants_file is not None:
+    # Load the constant counts
+    if constants_file is None:
+        constant_counts = get_all_constant_counts(databases, reporter)
+    else:
         with constants_file:
             constants = get_constants_from_file(constants_file, has_header)
-        src = f"file {constants_file.name!r}"
         if not constants:
-            reporter.report("No constants found in {src}. Exiting.")
-            return
-        constant_counts = get_constant_counts(constants, fragdb, reporter)
-        if not constant_counts:
-            reporter.report("No constants from {src} found in {database_options.database!r}. Exiting.")
-            return
-    else:
-        constant_counts = get_constant_counts_from_db(fragdb)
-        src = f"database {database_options.database!r}"
-        if not constant_counts:
-            reporter.report("No constants from {src}. Exiting.")
-
-    fragdb.close()
-    reporter.report(f"Using {len(constant_counts)} constants from {src}.")
+            reporter.report("No constants found in {constants_file.name!r}. Exiting.")
+            return            
+        
+        constant_counts = get_specified_constant_counts(constants, databases, reporter)
 
     # Sort from the most common to the least so we can use a first-fit algorithm.
     # (Decreasing count, increasing constant)
-    constant_counts.sort(key = lambda pair: (-pair[0], pair[1]))
+    constant_counts.sort(key = lambda pair: (-pair[1], pair[0]))
     
     # Assign to bins
     if num_files is None:
         if max_weight is None:
-            # Is this a good default?
+            # Is 10 a good default?
             constant_subsets = subset_by_max_files(constant_counts, 10)
         else:
             constant_subsets = subset_by_max_weight(constant_counts, max_weight)
@@ -334,13 +503,13 @@ def fragdb_partition(
         
     
     # Save to files
-    for i, (total_weight, subset) in enumerate(constant_subsets):
+    for subset_i, (total_weight, subset) in enumerate(constant_subsets):
         output_filename = template.format(
-            parent = database_parent,
-            stem = database_stem,
-            prefix = database_prefix,
+            parent = reference_parent,
+            stem = reference_stem,
+            prefix = reference_prefix,
             sep = os.sep,
-            i = i,
+            i = subset_i,
             )
 
         # Copy to the destination
@@ -348,7 +517,7 @@ def fragdb_partition(
             continue
         reporter.report(
             f"Exporting {len(subset)} constants to {output_filename!r} "
-            f"(weight: {total_weight})",
+            f"(#{subset_i+1}/{len(constant_subsets)}, weight: {total_weight})",
             )
 
         try:
@@ -362,18 +531,36 @@ def fragdb_partition(
             die("Cannot create output file {output_filename!r}: {err}")
 
         output_c = output_db.cursor()
-        schema._execute_sql(output_c, fragment_db.get_schema_template())
-        output_c.execute("BEGIN TRANSACTION")
-        try:
-            output_c.execute("ATTACH DATABASE ? AS old", (database_options.database,))
-        except sqlite3.OperationalError as err:
-            die("Cannot attach file {database_options.database} to {output_filename!r}: {err}")
+        
+        init_output_database(output_c, subset)
+        output_c.execute("COMMIT")
+        
+        for i, database in enumerate(databases, 1):
 
-        try:
-            copy_to_subset(output_c, subset)
-        finally:
-            output_c.execute("COMMIT")
-            output_c.execute("DETACH DATABASE old")
+            try:
+                output_c.execute("ATTACH DATABASE ? AS old", (database,))
+            except sqlite3.OperationalError as err:
+                die("Cannot attach file {database!t} to {output_filename!r}: {err}")
 
-        schema._execute_sql(output_c, fragment_db.get_fragment_create_index_sql())            
+            try:
+                if num_databases > 1:
+                    reporter.update(f"Exporting constants from {database!r} (#{i}/{num_databases})")
+                    
+                #check_for_duplicates(output_c, database, output_filename, reporter)
+                
+                output_c.execute("BEGIN TRANSACTION")
+                if i == 0:
+                    export_options(output_c)
+                export_subset(output_c)
+            finally:
+                reporter.update("")
+                try:
+                    output_c.execute("COMMIT")
+                except sqlite3.OperationalError:
+                    pass
+                output_c.execute("DETACH DATABASE old")
+
+        # And index (need the title indices for duplicate checks.)
+        schema._execute_sql(output_c, fragment_db.get_fragment_create_index_sql())
+                
         output_db.close()
