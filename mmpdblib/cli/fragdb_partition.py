@@ -535,7 +535,7 @@ def fragdb_partition(
         init_output_database(output_c, subset)
         output_c.execute("COMMIT")
         
-        for i, database in enumerate(databases, 1):
+        for database_i, database in enumerate(databases, 1):
 
             try:
                 output_c.execute("ATTACH DATABASE ? AS old", (database,))
@@ -544,12 +544,12 @@ def fragdb_partition(
 
             try:
                 if num_databases > 1:
-                    reporter.update(f"Exporting constants from {database!r} (#{i}/{num_databases})")
+                    reporter.update(f"Exporting constants from {database!r} (#{database_i}/{num_databases})")
                     
                 #check_for_duplicates(output_c, database, output_filename, reporter)
                 
                 output_c.execute("BEGIN TRANSACTION")
-                if i == 0:
+                if database_i == 1:
                     export_options(output_c)
                 export_subset(output_c)
             finally:
