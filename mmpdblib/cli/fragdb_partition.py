@@ -20,26 +20,57 @@ from .click_utils import (
 from .. import fragment_db
 from .. import schema
 
-def check_for_duplicate_titles(seen_titles, database, c):
-    c.execute("SELECT title FROM record")
-    for title, in c:
-        if title in seen_titles:
-            prev_field, prev_database = seen_titles[title]
-            die(
-                f"Cannot merge. Duplicate record {title!r} found as record in {database!r} and "
-                f"{prev_field} in {prev_database!r}"
-                )
-        seen_titles[title] = ("record", database)
+class ValidityChecker:
+    def __init__(self, first_database):
+        self.first_database = first_database
+        self.seen_titles = {}
+        self.options = None
+
+    def check(self, database, c):
+        if self.options is None:
+            self.options = fragment_db.select_options(c)
+        else:
+            options = fragment_db.select_options(c)
+            self.check_for_bad_options(self.first_database, self.options, database, options)
         
-    c.execute("SELECT title FROM error_record")
-    for title, in c:
-        if title in seen_titles:
-            prev_field, prev_database = seen_titles[title]
-            die(
-                f"Cannot merge. Duplicate record {title!r} found as error record in {database!r} and "
-                f"{prev_field} in {prev_database!r}"
-                )
-        seen_titles[title] = ("error record", database)
+        self.check_for_duplicate_titles(self.seen_titles, database, c)
+
+    def check_for_bad_options(self, first_database, first_options, database, options):
+        first_d = first_options.to_dict()
+        d = options.to_dict()
+        if d == first_d:
+            return
+
+        # Figure out which values are different
+        lines = [
+            f"Cannot merge. The fragment options in {database!r} differ from {first_database!r}."
+            ]
+        for k in d:
+            if d[k] != first_d[k]:
+                lines.append(f"  {k}: {d[k]!r} != {first_d[k]!r}")
+        die(*lines)
+    
+
+    def check_for_duplicate_titles(self, seen_titles, database, c):
+        c.execute("SELECT title FROM record")
+        for title, in c:
+            if title in seen_titles:
+                prev_field, prev_database = seen_titles[title]
+                die(
+                    f"Cannot merge. Duplicate record {title!r} found as record in {database!r} and "
+                    f"{prev_field} in {prev_database!r}"
+                    )
+            seen_titles[title] = ("record", database)
+
+        c.execute("SELECT title FROM error_record")
+        for title, in c:
+            if title in seen_titles:
+                prev_field, prev_database = seen_titles[title]
+                die(
+                    f"Cannot merge. Duplicate record {title!r} found as error record in {database!r} and "
+                    f"{prev_field} in {prev_database!r}"
+                    )
+            seen_titles[title] = ("error record", database)
         
         
 
@@ -48,12 +79,12 @@ def get_all_constant_counts(databases, reporter):
     assert num_databases > 0
     constant_counts = collections.defaultdict(int)
 
-    seen_titles = {}
+    checker = ValidityChecker(databases[0])
     
     for database in databases:
         with contextlib.closing(open_fragdb_from_options_or_exit(database)) as db:
             with contextlib.closing(db.cursor()) as c:
-                check_for_duplicate_titles(seen_titles, database, c)
+                checker.check(database, c)
                 
                 num_constant_smiles = 0
                 num_fragmentations = 0
@@ -119,13 +150,12 @@ CREATE TABLE constant (
     constants_c.execute("CREATE UNIQUE INDEX constant_on_smiles ON constant(constant_smiles)")
     constants_c.execute("COMMIT")
 
-    seen_titles = {}
+    checker = ValidityChecker(databases[0])
     try:
         for database in databases:
             # Verify it's valid
             with open_fragdb_from_options_or_exit(database) as db:
-                check_for_duplicate_titles(seen_titles, database, db.cursor())
-            
+                checker.check(database, db.cursor())
 
             constants_c.execute("ATTACH DATABASE ? AS fragdb", (database,))
             try:
