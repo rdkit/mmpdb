@@ -11,6 +11,7 @@ from .click_utils import (
     command,
     die,
     positive_int,
+    nonnegative_int,
     template_type,
     add_multiple_databases_parameters,
     open_fragdb_from_options_or_exit,
@@ -431,8 +432,9 @@ determined from the specified fragdb files.
 If a constants file is not specified then the constant SMILES and
 associated counts are determined by analyzing the fragdb files.
 
-The `--template` string is used to generate the output filenames, formatted
-using [Format String Syntax](https://docs.python.org/3/library/string.html#formatstrings).
+The `--template` / `-t` string is used to generate the output
+filenames, formatted using [Format String
+Syntax](https://docs.python.org/3/library/string.html#formatstrings).
 The available fields are:
 
 \b
@@ -479,10 +481,10 @@ lets you get an idea of how many partitions it will generate. (When
 working with large data sets, it's best to generate and re-use a
 constants file than have mmpdb determine the counts each time.)
 
-Use `--task` / `-t` and `--num-tasks` / `--T` to partition the files
-in parallel. The idea is that `T` instances of `fragdb_partition` will
-be submitted to a job scheduler and instance `t` will partition only
-the subsets `i` where `i % T == t`.
+Use `--tid` and `--num-tasks` to partition the files in parallel. The
+idea is that `num_tasks` instances of `fragdb_partition` will be
+submitted to a job scheduler and instance `tid` will partition only
+the subsets `i` where `i % num_tasks == tid`.
 
 """
 
@@ -564,6 +566,20 @@ def set_max_weight(ctx, param, value):
     help = "template for the output filenames",
     )
 @click.option(
+    "--tid",
+    "--task-id",
+    "task_id",
+    type = nonnegative_int(),
+    default = None,
+    help = "task id to use for parallelized partitioning (0 <= task id < num_tasks)",
+    )
+@click.option(
+    "--num-tasks",
+    type = positive_int(),
+    default = None,
+    help = "number of tasks involved in parallelized partitioning",
+    )
+@click.option(
     "--dry-run",
     is_flag = True,
     default = False,
@@ -582,6 +598,8 @@ def fragdb_partition(
         recount,
         has_header,
         dry_run,
+        task_id,
+        num_tasks,
         ):
     """partition fragments based on common constants
 
@@ -591,6 +609,18 @@ def fragdb_partition(
     databases = databases_options.databases
     if not databases:
         raise click.BadArgumentUsage("must specify at least one fragment database")
+
+    if task_id is None:
+        if num_tasks is None:
+            task_id = 0
+            num_tasks = 1
+        else:
+            raise click.BadArgumentUsage("Must specify --task-id because --num-tasks was specified")
+    else:
+        if num_tasks is None:
+            raise click.BadArgumentUsage("Must specify --num-tasks because --task-id was specified")
+        if task_id >= num_tasks:
+            raise click.BadArgumentUsage("--task-id must be less than --num-tasks")
     
     num_databases = len(databases)
 
@@ -656,6 +686,9 @@ def fragdb_partition(
 
         # Copy to the destination
         if not subset:
+            continue
+
+        if not (subset_i % num_tasks == task_id):
             continue
 
         if dry_run:
