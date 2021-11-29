@@ -72,6 +72,12 @@ class EnvironmentFingerprint(object):
         self.parent_smarts = parent_smarts
         # What about parent?
 
+    def __repr__(self):
+        return (
+            f"EnvironmentFingerprint({self.radius}, {self.smarts!r}, "
+            f"{self.pseudosmiles!r}, {self.parent_smarts})"
+            )
+
 
 def find_centers(smiles):
     mol = Chem.MolFromSmiles(smiles)
