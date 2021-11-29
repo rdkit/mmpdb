@@ -52,6 +52,7 @@ command_groups = [
             ("predict", "predict.predict"),
             ("transform", "transform.transform"),
             ("rgroup2smarts", "rgroup2smarts.rgroup2smarts"),
+            ("hop", "hop.hop"),
             ],
     ), (
         "Distributed generation commands (see 'help-distributed')", [
