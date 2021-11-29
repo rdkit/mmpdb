@@ -1,4 +1,3 @@
-
 import collections
 import contextlib
 import heapq
@@ -43,7 +42,7 @@ class ValidityChecker:
 
         # Figure out which values are different
         lines = [
-            f"Cannot merge. The fragment options in {database!r} differ from {first_database!r}."
+            f"Cannot partition. The fragment options in {database!r} differ from {first_database!r}."
             ]
         for k in d:
             if d[k] != first_d[k]:
@@ -72,7 +71,12 @@ class ValidityChecker:
                     )
             seen_titles[title] = ("error record", database)
         
-        
+def validate_databases(databases):
+    checker = ValidityChecker(databases[0])
+    for database in databases:
+        with contextlib.closing(open_fragdb_from_options_or_exit(database)) as db:
+            with contextlib.closing(db.cursor()) as c:
+                checker.check(database, c)
 
 def get_all_constant_counts(databases, reporter):
     num_databases = len(databases)
@@ -108,29 +112,56 @@ def get_all_constant_counts(databases, reporter):
             f"#fragmentations: {sum(constant_counts.values())}"
             )
     
-    return list(constant_counts.items())
+    return constant_counts
     
     
-def get_constants_from_file(infile, has_header):
-    constants = set()
+def get_constant_counts_from_file(infile, has_header, include_count):
+    constant_counts = {}
     line_iter = iter(infile)
+    lineno = 1
+    seen = {}
 
+    filename = infile.name
+    def oopsie(msg):
+        die(f"Unable to process constants file: {msg}, {filename!r} line {lineno}")
+    
     if has_header:
         # Skip the first line, if it exists
         try:
             next(line_iter)
         except StopIteration:
             return constants
+        lineno += 1
         
-    for line in line_iter:
-        if line[:1].isspace():
-            continue
-        fields = line.split(None, 1)
-        assert fields, ("should not happen", line)
-        smiles = fields[0]
-        constants.add(smiles)
-    return constants
+    for lineno, line in enumerate(line_iter, lineno):
+        fields = line.split()
+        num_fields = len(fields)
+        if include_count:
+            if num_fields == 0:
+                oopsie("Missing SMILES and count columns")
+            if num_fields == 1:
+                oopsie("Missing count column")
+            smiles, count_str = fields[:2]
+            try:
+                count = int(count_str)
+                if count < 1:
+                    raise ValueError
+            except ValueError as err:
+                oopsie(f"Count must be a positive integer (not {count_str!r})")
+                
+        else:
+            if num_fields == 0:
+                oopsie("Missing SMILES column")
+            smiles = fields[0]
+            count = 1
 
+        if smiles in seen:
+            prev_lineno = seen[smiles]
+            oopsie(f"SMILES is a duplicate from {prev_lineno}")
+        seen[smiles] = lineno
+        
+        constant_counts[smiles] = count
+    return constant_counts
 
 
 def get_specified_constant_counts(constants, databases, reporter):
@@ -443,6 +474,13 @@ def set_max_weight(ctx, param, value):
     type = click.File("r"),
     help = "only export fragmentations containing the constants specified in the named file",
     )
+
+@click.option(
+    "--recount",
+    is_flag = True,
+    help = "ignore the counts in the constants file and instead compute them from fragment database(s)",
+    )
+
 @click.option(
     "--has-header / --no-header",
     "has_header",
@@ -460,6 +498,12 @@ def set_max_weight(ctx, param, value):
     type = template_type(),
     show_default = True,
     help = "template for the output filenames",
+    )
+@click.option(
+    "--dry-run",
+    is_flag = True,
+    default = False,
+    help = "describe the partitions which will be generated but don't generate them",
     )
 
 @click.option(
@@ -479,7 +523,9 @@ def fragdb_partition(
         template,
         reference,
         constants_file,
+        recount,
         has_header,
+        dry_run,
         ):
     """partition a fragdb based on common constants
 
@@ -510,15 +556,20 @@ def fragdb_partition(
         constant_counts = get_all_constant_counts(databases, reporter)
     else:
         with constants_file:
-            constants = get_constants_from_file(constants_file, has_header)
-        if not constants:
+            constant_counts = get_constant_counts_from_file(
+                constants_file, has_header, not recount)
+        if not constant_counts:
             reporter.report("No constants found in {constants_file.name!r}. Exiting.")
             return            
-        
-        constant_counts = get_specified_constant_counts(constants, databases, reporter)
+
+        if recount:
+            constant_counts = get_specified_constant_counts(list(constant_counts), databases, reporter)
+        else:
+            validate_databases(databases)
 
     # Sort from the most common to the least so we can use a first-fit algorithm.
     # (Decreasing count, increasing constant)
+    constant_counts = list(constant_counts.items())
     constant_counts.sort(key = lambda pair: (-pair[1], pair[0]))
     
     # Assign to bins
@@ -531,7 +582,10 @@ def fragdb_partition(
     else:
         constant_subsets = subset_by_max_files(constant_counts, num_files)
         
-    
+
+    if dry_run:
+        click.echo(f"i\t#constants\tweight\tfilename")
+        
     # Save to files
     for subset_i, (total_weight, subset) in enumerate(constant_subsets):
         output_filename = template.format(
@@ -545,6 +599,11 @@ def fragdb_partition(
         # Copy to the destination
         if not subset:
             continue
+
+        if dry_run:
+            click.echo(f"{subset_i+1}\t{len(constant_subsets)}\t{total_weight}\t{output_filename!r}")
+            continue
+        
         reporter.report(
             f"Exporting {len(subset)} constants to {output_filename!r} "
             f"(#{subset_i+1}/{len(constant_subsets)}, weight: {total_weight})",
