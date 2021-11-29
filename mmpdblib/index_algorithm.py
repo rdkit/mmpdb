@@ -792,7 +792,7 @@ class VariableFragmentsReducer(object):
             pieces = fragment_records.make_fragment_record_from_smiles(variable_smiles, self.fragment_filter)
             # Filter to relevant constant pieces
             possibly_reducible_pieces = []
-            for fragment in pieces.fragments:
+            for fragment in pieces.fragmentations:
                 # It is sufficient to focus on single-cuts to find reducible fragmentations
                 if fragment.num_cuts != 1:
                     continue
