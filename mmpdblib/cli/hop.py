@@ -3,6 +3,7 @@ from rdkit import Chem
 
 from .. import environment
 from ..index_algorithm import relabel
+from ..analysis_algorithms import weld_fragments
 
 """
 Input 
@@ -234,6 +235,7 @@ def hop(
 
     # From the constant part generate environment fingerprint
     reporter.explain(f"Using constant SMILES {constant_smiles} with radius {radius}.")
+    unlabeled_constant_smiles = constant_smiles.replace("[*:1]", "*")
     centers = environment.find_centers(constant_smiles)
     env_fps = environment.compute_constant_environment_from_centers(centers, radius, radius)
     assert len(env_fps) == 1, (constant_smiles, centers, env_fps)
@@ -275,6 +277,7 @@ SELECT rule_id
             reporter.explain(f"Query SMILES {labeled_query_smiles} is not a rule_smiles in the database.")
             continue
 
+        # Find rules with the given SMILES on either side and enough pairs
         result = db.execute("""
 SELECT t1.rule_id, from_smiles, to_smiles, rule_environment_id, n FROM
 ( SELECT rule.id AS rule_id,
@@ -300,9 +303,17 @@ ON t1.rule_id = t2.rule_id
    WHERE n >= ?
 ORDER BY n DESC
 """, (labeled_query_smiles_id, labeled_query_smiles_id, fpid, min_pairs), cursor=cursor)
+        
         for rule_id, from_smiles, to_smiles, rule_environment_id, num_pairs in result:
             #print(f"{query_smiles},{rule_id},{from_smiles},{to_smiles},{rule_environment_id},{num_pairs}")
-            
+
+            if from_smiles == labeled_query_smiles:
+                swap = False
+            elif to_smiles == labeled_query_smiles:
+                from_smiles, to_smiles = to_smiles, from_smiles
+                swap = True
+            else:
+                raise AssertionError(from_smiles, to_smiles, labeled_query_smiles)
             
             inner_result = db.execute("""
   SELECT cmpd1.public_id, cmpd1.clean_smiles, cmpd2.public_id, cmpd2.clean_smiles
@@ -317,8 +328,12 @@ ORDER BY cmpd1.clean_num_heavies * cmpd1.clean_num_heavies + cmpd2.clean_num_hea
 """, (rule_environment_id,), cursor = inner_cursor)
             have_one = False
             for cmpd1_id, cmdp1_smiles, cmpd2_id, cmpd2_smiles in inner_result:
+                if swap:
+                    cmpd1_id, cmdp1_smiles, cmpd2_id, cmpd2_smiles = cmpd2_id, cmpd2_smiles, cmpd1_id, cmdp1_smiles
+
+                new_smiles, welded_mol = weld_fragments(unlabeled_constant_smiles, to_smiles)
                 print(
-                    f"{query_smiles}\t{from_smiles}\t{to_smiles}\t{num_pairs}\t"
+                    f"{query_smiles}\t{new_smiles}\t{to_smiles}\t{num_pairs}\t"
                     f"{cmpd1_id}\t{cmdp1_smiles}\t{cmpd2_id}\t{cmpd2_smiles}"
                     )
                 have_one = True
