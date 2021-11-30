@@ -251,6 +251,52 @@ def die(*msgs):
     raise SystemExit(1)
 
 
+###### Handle compression
+
+class GzipFile(click.File):
+    def __init__(self, mode="r", **kwargs):
+        if "b" in mode:
+            raise TypeError("Must not specify binary mode")
+        if "t" in mode:
+            raise TypeError("Must not specify text mode")
+        super().__init__(mode, **kwargs)
+
+    def convert(self, value, param, ctx):
+        if hasattr(value, "read") or hasattr(value, "write"):
+            return value
+
+        if value.endswith(".gz"):
+            # Have click open in binary mode
+            orig_mode = self.mode
+            self.mode += "b"
+            try:
+                f = super().convert(value, param, ctx)
+            finally:
+                self.mode = orig_mode
+
+            # Figure out the gzip mode
+            if "r" in orig_mode:
+                gzmode = "r"
+            elif "w" in orig_mode:
+                gzmode = "w"
+            else:
+                raise AssertionError(orig_mode)
+
+            # Wrap with gzip
+            import gzip, io
+            from click.utils import safecall
+            g = gzip.GzipFile(fileobj=f, mode=gzmode)
+            g = io.TextIOWrapper(
+                g,
+                encoding=self.encoding,
+                errors = self.errors,
+                )
+            if ctx is not None:
+                ctx.call_on_close(safecall(g.close))
+            return g
+        else:
+            return super().convert(value, param, ctx)
+
 ###### Shared options
 
 

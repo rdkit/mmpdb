@@ -5,44 +5,12 @@ from .. import environment
 from ..index_algorithm import relabel
 from ..analysis_algorithms import weld_fragments
 
-"""
-Input 
-constant = [*]c1ccccc1
-query = [*]C1CC1
-
-2) Once we have a query environment fingerprint: search in the "environment fingerprint table" in the mmpdb database. 
-If the query environment fingerprint is present, then get its index from the environment fingerprint table. If not present 
-then search ends here. Let's assume that we found a query environment fingerprint in the database and its index is 100.
-
-3) search [*]C1CC1 in the "rule_smiles table". If [*]C1CC1 is present in the rule_smiles table, get its index.
-If it's not present then search ends here. Let's assume that we found [*]C1CC1 in rule_smiles table and its index is 5
-
-4) Search the query environment using its index i.e. 100 in rule_envionment table and get all matching rules. Here we get rule ids
-Lets assume we find four rules whose indexes are: 1, 2, 3, 4
-
-5) For each of the four rule ids, search in the "rule table" and check if  [*]C1CC1 (use its index i.e 5) is present in either LHS or RHS side.
- Let's assume we found some rules where  [*]C1CC1 is present in either LHS or RHS. The output at this step might look like this:
-
-envfp_id/ rule_id/LHS/RHS
-100/1/5/10
-100/3/5/12
-100/4/20/5
-
-5) Now we need to get smiles for new fragments from their indexes which are 10, 12 and 20. Look inside the rule_smiles table
-and get smiles. Let's assume for 10 its [*]Cl, for 12 its [*]C1CCC1 and for 20 its [*]Br
-
-6) Take a constant part from the query molecule i.e [*]c1ccccc1 and weld it with [*]Cl, [*]Br and [*]C1CCC1.
-This will produce three compounds:
-Clc1ccccc1
-Brc1ccccc1
-C1CC(C1)c2ccccc2
-
-"""
 from .click_utils import (
     command,
     die,
     radius_type,
     positive_int,
+    GzipFile,
     add_single_database_parameters,
     open_dataset_from_options_or_exit,
     )
@@ -219,7 +187,7 @@ def get_subqueries(dataset, query_smiles, reporter):
     "-o",
     "output_file",
     default = "-",
-    type = click.File("w"),
+    type = GzipFile("w"),
     )
 @add_single_database_parameters()
 @click.option(
@@ -353,9 +321,9 @@ ORDER BY cmpd1.clean_num_heavies * cmpd1.clean_num_heavies + cmpd2.clean_num_hea
                     cmpd1_id, cmdp1_smiles, cmpd2_id, cmpd2_smiles = cmpd2_id, cmpd2_smiles, cmpd1_id, cmdp1_smiles
 
                 new_smiles, welded_mol = weld_fragments(unlabeled_constant_smiles, to_smiles)
-                print(
+                output_file.write(
                     f"{query_smiles}\t{new_smiles}\t{to_smiles}\t{num_pairs}\t"
-                    f"{cmpd1_id}\t{cmdp1_smiles}\t{cmpd2_id}\t{cmpd2_smiles}"
+                    f"{cmpd1_id}\t{cmdp1_smiles}\t{cmpd2_id}\t{cmpd2_smiles}\n"
                     )
                 have_one = True
             assert have_one

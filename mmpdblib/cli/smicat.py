@@ -4,11 +4,41 @@ from .click_utils import (
     command,
     add_single_database_parameters,
     die,
+    GzipFile,
     open_fragdb_from_options_or_exit,
     open_dataset_from_options_or_exit,
     )
 
-@command(name="smicat")
+smicat_epilog = """
+
+Each compound has two associated SMILES, the input SMILES used as
+input to fragmentation, and the canonical SMILES string from RDKit
+after input processing (typically desalting and structure
+normalization). By default the output uses the processed SMILES. Use
+`--input-smiles` to use the input SMILES string.
+
+By default the output SMILES file is written to stdout. Use `--output`
+to save the output to the named file.
+
+Examples:
+
+1) Write the cleaned-up structures as a SMILES file to stdout:
+
+\b
+  % mmpdb smicat csd.mmpdb
+
+2) Save the structures to the file "original.smi", and use the input
+SMILES instead of the de-salted SMILES:
+
+\b
+  % mmpdb smicat csd.mmpdb -o original.smi --input-smiles
+
+"""
+
+@command(
+    name="smicat",
+    epilog = smicat_epilog,
+    )
 
 @click.option(
     "--input-smiles",
@@ -22,7 +52,7 @@ from .click_utils import (
     "-o",
     "output_file",
     default = "-",
-    type = click.File("w"),
+    type = GzipFile("w"),
     help = "output filename (default is stdout)",
     )
 
@@ -33,6 +63,7 @@ def smicat(
         output_file,
         database_options,
         ):
+    """Write the mmpdb SMILES as a SMILES file"""
 
     if database_options.database.endswith(".fragdb"):
         db = open_fragdb_from_options_or_exit(database_options)

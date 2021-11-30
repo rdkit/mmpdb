@@ -2,11 +2,11 @@ import math
 import click
 import collections
 import contextlib
-import gzip
 
 from .click_utils import (
     command,
     die,
+    GzipFile,
     add_multiple_databases_parameters,
     open_fragdb_from_options_or_exit,
     positive_int,
@@ -206,7 +206,7 @@ the count. The first line is a header with column named "constant" and
     "-o",
     "output_file",
     default = "-",
-    type = click.File("wb"),
+    type = GzipFile("w"),
     help = "write the result to the named file (default: stdout)",
     )
 @click.option(
@@ -231,10 +231,6 @@ def fragdb_constants(
 ):
     """list constants fragdb DATABASEs and their frequencies"""
     from ..index_algorithm import get_num_heavies
-
-    if output_file.name.endswith(".gz"):
-        output_file = gzip.GzipFile(fileobj=output_file, mode="wb")
-    
 
     with open_frag_dbs(databases_options) as frag_dbs:
         num_fragmentations = frag_dbs.get_num_fragmentations(reporter=reporter)
@@ -273,7 +269,7 @@ def fragdb_constants(
             # This makes the status reports easier to read as they are
             # not placed between the header and the constant lines.
             if header:
-                output_file.write(f"constant\tN\n".encode("utf8"))
+                output_file.write(f"constant\tN\n")
                 # Only write the header once.
                 header = False
             
@@ -290,6 +286,6 @@ def fragdb_constants(
                     continue
 
             i += 1
-            output_file.write(f"{constant_smiles}\t{n}\n".encode("utf8"))
+            output_file.write(f"{constant_smiles}\t{n}\n")
     
     output_file.close()

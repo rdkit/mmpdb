@@ -38,6 +38,7 @@ import click
 from .click_utils import (
     command,
     die,
+    GzipFile,
     add_single_database_parameters,
     positive_int,
     open_dataset_from_options_or_exit,
@@ -443,7 +444,7 @@ class EnvironmentSmilesLookup(object):
     "-o",
     "outfile",
     default = "-",
-    type = click.File("w"),
+    type = GzipFile("w"),
     help = "write the output to the given file, instead of stdout",
     )
 

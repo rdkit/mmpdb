@@ -12,6 +12,7 @@ from .click_utils import (
     die,
     positive_int,
     nonnegative_int,
+    GzipFile,
     template_type,
     add_multiple_databases_parameters,
     open_fragdb_from_options_or_exit,
@@ -539,7 +540,7 @@ def set_max_weight(ctx, param, value):
     "--constants",
     "-c",
     "constants_file",
-    type = click.File("r"),
+    type = GzipFile("r"),
     help = "only export fragmentations containing the constants specified in the named file",
     )
 

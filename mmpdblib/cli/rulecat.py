@@ -2,6 +2,7 @@ import click
 
 from .click_utils import (
     command,
+    GzipFile,
     add_single_database_parameters,
     open_dataset_from_options_or_exit,
     )
@@ -12,7 +13,7 @@ from .click_utils import (
     "-o",
     "outfile",
     default = "-",
-    type = click.File("w"),
+    type = GzipFile("w"),
     )
 @add_single_database_parameters()
 @click.pass_obj
