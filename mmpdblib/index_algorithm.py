@@ -790,9 +790,16 @@ class VariableFragmentsReducer(object):
         fragments = self._variable_cache.get(variable_smiles, None)
         if fragments is None:
             pieces = fragment_records.make_fragment_record_from_smiles(variable_smiles, self.fragment_filter)
+            if pieces.errmsg is None:
+                fragmentations = pieces.fragmentations
+            else:
+                # Treat error records as if they have no fragmentations.
+                # (This happens if there aren't enough heavies.)
+                fragmentations = []
+
             # Filter to relevant constant pieces
             possibly_reducible_pieces = []
-            for fragment in pieces.fragmentations:
+            for fragment in fragmentations:
                 # It is sufficient to focus on single-cuts to find reducible fragmentations
                 if fragment.num_cuts != 1:
                     continue
