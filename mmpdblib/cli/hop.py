@@ -121,6 +121,59 @@ class FragmentType(SMILES_MIXIN, click.ParamType):
 
         return self.cansmi(mol)
 
+def get_subqueries(dataset, query_smiles, reporter):
+    # Get the subqueries SMILES by fragmenting the query fragment SMILES
+    
+    # Need to turn the "*" into something that can be processed.
+    # Use argon as the placeholder.
+    argon_smiles = query_smiles.replace("*", "[Ar]")
+
+    # Need to use the fragmentation options from the database, limited to 1-cut
+    options = dataset.get_fragment_options()
+    options.num_cuts = 1
+    fragment_filter = options.get_fragment_filter()
+
+    # Fragment
+    record = fragment_records.make_fragment_record_from_smiles(
+        argon_smiles,
+        fragment_filter,
+        reporter=reporter,
+    )
+    if not record.fragmentations:
+        # No subqueries
+        reporter.explain("The query SMILES cannot be fragmented using the database's fragmentation options.")
+        return []
+
+    # The fragmentations are symmetrical. I can limit my search to the constant_smiles.
+    subqueries = []
+    for frag in record.fragmentations:
+        constant_smiles = frag.constant_smiles
+        assert "[*]" not in constant_smiles
+        if "[Ar]" in constant_smiles:
+            if constant_smiles in ("*[Ar]", "[Ar]*"):
+                # Ignore. Doesn't make sense.
+                continue
+            # Convert the [Ar] to an [H] and recanonicalize.
+            mol = Chem.MolFromSmiles(constant_smiles.replace("[Ar]", "[H]"))
+            assert mol is not None, constant_smiles
+            subquery = Chem.MolToSmiles(mol)
+        else:
+            if frag.variable_smiles in ("*[Ar]", "[Ar]*"):
+                # Isn't meaningful.
+                continue
+            subquery = constant_smiles
+            
+        subqueries.append((-frag.constant_num_heavies, subquery))
+
+    # Sort from largest to smallest
+    subqueries.sort()
+    subqueries = [subquery for (num_heavies, subquery) in subqueries]
+
+    reporter.explain(f"Number of subqueries: {len(subqueries)}")
+    if subqueries:
+        reporter.explain(f"Subqueries are: {subqueries}")
+    
+    return subqueries
 
 @command(
     name = "hop",
@@ -195,43 +248,10 @@ def hop(
     cursor = dataset.get_cursor()
     inner_cursor = dataset.get_cursor()
 
-    ## Get the variable SMILES by fragmenting the input SMILES and
-    ## finding the specified constant.
-
-    ## # Need to use the fragmentation options from the database, limited to 1-cut
-    ## options = dataset.get_fragment_options()
-    ## options.num_cuts = 1
-    ## fragment_filter = options.get_fragment_filter()
-
-    ## # Fragment
-    ## record = fragment_records.make_fragment_record_from_smiles(
-    ##     smiles,
-    ##     fragment_filter,
-    ##     reporter=reporter,
-    ## )
-    ## if not record.fragmentations:
-    ##     die("The input SMILES cannot be fragmented using the database's fragmentation options.")
-
-    ## # Find the matching fragmentation
-    ## variable_smiles = None
-    ## for frag in record.fragmentations:
-    ##     if frag.constant_smiles == constant_smiles:
-    ##         variable_smiles = frag.variable_smiles
-    ##         break
-    ## else:
-    ##     lines = [
-    ##         f"No fragmentation found using the constant SMILES {constant_smiles!r}.",
-    ##         "The available constants are:",
-    ##         ]
-    ##     for frag in record.fragmentations:
-    ##         lines.append(f"  {frag.constant_smiles}   with variable: {frag.variable_smiles}")
-        
-    ##     die(*lines)
-
-    ## reporter.explain(f"Using variable {variable_smiles!r}.")
-
     # TODO: handle --subqueries
     query_smiles_list = [query_smiles]
+    if subqueries:
+        query_smiles_list.extend(get_subqueries(dataset, query_smiles, reporter))
 
     # From the constant part generate environment fingerprint
     reporter.explain(f"Using constant SMILES {constant_smiles} with radius {radius}.")
@@ -267,7 +287,6 @@ SELECT rule_id
 
     reporter.explain(f"Number of matching environment rules: {len(rule_ids)}")
 
-    # Add the 
 
     for query_smiles in query_smiles_list:
         # Get the rule_smiles.id for the query smiles
@@ -303,8 +322,10 @@ ON t1.rule_id = t2.rule_id
    WHERE n >= ?
 ORDER BY n DESC
 """, (labeled_query_smiles_id, labeled_query_smiles_id, fpid, min_pairs), cursor=cursor)
-        
+
+        num_matching_rules = 0
         for rule_id, from_smiles, to_smiles, rule_environment_id, num_pairs in result:
+            num_matching_rules += 1
             #print(f"{query_smiles},{rule_id},{from_smiles},{to_smiles},{rule_environment_id},{num_pairs}")
 
             if from_smiles == labeled_query_smiles:
@@ -338,3 +359,5 @@ ORDER BY cmpd1.clean_num_heavies * cmpd1.clean_num_heavies + cmpd2.clean_num_hea
                     )
                 have_one = True
             assert have_one
+
+        reporter.explain(f"Number of rules for {query_smiles}: {num_matching_rules}")
