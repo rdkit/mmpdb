@@ -2,6 +2,7 @@ import math
 import click
 import collections
 import contextlib
+import gzip
 
 from .click_utils import (
     command,
@@ -115,6 +116,49 @@ def open_frag_dbs(databases_options):
 
                 
 fragdb_constants_epilog = """
+
+By default this lists the constants in one or more fragdb files,
+ordered from most common to least. It is meant as a way to reduce the
+number of constants used during indexing, and to partition the
+data set for parallel indexing.
+
+Use `--min-count` and `--max-count` to set the minimum or maximum
+number of occurences. (If a constant appears twice in the same record
+then its occurence count is 2.)
+
+Use `--min-frequency` and `--max-frequency` to express the minimum and
+maximum occurences as a fraction of the total number of
+occurences. (NOTE: this does not seem useful and will likely be
+removed unless people say it's important.)
+
+Use `--min-heavies-total-const-frag` to set a lower bound on the number
+of heavies in each constant.
+
+Use `--min-heavies-per-const-frag` to set a lower bound on the number
+of heavies in the smallest fragment in each constant.
+
+Use `--limit` to limite the output to the first `K` constants.
+
+By default the constants are written to stdout. Use `--output` to
+write the constants to a named file. If the filename ends with `.gz`
+then the output is gzip compressed.
+
+The output is formatted in two tab-separated columns as in the
+following example:
+
+\b
+```
+  % mmpdb fragdb_constants example.fragdb --limit 3
+  constant	N
+  *C	1010
+  *C.*C	849
+   *C.*O	662
+```
+
+The first column contains the fragment SMILES and the second contains
+the count. The first line is a header with column named "constant" and
+"N". Use `--no-header` to omit the header in the output.
+
 """
 
 
@@ -162,7 +206,7 @@ fragdb_constants_epilog = """
     "-o",
     "output_file",
     default = "-",
-    type = click.File("w"),
+    type = click.File("wb"),
     help = "write the result to the named file (default: stdout)",
     )
 @click.option(
@@ -185,8 +229,12 @@ def fragdb_constants(
     output_file,
     header,
 ):
-    """list constants in a fragdb DATABASE and their frequencies"""
+    """list constants fragdb DATABASEs and their frequencies"""
     from ..index_algorithm import get_num_heavies
+
+    if output_file.name.endswith(".gz"):
+        output_file = gzip.GzipFile(fileobj=output_file, mode="wb")
+    
 
     with open_frag_dbs(databases_options) as frag_dbs:
         num_fragmentations = frag_dbs.get_num_fragmentations(reporter=reporter)
@@ -225,7 +273,7 @@ def fragdb_constants(
             # This makes the status reports easier to read as they are
             # not placed between the header and the constant lines.
             if header:
-                output_file.write(f"constant\tN\n")
+                output_file.write(f"constant\tN\n".encode("utf8"))
                 # Only write the header once.
                 header = False
             
@@ -242,4 +290,6 @@ def fragdb_constants(
                     continue
 
             i += 1
-            output_file.write(f"{constant_smiles}\t{n}\n")
+            output_file.write(f"{constant_smiles}\t{n}\n".encode("utf8"))
+    
+    output_file.close()
