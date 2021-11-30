@@ -784,8 +784,9 @@ The project started as a fork of the matched molecular pair program
 Development Ltd.. Many thanks to them for contributing the code to the
 RDKit project under a free software license.
 
-Since then it has gone through two rewrites. Major changes to the
-first version included:
+Since then it has gone through two rewrites before the 1.0
+release. Major changes to the first version included:
+
   - performance improvements,
 
   - support for property prediction
@@ -800,12 +801,32 @@ The second version dropped MySQL support but added APSW support, which
 was already available in the peewee/playhouse modules. The major goals
 in version 2 were:
 
-  - better support for chiral structures
+- better support for chiral structures
 
-  - canonical variable fragments, so the transforms are canonical
-    on both the left-hand and right-hand sides. (Previously only
-    the entire transform was canonical.)
+- canonical variable fragments, so the transforms are canonical
+   on both the left-hand and right-hand sides. (Previously only
+   the entire transform was canonical.)
 
+The project then forked into three branches:
+
+1. The public GitHub branch, with a few improvements by Christian
+  Kramer
+
+2. Andrew Dalke's crowd-funded branch which:
+  - replaced the Morgan fingerprint-based hashed environment
+  fingerprint with its canonical SMARTS equivalent, and a
+  "pseudo-SMILES" which might be used in depictions
+  - added Postgres support
+  - added export methods to tab-separated and database
+  dump formats
+
+3. Mahendra Awale's improvements for:
+  - large-database mmpdb generation by partitioning
+   on fragment constants
+  - playbook generation
+
+Roche funded Andrew Dalke to merge these three branches, resulting in
+mmpdb 3.0.
 
 ------------------
 
@@ -813,9 +834,9 @@ in version 2 were:
 ## Copyright
 
 
-The mmpdb package is copyright 2015-2018 by F. Hoffmann-La
-Roche Ltd and distributed under the 3-clause BSD license. See [LICENSE](LICENSE)
-for details.
+The mmpdb package is copyright 2015-2021 by F. Hoffmann-La Roche Ltd
+and Andrew Dalke Scientific AB, and distributed under the 3-clause BSD
+license. See [LICENSE](LICENSE) for details.
 
 
 ------------------
@@ -834,7 +855,3 @@ The file fileio.py originates from [chemfp](http://chemfp.com) and is therefore
 copyright by Andrew Dalke Scientific AB under the MIT license. See
 [LICENSE](LICENSE) for details. Modifications to this file are covered under
 the mmpdb license.
-
-The files peewee.py and playhouse/\*.py are copyright 2010 by Charles
-Leifer and distributed under the MIT license. See [LICENSE](LICENSE) for details.
-
