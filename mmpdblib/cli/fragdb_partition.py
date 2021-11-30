@@ -447,7 +447,7 @@ The available fields are:
 
 The value of `prefix`, `parent` and `stem` are determined from the
 first fragdb DATABASE. For example, if the first DATABASE name is
-'/abc/xyz.fragdb', on a macOS system, then the :
+'/abc/xyz.fragdb', on a macOS system, then the field values are:
 
 \b
   {prefix} = '/abc/xyz'
@@ -521,7 +521,7 @@ def set_max_weight(ctx, param, value):
     type = positive_int(),
     default = None,
     callback = set_num_files,
-    help = "maximum number of files to generate",
+    help = "Maximum number of files to generate",
     )
 
 @click.option(
@@ -530,7 +530,7 @@ def set_max_weight(ctx, param, value):
     default = None,
     callback = set_max_weight,
     help = (
-        "maximum weight per file (weight = N*(N-1)/2+1 where N "
+        "Maximum weight per file (weight = N*(N-1)/2+1 where N "
         "is the number of occurrences of the constant"
         ),
     )
@@ -541,13 +541,13 @@ def set_max_weight(ctx, param, value):
     "-c",
     "constants_file",
     type = GzipFile("r"),
-    help = "only export fragmentations containing the constants specified in the named file",
+    help = "Only export fragmentations containing the constants specified in the named file",
     )
 
 @click.option(
     "--recount",
     is_flag = True,
-    help = "ignore the counts in the constants file and instead compute them from fragment database(s)",
+    help = "Ignore the counts in the constants file and instead compute them from fragment database(s)",
     )
 
 @click.option(
@@ -564,7 +564,7 @@ def set_max_weight(ctx, param, value):
     "--template",
     "-t",
     type = template_type(),
-    help = "template for the output filenames",
+    help = "Template for the output filenames",
     )
 @click.option(
     "--tid",
@@ -572,19 +572,19 @@ def set_max_weight(ctx, param, value):
     "task_id",
     type = nonnegative_int(),
     default = None,
-    help = "task id to use for parallelized partitioning (0 <= task id < num_tasks)",
+    help = "Task id to use for parallelized partitioning (0 <= task id < num_tasks)",
     )
 @click.option(
     "--num-tasks",
     type = positive_int(),
     default = None,
-    help = "number of tasks involved in parallelized partitioning",
+    help = "Number of tasks involved in parallelized partitioning",
     )
 @click.option(
     "--dry-run",
     is_flag = True,
     default = False,
-    help = "describe the partitions which will be generated but don't generate them",
+    help = "Describe the partitions which will be generated but don't generate them",
     )
 
 @add_multiple_databases_parameters()

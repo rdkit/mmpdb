@@ -14,6 +14,7 @@ from .click_utils import (
     "outfile",
     default = "-",
     type = GzipFile("w"),
+    help = "Write the rules to the named file (default is stdout)",
     )
 @add_single_database_parameters()
 @click.pass_obj

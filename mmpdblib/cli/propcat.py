@@ -93,14 +93,14 @@ Examples:
     "show_all",
     is_flag=True,
     default=False,
-    help="include compounds which have no properties",
+    help="Include compounds which have no properties",
 )
 @click.option(
     "--output",
     "-o",
     "output_filename",
     metavar="FILENAME",
-    help="output filename (default is stdout)",
+    help="Output filename (default is stdout)",
 )
 @click.pass_obj
 def propcat(

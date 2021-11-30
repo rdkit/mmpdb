@@ -86,7 +86,7 @@ def get_info(filename, reporter):
     "show_all",
     is_flag = True,
     default = False,
-    help = "include option information",
+    help = "Include option information",
     )
 
 @add_multiple_databases_parameters()

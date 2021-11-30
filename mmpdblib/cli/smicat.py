@@ -53,7 +53,7 @@ SMILES instead of the de-salted SMILES:
     "output_file",
     default = "-",
     type = GzipFile("w"),
-    help = "output filename (default is stdout)",
+    help = "Output filename (default is stdout)",
     )
 
 @add_single_database_parameters()

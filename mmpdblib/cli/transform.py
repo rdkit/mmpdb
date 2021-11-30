@@ -239,46 +239,46 @@ normal cutoffs. The --score here matches the default scoring function.
     "--smiles",
     "-s",
     required=True,
-    help="the base structure to transform",
+    help="The base structure to transform",
 )
 @click.option(
     "--min-variable-size",
     type=nonnegative_int(),
     metavar="N",
     default=0,
-    help="require at least N atoms in the variable fragment (default: 0)",
+    help="Require at least N atoms in the variable fragment (default: 0)",
 )
 @click.option(
     "--max-variable-size",
     type=nonnegative_int(),
     default=9999,
-    help="allow at most N atoms in the variable fragment (default: 9999)",
+    help="Allow at most N atoms in the variable fragment (default: 9999)",
 )
 @click.option(
     "--min-constant-size",
     type=nonnegative_int(),
     default=0,
-    help="require at least N atoms in the constant fragment (default: 0)",
+    help="Require at least N atoms in the constant fragment (default: 0)",
 )
 @click.option(
     "--min-radius",
     "-r",
     type=radius_type(),
     default=0,
-    help="fingerprint radius (default: 0)",
+    help="Fingerprint radius (default: 0)",
 )
 @click.option(
     "--min-pairs",
     type=nonnegative_int(),
     default=0,
-    help="require at least N pairs in the transformation to report a product (default: 0)",
+    help="Require at least N pairs in the transformation to report a product (default: 0)",
 )
 @click.option(
     "--substructure",
     "-S",
     "substructure_pat",
     type=parse_smarts(),
-    help="require the substructure pattern in the product",
+    help="Require the substructure pattern in the product",
 )
 @add_multiple_properties
 @add_rule_selection_options
@@ -288,26 +288,26 @@ normal cutoffs. The --score here matches the default scoring function.
     "num_jobs",
     type=positive_int(),
     default=1,
-    help="number of jobs to run in parallel (default: 1)",
+    help="Number of jobs to run in parallel (default: 1)",
 )
 @click.option(
     "--explain",
     is_flag=True,
     default=False,
-    help="explain each of the steps in the transformation process",
+    help="Explain each of the steps in the transformation process",
 )
 @click.option(
     "--output",
     "-o",
     "output_filename",
     metavar="FILENAME",
-    help="save the output to FILENAME (default=stdout)",
+    help="Save the output to FILENAME (default=stdout)",
 )
 @click.option(
     "--times",
     is_flag=True,
     default=False,
-    help="report timing information for each step",
+    help="Report timing information for each step",
 )
 @click.pass_obj
 def transform(

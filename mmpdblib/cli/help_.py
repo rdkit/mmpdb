@@ -1018,7 +1018,7 @@ do this. I haven't tried it - let me know if it works!
 def help_smiles_format(readme):
     "Description of the SMILES file parsing options"
     get_wrapper(readme)("""
-This explains how the `--delimiter` and `--has-header` options of the `mmpa
+This explains how the `--delimiter` and `--has-header` options of the `mmpdb
 fragment` command affect SMILES parsing.
 
 The mmpdb program supports the most common variants of a SMILES

@@ -151,7 +151,7 @@ def get_subqueries(dataset, query_smiles, reporter):
     "constant_smiles",
     required = True,
     type = FragmentType(add_atom_map=True),
-    help = "the constant SMILES",
+    help = "The constant SMILES",
     )
 
 @click.option(
@@ -159,7 +159,7 @@ def get_subqueries(dataset, query_smiles, reporter):
     "query_smiles",
     required = True,
     type = FragmentType(add_atom_map=False),
-    help = "the query SMILES",
+    help = "The query SMILES",
     )
 
 @click.option(
@@ -172,14 +172,14 @@ def get_subqueries(dataset, query_smiles, reporter):
     "--radius",
     default = 0, # XXX Is this right?
     type = radius_type(),
-    help = "fingerprint radius (default: 0)",
+    help = "Fingerprint radius (default: 0)",
     )
 
 @click.option(
     "--min-pairs",
     type = positive_int(),
     default = 1,
-    help = "only consider rules with at least N matched molecular pairs",
+    help = "Only consider rules with at least N matched molecular pairs",
     )
 
 @click.option(
@@ -194,7 +194,7 @@ def get_subqueries(dataset, query_smiles, reporter):
     "--explain",
     is_flag=True,
     default=False,
-    help="explain each of the steps in the transformation process",
+    help="Explain each of the steps in the transformation process",
 )
 
 @click.pass_obj

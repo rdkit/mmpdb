@@ -87,20 +87,20 @@ command-line instead of from a file.
     "-s",
     default=False,
     is_flag=True,
-    help="generate a SMARTS for each R-group SMILES (default: generate a single recursive SMARTS)",
+    help="Generate a SMARTS for each R-group SMILES (default: generate a single recursive SMARTS)",
 )
 @click.option(
     "--check",
     "-c",
     default=False,
     is_flag=True,
-    help="check that the SMARTS strings are valid (default: assume they are valid)",
+    help="Check that the SMARTS strings are valid (default: assume they are valid)",
 )
 @click.option(
     "--explain",
     is_flag=True,
     default=False,
-    help="write conversion and check details to stderr",
+    help="Write conversion and check details to stderr",
 )
 @click.argument(
     "rgroup_filename",

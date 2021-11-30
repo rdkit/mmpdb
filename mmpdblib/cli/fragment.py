@@ -162,7 +162,7 @@ def cannot_combine_with_fragment_options(ctx, cache):
 @click.option(
     "--cache",
     metavar="FRAGDB",
-    help="get fragment parameters and previous fragment information the FRAGDB file",
+    help="Get fragment parameters and previous fragment information the FRAGDB file",
 )
 @click.option(
     "--num-jobs",
@@ -170,14 +170,14 @@ def cannot_combine_with_fragment_options(ctx, cache):
     metavar="N",
     type=positive_int(),
     default=4,
-    help="number of jobs to process in parallel (default: 4)",
+    help="Number of jobs to process in parallel (default: 4)",
 )
 @smi_utils.add_input_options
 @click.option(
     "--output",
     "-o",
     metavar="FILENAME",
-    help="save the fragment data to FILENAME (default: based on the structure filename)",
+    help="Save the fragment data to FILENAME (default: based on the structure filename)",
 )
 @click.argument(
     "structure_filename",

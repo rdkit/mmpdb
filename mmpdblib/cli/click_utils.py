@@ -317,7 +317,7 @@ def _in_memory_option(command):
         "--in-memory",
         is_flag=True,
         default=False,
-        help="load the SQLite database into memory before use (requires APSW)",
+        help="Load the SQLite database into memory before use (requires APSW)",
     )(command)
 
 
@@ -375,7 +375,7 @@ def add_single_property(command):
         "property_name",
         metavar="NAME",
         required=True,
-        help="property to use",
+        help="Property to use",
     )(command)
     return command
 
@@ -387,13 +387,13 @@ def add_multiple_properties(command):
         "property_names",
         metavar="NAME",
         multiple=True,
-        help="property to use (may be specified multiple times)",
+        help="Property to use (may be specified multiple times)",
     )(command)
     click.option(
         "--no-properties",
         is_flag=True,
         default=False,
-        help="don't use any properties",
+        help="Don't use any properties",
     )(command)
     return command
 
@@ -488,14 +488,14 @@ def add_rule_selection_options(command):
         "--where",
         default=OPTS.where,
         type=parse_where(),
-        help="select only rules for which the expression is true",
+        help="Select only rules for which the expression is true",
     )
 
     add_option(
         "--score",
         default=OPTS.score,
         type=parse_score(),
-        help="use to break ties when multiple rules produce the same SMILES",
+        help="Use to break ties when multiple rules produce the same SMILES",
     )
 
     msg = ",".join(str(i) for i in OPTS.cutoff_list)
@@ -504,7 +504,7 @@ def add_rule_selection_options(command):
         default=OPTS.cutoff_list,
         type=parse_cutoff_list(),
         help=(
-            "evaluate rule environments with the given minimum pair count. If multiple "
+            "Evaluate rule environments with the given minimum pair count. If multiple "
             "counts are given, consider them in turn until there is a selected environment. "
             f"(default: '{msg}')"
         ),

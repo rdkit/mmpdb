@@ -363,7 +363,7 @@ entire structure, and save the transformation in both A>>B and B>>A
     "output_filename",
     metavar="FILENAME",
     help=(
-        "save the fragment data to FILENAME. "
+        "Save the fragment data to FILENAME. "
         "Default for mmpdb is based on the fragment filename, "
         "otherwise stdout."
     ),

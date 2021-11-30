@@ -64,7 +64,7 @@ def add_input_options(command):
         "in_format",
         type=click.Choice(["smi", "smi.gz"]),
         help=(
-            "input structuture format (one of 'smi', 'smi.gz'). "
+            "Input structuture format (one of 'smi', 'smi.gz'). "
             "If not specified, use the filename extension or default to 'smi'."
         ),
     )
@@ -83,7 +83,7 @@ def add_input_options(command):
         "--has-header",
         is_flag=True,
         default=False,
-        help="skip the first line, which is the header line",
+        help="Skip the first line, which is the header line",
     )
 
     # Wrap the command to convert the fragment option parameters

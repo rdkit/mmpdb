@@ -122,6 +122,7 @@ def check_options_mismatch(filename, options, first_filename, first_options):
     "--output",
     "-o",
     "output_filename",
+    help = 'Name of the merged database (default: "merged.fragdb")',
     default = None,
     )
 

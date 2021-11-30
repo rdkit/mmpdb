@@ -9,7 +9,74 @@ from .click_utils import (
 
 from .smi_utils import add_input_options
 
-@command(name="smi_split")
+smi_split_epilog = """
+
+Split a given SMILES file into several smaller SMILES files using one
+of two available schemes. These new files can be used in a distributed
+computing environment to fragment a dataset in parallel.
+
+See `mmpdb help-smiles-format` for a description of how the
+`--delimiter` and `--has-header` options affect parsing a SMILES
+file. The output SMILES file has no header and uses tab-separated
+columns.
+
+The two split schemes read the input SMILES file and split the lines
+(excluding any header) into the output files. The `--num-files` option
+creates up to N output files in total, with roughly the same number of
+records in each file. The `--num-records` option writes up to N
+records to an output file, then switches to a new output file and
+starts over.
+
+If no scheme is specified then the default is the same as `--num-files
+10`, which creates up to 10 output files.
+
+The output filenames are based on a template pattern, which can be
+changed with `--template`. The template may contain fields formatted
+using Python's [Format String
+Syntax](https://docs.python.org/3/library/string.html#formatstrings).
+
+The available fields are:
+
+\b
+  {prefix} - the input SMILES filename without the final extension(s)
+  {parent} - the parent directory of the input SMILES filename, or '.'
+  {stem} - the SMILES filename without the directory or final extension
+  {sep} - the filesystem path seperator (eg, '/')
+  {i} - an integer value 0 <= i < n
+
+The value of `prefix`, `parent` and `stem` are based on the input
+SMILES filename. For example, if the filename is '/abc/xyz.smi', on
+a macOS system, then the field values are:
+
+\b
+  {prefix} = '/abc/xyz'
+  {parent} = '/abc'
+  {stem} = 'xyz'
+  {sep} = '/'
+
+If the filename ends with '.gz' then that is also removed.
+
+The default template is "{prefix}.{i:04}.smi". If the input filename
+is `ChEMBL_CYP3A4_hERG.smi.gz` and there are 4 output files then the
+output filenames are:
+
+\b
+```
+ChEMBL_CYP3A4_hERG.0000.smi
+ChEMBL_CYP3A4_hERG.0001.smi
+ChEMBL_CYP3A4_hERG.0002.smi
+ChEMBL_CYP3A4_hERG.0003.smi
+```
+
+If the output filename ends with ".gz", as with the template
+"{prefix}.{i:04}.smi.gz", then the output files will be
+gzip-compressed.
+
+"""
+
+@command(
+    name="smi_split",
+    epilog=smi_split_epilog)
 @add_input_options
 
 @click.option(
@@ -17,14 +84,14 @@ from .smi_utils import add_input_options
     "-n",
     default = None,
     type = positive_int(),
-    help = "number of output SMILES files to generate",
+    help = "Number of output SMILES files to generate",
     )
 
 @click.option(
     "--num-records",
     default = None,
     type = positive_int(),
-    help = "maximum number of SMILES to save to each file",
+    help = "Maximum number of SMILES to save to each file",
     )
 
 @click.option(
@@ -33,7 +100,7 @@ from .smi_utils import add_input_options
     default = "{prefix}.{i:04}.smi",
     type = template_type(),
     show_default = True,
-    help = "template for the output filenames",
+    help = "Template for the output filenames",
     )
 
 @click.argument(
@@ -64,7 +131,11 @@ def smi_split(
 
 
     # Get values used for template generation
-    smi_path = pathlib.Path("stdin.smi" if smiles_filename is None else smiles_filename)
+    s = "stdin.smi" if smiles_filename is None else smiles_filename
+    # Trim '.gz' from the template
+    if s.lower().endswith(".gz"):
+        s = s[:-3]
+    smi_path = pathlib.Path(s)
     smi_filename = str(smi_path)
     smi_parent = smi_path.parent
     smi_stem = smi_path.stem

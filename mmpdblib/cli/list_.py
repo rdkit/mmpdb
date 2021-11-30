@@ -111,13 +111,13 @@ from the database contents.
     "all_option",
     is_flag=True,
     default=False,
-    help="list all information about the dataset",
+    help="List all information about the dataset",
 )
 @click.option(
     "--recount",
     is_flag=True,
     default=False,
-    help="count the table sizes directly, instead of using cached data",
+    help="Count the table sizes directly, instead of using cached data",
 )
 @add_multiple_databases_parameters()
 @click.pass_obj

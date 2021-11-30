@@ -144,7 +144,7 @@ def add_fragment_options(command):
         "--cut-smarts",
         metavar="SMARTS",
         help=(
-            f"alternate SMARTS pattern to use for cutting (default: {OPTS.cut_smarts!r}), "
+            f"Alternate SMARTS pattern to use for cutting (default: {OPTS.cut_smarts!r}), "
             f"or use one of: {alias_names}"
         ),
         callback=mutual_exclusion_cuts,
@@ -154,14 +154,14 @@ def add_fragment_options(command):
         "--cut-rgroup",
         metavar="SMILES",
         multiple=True,
-        help="cut on the attachment point for the given R-group SMILES",
+        help="Cut on the attachment point for the given R-group SMILES",
         callback=mutual_exclusion_cuts,
     )
 
     add_option(
         "--cut-rgroup-file",
         metavar="FILENAME",
-        help="read R-group SMILES from the named file",
+        help="Read R-group SMILES from the named file",
         callback=mutual_exclusion_cuts,
     )
 
@@ -169,7 +169,7 @@ def add_fragment_options(command):
     add_option(
         "--num-cuts",
         type=IntChoice(["1", "2", "3"]),
-        help=f"number of cuts to use (default: {OPTS.num_cuts})",
+        help=f"Number of cuts to use (default: {OPTS.num_cuts})",
     )
 
     add_option(

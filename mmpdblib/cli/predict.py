@@ -132,14 +132,14 @@ to O_to_S_rules.txt and O_to_S_pairs.txt:
     "-s",
     metavar="SMILES",
     required=True,
-    help="the base structure to transform",
+    help="The base structure to transform",
 )
 @click.option(
     "--reference",
     "reference_smiles",
     metavar="SMILES",
     required=True,
-    help="the reference structure",
+    help="The reference structure",
 )
 @add_single_database_parameters(add_in_memory=True)
 @add_single_property
@@ -149,11 +149,11 @@ to O_to_S_rules.txt and O_to_S_pairs.txt:
     "-v",
     type=click.FLOAT,
     default=None,
-    help="the property value for the reference",
+    help="The property value for the reference",
 )
 @click.option(
     "--explain/--no-explain",
-    help="explain each of the steps in the transformation process",
+    help="Explain each of the steps in the transformation process",
 )
 
 ## @click.option(
@@ -166,17 +166,17 @@ to O_to_S_rules.txt and O_to_S_pairs.txt:
     "--save-details",
     is_flag=True,
     default=False,
-    help="save information about the transformation pairs and statistics to two CSV files",
+    help="Save information about the transformation pairs and statistics to two CSV files",
 )
 @click.option(
     "--prefix",
     metavar="STRING",
     default="pred_detail",
-    help="prefix to use for each CSV filename (default: 'pred_details')",
+    help="Prefix to use for each CSV filename (default: 'pred_details')",
 )
 @click.option(
     "--times/--no-times",
-    help="report timing information for each step",
+    help="Report timing information for each step",
 )
 @click.pass_obj
 def predict(

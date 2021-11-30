@@ -187,19 +187,19 @@ the count. The first line is a header with column named "constant" and
 @click.option(
     "--min-heavies-per-const-frag",
     type=nonnegative_int(),
-    help="lower bound on the number of heavies in the smallest fragment in the constant part",
+    help="Lower bound on the number of heavies in the smallest fragment in the constant part",
 )
 @click.option(
     "--min-heavies-total-const-frag",
     type=nonnegative_int(),
     default=0,
-    help="lower bound on the number of heavies in the constant part",
+    help="Lower bound on the number of heavies in the constant part",
 )
 @click.option(
     "--limit",
     metavar="K",
     type=positive_int(),
-    help="limit the output to the 'K' most common constants",
+    help="Limit the output to the 'K' most common constants",
 )
 @click.option(
     "--output",
@@ -207,7 +207,7 @@ the count. The first line is a header with column named "constant" and
     "output_file",
     default = "-",
     type = GzipFile("w"),
-    help = "write the result to the named file (default: stdout)",
+    help = "Write the result to the named file (default: stdout)",
     )
 @click.option(
     "--header / --no-header",

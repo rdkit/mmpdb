@@ -421,7 +421,7 @@ class EnvironmentSmilesLookup(object):
 @click.option(
     "--canonicalize/--no-canonicalize",
     default = True,
-    help = "use the --from and --to strings as-is; do not canonicalize them (default: canonicalize)",
+    help = "Use the --from and --to strings as-is; do not canonicalize them (default: --canonicalize)",
     )
 
 @click.option(
@@ -430,13 +430,13 @@ class EnvironmentSmilesLookup(object):
     "property_names",
     metavar="NAME",
     multiple=True,
-    help="property to use (may be specified multiple times)",
+    help="Property to use (may be specified multiple times)",
     )
 
 @click.option(
     "--min-count",
     type = positive_int(),
-    help = "only show rules with at least N pairs",
+    help = "Only show rules with at least N pairs",
     )
 
 @click.option(
@@ -445,7 +445,7 @@ class EnvironmentSmilesLookup(object):
     "outfile",
     default = "-",
     type = GzipFile("w"),
-    help = "write the output to the given file, instead of stdout",
+    help = "Write the output to the given file (default is stdout)",
     )
 
 
