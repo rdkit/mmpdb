@@ -240,7 +240,7 @@ def hop(
     env_fps = environment.compute_constant_environment_from_centers(centers, radius, radius)
     assert len(env_fps) == 1, (constant_smiles, centers, env_fps)
     env_fp = env_fps[0]
-    reporter.explain(f"Environment SMARTS: {env_fp.smarts}")
+    reporter.explain(f"Environment SMARTS: {env_fp.smarts} pseudoSMILES: {env_fp.pseudosmiles}")
     
     
     # Get the environment fingerprint id
