@@ -111,7 +111,7 @@ def propcat(
     no_properties,
     output_filename,
 ):
-    """write the database properties to a properties file
+    """Write the database properties to a properties file
 
     DATABASE: an mmpdb file
     """

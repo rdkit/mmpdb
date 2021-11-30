@@ -96,7 +96,7 @@ def fragdb_list(
         databases_options,
         show_all,
         ):
-    """summarize zero or more fragdb databases
+    """Summarize zero or more fragdb databases
 
     If no DATABASE is given then look for '*.fragdb' in the current directory.
     """

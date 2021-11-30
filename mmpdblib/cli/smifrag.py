@@ -63,7 +63,7 @@ smifrag_epilog = """
 )
 @click.pass_context
 def smifrag(ctx, fragment_options, smiles):
-    """fragment a single SMILES string
+    """Fragment a single SMILES string
 
     SMILES: the SMILES string of the structure to fragment
 

@@ -51,7 +51,7 @@ def smi_split(
         template,
         smiles_filename,
         ):
-    """split the SMILES file 'FILE' into smaller files"""
+    """Split the SMILES file 'FILE' into smaller files"""
     import pathlib
     from .. import fileio
 

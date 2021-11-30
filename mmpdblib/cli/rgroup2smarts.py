@@ -116,7 +116,7 @@ def rgroup2smarts(
     rgroup_filename,
     single,
 ):
-    """convert an R-group file into a SMARTS which matches all of the SMILES
+    """Convert an R-group file into a SMARTS which matches all of the SMILES
 
     FILENAME: file containing one or more R-group SMILES (use stdin if not specified)
     """

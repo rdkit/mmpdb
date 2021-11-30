@@ -127,7 +127,7 @@ def list_(
     all_option,
     recount,
 ):
-    """summarize the contents of zero or more databases
+    """Summarize the contents of zero or more databases
 
     DATABASES: the mmpdb database files to list (default looks files named '*.mmpdb')
     """

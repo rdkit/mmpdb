@@ -105,7 +105,7 @@ def add_readme_flag(f):
 
 @command(name="help")
 def help_():
-    "summarize the help commands"
+    "Summarize the help commands"
     from . import epilog
     wrap(epilog)
 
@@ -115,7 +115,7 @@ def help_():
 @command(name="help-analysis")
 @add_readme_flag
 def help_analysis(readme):
-    "overview on how to use mmpdb for structure analysis"
+    "Overview on how to use mmpdb for structure analysis"
     get_wrapper(readme)("""
 The overall process is:
 
@@ -1016,7 +1016,7 @@ do this. I haven't tried it - let me know if it works!
 @command(name="help-smiles-format")
 @add_readme_flag
 def help_smiles_format(readme):
-    "description of the SMILES file parsing options"
+    "Description of the SMILES file parsing options"
     get_wrapper(readme)("""
 This explains how the `--delimiter` and `--has-header` options of the `mmpa
 fragment` command affect SMILES parsing.
@@ -1074,7 +1074,7 @@ Example command-line parameters:
 @command(name="help-property-format")
 @add_readme_flag
 def help_property_format(readme):
-    "description of the property file format"
+    "Description of the property file format"
     get_wrapper(readme)("""
 This describes the file format used by the `--properties` option of
 the "`mmpdb index`" and "`mmpdb loadprops`" commands.
@@ -1116,7 +1116,7 @@ properties are not known.
 #### mmpdb help-admin
 @command(name="help-admin")
 def help_admin():
-    "overview on how to use administor an mmpdb database"
+    "Overview on how to use administor an mmpdb database"
 
     wrap_for_help("""\
 The administrative commands are:

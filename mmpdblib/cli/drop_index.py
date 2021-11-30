@@ -53,7 +53,7 @@ you might drop the indices, and re-create them later when needed.
 def drop_index(
     database_options,
 ):
-    """drop the database indices
+    """Drop the database indices
 
     DATABASE: the mmpdb database
     """

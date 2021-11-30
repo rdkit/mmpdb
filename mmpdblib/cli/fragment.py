@@ -201,7 +201,7 @@ def fragment(
     # input
     structure_filename,
 ):
-    """fragment SMILES file structures on rotatable bonds
+    """Fragment SMILES file structures on rotatable bonds
 
     FILENAME: SMILES file (default: read from stdin)
 

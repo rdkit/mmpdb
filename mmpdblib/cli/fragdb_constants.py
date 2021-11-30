@@ -229,7 +229,7 @@ def fragdb_constants(
     output_file,
     header,
 ):
-    """list constants fragdb DATABASEs and their frequencies"""
+    """List constants fragdb DATABASEs and their frequencies"""
     from ..index_algorithm import get_num_heavies
 
     with open_frag_dbs(databases_options) as frag_dbs:

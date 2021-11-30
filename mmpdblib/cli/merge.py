@@ -381,7 +381,7 @@ def merge(
         replace,
         profile_path,
         ):
-    """merge multiple mmpdb databases
+    """Merge multiple mmpdb databases
 
     Each DATABASE must be an mmpdb file.
 

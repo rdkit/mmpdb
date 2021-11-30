@@ -192,7 +192,7 @@ def predict(
     prefix,
     times,
 ):
-    """predict the effect of a structural transformation
+    """Predict the effect of a structural transformation
 
     DATABASE: an mmpdb database
     """

@@ -329,7 +329,7 @@ def transform(
     times,
     # **kwargs
 ):
-    """transform a structure
+    """Transform a structure
 
     DATABASE: a mmpdb database
     """

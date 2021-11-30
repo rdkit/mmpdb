@@ -215,7 +215,7 @@ class MultiCommand(FormatEpilog, click.MultiCommand):
             formatter.indent_increment = old_value
         
 @click.group(epilog=epilog, cls=MultiCommand)
-@click.option("--quiet", "-q", is_flag=True, help="do not show progress or status information")
+@click.option("--quiet", "-q", is_flag=True, help="Do not show progress or status information")
 @click.version_option(version=__version__)
 @click.pass_context
 def main(ctx, quiet):

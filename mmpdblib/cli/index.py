@@ -416,7 +416,7 @@ def index(
     replace,
     fragment_filename,
 ):
-    """index fragments and find matched molecular pairs
+    """Index fragments and find matched molecular pairs
 
     FILENAME: the name of the fragdb file containing the fragments to index
     """

@@ -602,7 +602,7 @@ def fragdb_partition(
         task_id,
         num_tasks,
         ):
-    """partition fragments based on common constants
+    """Partition fragments based on common constants
 
     DATABASE - one or more fragdb fragments database filenames
     """

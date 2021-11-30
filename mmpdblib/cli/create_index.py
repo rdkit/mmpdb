@@ -53,7 +53,7 @@ development.
 )
 @add_single_database_parameters()
 def create_index(database_options):
-    """create the database indices
+    """Create the database indices
 
     DATABASE: an mmpdb database
     """

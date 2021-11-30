@@ -90,7 +90,7 @@ def loadprops(
     properties_filename,
     database_options,
 ):
-    """load properties for existing structures
+    """Load properties for existing structures
 
     DATABASE: the mmpdb database to update with the new properties
     """
