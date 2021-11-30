@@ -435,7 +435,7 @@ These commands enable MMP generation on a distributed compute cluster,
 rather than a single machine.
 
 NOTE: This method does not support properties, and you must use the
-SQLite-based "mmpdb" files, not Postgres. The 
+SQLite-based "mmpdb" files, not Postgres databases. The 
 [Postgres wiki](https://wiki.postgresql.org/wiki/Converting_from_other_Databases_to_PostgreSQL)
 mentions [pgloader](https://github.com/dimitri/pgloader) as a possible tool
 to have Postgres load a SQLite database.
@@ -578,6 +578,11 @@ named based on the input name, for example, if the input file is
 
 #### Merge the fragment files
 
+NOTE: This step is only needed if you want to use the merged file as a
+`--cache` for new fragmentation. The `fragdb_constants` and
+`fragdb_partition` commands can work directly on the un-merged fragdb
+files.
+
 About 28 minutes later I have 10 fragdb files:
 
 \b
@@ -634,39 +639,45 @@ the merge command will ignore any properties in the database.
 
 #### Partitioning on all constants
 
-BEFORE GOING FURTHER, be aware that I've split the SMILES files into
-multiple files, fragmented the results into files named
-`ChEMBL_CYP3A4_hERG.*.fragdb`, then merged the results back to
-`ChEMBL_CYP3A4_hERG.fragdb`. I'm about to partition
-`ChEMBL_CYP3A4_hERG.fragdb` into new files also with the pattern
-`ChEMBL_CYP3A4_hERG.*.fragdb`. To keep the confusion down, I'll remove
-the old files now:
+The `mmpdb fragdb_partition` command splits one or more fragment
+databases into N smaller files. All of the fragmentations with the
+same constant are in the same file.
 
-```shell
-% rm ChEMBL_CYP3A4_hERG.*.fragdb
-```
+NOTE: the fragdb files from the `fragment` command have a slightly
+different structure than the ones from the `partition` command. The
+fragment fragdb files only contain the input records that were
+fragmented. Each partition fragdb file contains *all* of the input
+records from the input fragment file(s). This is needed to handle
+1-cut hydrogen matched molecular pairs.
 
-You should probably use a naming scheme to keep these two sets of
-fragdb files distinct.
-
-The `mmpdb fragdb_partition` command splits a fragment database into N
-smaller files. All of the fragmentations with the same constant are in
-the same file.
+If you specify multiple fragdb files then by default the results are
+put into files matching the template "partition.{i:04d}.fragdb", as in
+the following:
 
 \b
 ```shell
-% mmpdb fragdb_partition ChEMBL_CYP3A4_hERG.fragdb
-Using 467865 constants from database 'ChEMBL_CYP3A4_hERG.fragdb'.
-Exporting 1 constants to 'ChEMBL_CYP3A4_hERG.0000.fragdb' (weight: 334589647)
-Exporting 1 constants to 'ChEMBL_CYP3A4_hERG.0001.fragdb' (weight: 270409141)
-Exporting 1 constants to 'ChEMBL_CYP3A4_hERG.0002.fragdb' (weight: 225664391)
-Exporting 1 constants to 'ChEMBL_CYP3A4_hERG.0003.fragdb' (weight: 117895691)
-Exporting 77977 constants to 'ChEMBL_CYP3A4_hERG.0004.fragdb' (weight: 52836587)
-Exporting 77978 constants to 'ChEMBL_CYP3A4_hERG.0005.fragdb' (weight: 52836587)
-Exporting 77975 constants to 'ChEMBL_CYP3A4_hERG.0006.fragdb' (weight: 52836586)
-Exporting 77976 constants to 'ChEMBL_CYP3A4_hERG.0007.fragdb' (weight: 52836586)
-Exporting 77977 constants to 'ChEMBL_CYP3A4_hERG.0008.fragdb' (weight: 52836586)
-Exporting 77978 constants to 'ChEMBL_CYP3A4_hERG.0009.fragdb' (weight: 52836586)
+% mmpdb fragdb_partition ChEMBL_CYP3A4_hERG.*.fragdb
+Analyzed 'ChEMBL_CYP3A4_hERG.0000.fragdb': #constants: 48895 #fragmentations: 109087
+Analyzed 'ChEMBL_CYP3A4_hERG.0001.fragdb': #constants: 70915 #fragmentations: 212777
+Analyzed 'ChEMBL_CYP3A4_hERG.0002.fragdb': #constants: 52370 #fragmentations: 100594
+Analyzed 'ChEMBL_CYP3A4_hERG.0003.fragdb': #constants: 49021 #fragmentations: 103350
+Analyzed 'ChEMBL_CYP3A4_hERG.0004.fragdb': #constants: 52318 #fragmentations: 112930
+Analyzed 'ChEMBL_CYP3A4_hERG.0005.fragdb': #constants: 55977 #fragmentations: 123463
+Analyzed 'ChEMBL_CYP3A4_hERG.0006.fragdb': #constants: 64083 #fragmentations: 164259
+Analyzed 'ChEMBL_CYP3A4_hERG.0007.fragdb': #constants: 51605 #fragmentations: 114113
+Analyzed 'ChEMBL_CYP3A4_hERG.0008.fragdb': #constants: 44149 #fragmentations: 80613
+Analyzed 'ChEMBL_CYP3A4_hERG.0009.fragdb': #constants: 35889 #fragmentations: 69029
+Analyzed 10 databases. Found #constants: 467865 #fragmentations: 1190215
+Exporting 1 constants to 'partition.0000.fragdb' (#1/10, weight: 334589647)
+Exporting 1 constants to 'partition.0001.fragdb' (#2/10, weight: 270409141)
+Exporting 1 constants to 'partition.0002.fragdb' (#3/10, weight: 225664391)
+Exporting 1 constants to 'partition.0003.fragdb' (#4/10, weight: 117895691)
+Exporting 77977 constants to 'partition.0004.fragdb' (#5/10, weight: 52836587)
+Exporting 77978 constants to 'partition.0005.fragdb' (#6/10, weight: 52836587)
+Exporting 77975 constants to 'partition.0006.fragdb' (#7/10, weight: 52836586)
+Exporting 77976 constants to 'partition.0007.fragdb' (#8/10, weight: 52836586)
+Exporting 77977 constants to 'partition.0008.fragdb' (#9/10, weight: 52836586)
+Exporting 77978 constants to 'partition.0009.fragdb' (#10/10, weight: 52836586)
 ```
 
 The command's `--template` option lets you specify how to generate the
@@ -680,7 +691,7 @@ in each file and the number of occurrences.
 
 \b
 ```shell
-% mmpdb fragdb_constants ChEMBL_CYP3A4_hERG.0000.fragdb
+% mmpdb fragdb_constants partition.0000.fragdb
 constant	N
 *C	25869
 ```
@@ -697,12 +708,12 @@ ChEMBL_CYP3A4_hERG.0004.fragdb:
 
 \b
 ```shell
-% mmpdb fragdb_constants ChEMBL_CYP3A4_hERG.0004.fragdb --limit 3
+% mmpdb fragdb_constants partition.0004.fragdb --limit 3
 constant	N
 *C.*C.*OC	7076
 *C.*Cl	4388
 *C.*C.*CC	3261
-% mmpdb fragdb_constants ChEMBL_CYP3A4_hERG.0004.fragdb | tail -3
+% mmpdb fragdb_constants partition.0004.fragdb | tail -3
 *n1nnnc1SCC(=O)Nc1nc(-c2ccc(Cl)cc2)cs1	1
 *n1nnnc1SCc1nc(N)nc(N2CCOCC2)n1	1
 *n1s/c(=N/C)nc1-c1ccccc1	1
@@ -717,24 +728,31 @@ combined with the quadratic weighting is why the first few files have
 only a single, very common, constant, and why all of the "1" counts
 are used to fill space in the remaining files
 
-You can alternatively use `--max-weight` to set an upper
-bound for the weights in each file:
+You can alternatively use `--max-weight` to set an upper bound for the
+weights in each file. In this example I'll use the merged fragdb file
+from the previous step:
 
 \b
 ```shell
 % mmpdb fragdb_partition ChEMBL_CYP3A4_hERG.fragdb --max-weight 50000000
-Exporting 1 constants to 'ChEMBL_CYP3A4_hERG.0000.fragdb' (weight: 334589647)
-Exporting 1 constants to 'ChEMBL_CYP3A4_hERG.0001.fragdb' (weight: 270409141)
-Exporting 1 constants to 'ChEMBL_CYP3A4_hERG.0002.fragdb' (weight: 225664391)
-Exporting 1 constants to 'ChEMBL_CYP3A4_hERG.0003.fragdb' (weight: 117895691)
-Exporting 10 constants to 'ChEMBL_CYP3A4_hERG.0004.fragdb' (weight: 49918518)
-Exporting 11 constants to 'ChEMBL_CYP3A4_hERG.0005.fragdb' (weight: 49916276)
-Exporting 13 constants to 'ChEMBL_CYP3A4_hERG.0006.fragdb' (weight: 49899719)
-Exporting 7 constants to 'ChEMBL_CYP3A4_hERG.0007.fragdb' (weight: 49896681)
-Exporting 43 constants to 'ChEMBL_CYP3A4_hERG.0008.fragdb' (weight: 49893145)
-Exporting 9 constants to 'ChEMBL_CYP3A4_hERG.0009.fragdb' (weight: 49879752)
-Exporting 467768 constants to 'ChEMBL_CYP3A4_hERG.0010.fragdb' (weight: 17615427)
+Analyzed 'ChEMBL_CYP3A4_hERG.fragdb': #constants: 467865 #fragmentations: 1190215
+Exporting 1 constants to 'ChEMBL_CYP3A4_hERG-partition.0000.fragdb' (#1/11, weight: 334589647)
+Exporting 1 constants to 'ChEMBL_CYP3A4_hERG-partition.0001.fragdb' (#2/11, weight: 270409141)
+Exporting 1 constants to 'ChEMBL_CYP3A4_hERG-partition.0002.fragdb' (#3/11, weight: 225664391)
+Exporting 1 constants to 'ChEMBL_CYP3A4_hERG-partition.0003.fragdb' (#4/11, weight: 117895691)
+Exporting 10 constants to 'ChEMBL_CYP3A4_hERG-partition.0004.fragdb' (#5/11, weight: 49918518)
+Exporting 11 constants to 'ChEMBL_CYP3A4_hERG-partition.0005.fragdb' (#6/11, weight: 49916276)
+Exporting 13 constants to 'ChEMBL_CYP3A4_hERG-partition.0006.fragdb' (#7/11, weight: 49899719)
+Exporting 7 constants to 'ChEMBL_CYP3A4_hERG-partition.0007.fragdb' (#8/11, weight: 49896681)
+Exporting 43 constants to 'ChEMBL_CYP3A4_hERG-partition.0008.fragdb' (#9/11, weight: 49893145)
+Exporting 9 constants to 'ChEMBL_CYP3A4_hERG-partition.0009.fragdb' (#10/11, weight: 49879752)
+Exporting 467768 constants to 'ChEMBL_CYP3A4_hERG-partition.0010.fragdb' (#11/11, weight: 17615427)
 ```
+
+If you specify a single fragdb filename then the default output
+template is "{prefix}-partition.{i:04}.fragdb" where "{prefix}" is the
+part of the fragdb filename before its extension. The idea is to help
+organize those files together.
 
 Odds are, you don't want to index the most common fragments. The next
 two sections help limits which constants are used.
@@ -749,7 +767,7 @@ manageable.
 
 \b
 ```shell
-% mmpdb fragdb_constants ChEMBL_CYP3A4_hERG.fragdb --limit 20
+% mmpdb fragdb_constants ChEMBL_CYP3A4_hERG.*.fragdb --limit 20
 constant	N
 *C	25869
 *C.*C	23256
@@ -778,7 +796,7 @@ and limit the output to the first 5.
 
 \b
 ```shell
-% mmpdb fragdb_constants ChEMBL_CYP3A4_hERG.fragdb --max-count 2000 --limit 5
+% mmpdb fragdb_constants ChEMBL_CYP3A4_hERG.*.fragdb --max-count 2000 --limit 5
 constant	N
 *C.*CC.*O	1954
 *C.*C(F)(F)F	1915
@@ -804,7 +822,7 @@ heavy atoms:
 
 \b
 ```shell
-% mmpdb fragdb_constants ChEMBL_CYP3A4_hERG.fragdb --min-heavies-per-const-frag 5 --limit 4
+% mmpdb fragdb_constants ChEMBL_CYP3A4_hERG.*.fragdb --min-heavies-per-const-frag 5 --limit 4
 constant	N
 *c1ccccc1	5073
 *c1ccccc1.*c1ccccc1	1116
@@ -816,22 +834,13 @@ I'll also require `N` be between 10 and 1000.
 
 \b 
 ```shell
-% mmpdb fragdb_constants ChEMBL_CYP3A4_hERG.fragdb --min-heavies-per-const-frag 5 \\
+% mmpdb fragdb_constants ChEMBL_CYP3A4_hERG.*.fragdb --min-heavies-per-const-frag 5 \\
    --min-count 10 --max-count 1000 --no-header | wc -l
 1940
 ```
 
 That's a much more tractable size for this example.
 
-#### Partitioning on selected constants
-
-Before going futher, I'm going to clear out any old files which might
-have been generated by the above commands:
-
-\b
-```shell
-% rm ChEMBL_CYP3A4_hERG.*.fragdb
-```
 
 As you saw earlier, the `mmpdb fragdb_partition` command by default
 partitions on all constants. Alternatively, use the `--constants` flag
@@ -840,10 +849,9 @@ to accept constants from stdin, as in the following three lines:
 
 \b
 ```shell
-% mmpdb fragdb_constants ChEMBL_CYP3A4_hERG.fragdb --min-heavies-per-const-frag 5 \\
+% mmpdb fragdb_constants ChEMBL_CYP3A4_hERG.*.fragdb --min-heavies-per-const-frag 5 \\
      --min-count 10 --max-count 1000 | \\
-     mmpdb fragdb_partition ChEMBL_CYP3A4_hERG.fragdb --constants -
-Using 1940 constants from file '<stdin>'.
+     mmpdb fragdb_partition ChEMBL_CYP3A4_hERG.*.fragdb --constants -
 Exporting 1 constants to 'ChEMBL_CYP3A4_hERG.0000.fragdb' (weight: 423661)
 Exporting 1 constants to 'ChEMBL_CYP3A4_hERG.0001.fragdb' (weight: 382376)
 Exporting 109 constants to 'ChEMBL_CYP3A4_hERG.0002.fragdb' (weight: 382044)
@@ -861,23 +869,77 @@ which is why I don't use `--no-header` in the `fragdb_constants`
 command. Alternatively, also use `--no-header` in the
 `fragdb_partition` command if the input does not have a header.
 
+#### Partitioning in parallel
+
+Partioning large data sets may take significant time because the
+export process is single-threaded.
+
+The `fragdb_partition` command can be configured to export only subset
+of the partitions using a simple round-robin scheme. If you specify
+`--task-id n` and `--num-tasks N` then the given fragdb_partition will
+only export partitions `i` such that `i % N == n`.
+
+The expected approach is to create a single constants files which will
+be shared by multiple partition commands.
+
+\b
+```shell
+% mmpdb fragdb_constants ChEMBL_CYP3A4_hERG.*.fragdb --min-heavies-per-const-frag 5 \\
+     --min-count 10 --max-count 1000 -o constants.dat
+```
+
+The following splits the job across two partition commands, with task
+ids 0 and 1, respectively:
+
+\b
+```shell
+% mmpdb fragdb_partition ChEMBL_CYP3A4_hERG.*.fragdb --constants constants.dat --task-id 0 --num-tasks 2
+Exporting 1 constants to 'partition.0000.fragdb' (#1/10, weight: 423661)
+Exporting 109 constants to 'partition.0002.fragdb' (#3/10, weight: 382044)
+Exporting 261 constants to 'partition.0004.fragdb' (#5/10, weight: 382013)
+Exporting 261 constants to 'partition.0006.fragdb' (#7/10, weight: 382010)
+Exporting 262 constants to 'partition.0008.fragdb' (#9/10, weight: 382009)
+% mmpdb fragdb_partition ChEMBL_CYP3A4_hERG.*.fragdb --constants constants.dat --task-id 1 --num-tasks 2
+Exporting 1 constants to 'partition.0001.fragdb' (#2/10, weight: 382376)
+Exporting 261 constants to 'partition.0003.fragdb' (#4/10, weight: 382013)
+Exporting 260 constants to 'partition.0005.fragdb' (#6/10, weight: 382010)
+Exporting 262 constants to 'partition.0007.fragdb' (#8/10, weight: 382010)
+Exporting 262 constants to 'partition.0009.fragdb' (#10/10, weight: 382003)
+```
+
+Use the `--dry-run` option to get an idea of how many files will be created:
+```
+% mmpdb fragdb_partition ChEMBL_CYP3A4_hERG.*.fragdb --constants constants.dat --dry-run
+i	#constants	weight	filename
+0	10	423661	'partition.0000.fragdb'
+1	10	382376	'partition.0001.fragdb'
+2	10	382044	'partition.0002.fragdb'
+3	10	382013	'partition.0003.fragdb'
+4	10	382013	'partition.0004.fragdb'
+5	10	382010	'partition.0005.fragdb'
+6	10	382010	'partition.0006.fragdb'
+7	10	382010	'partition.0007.fragdb'
+8	10	382009	'partition.0008.fragdb'
+9	10	382003	'partition.0009.fragdb'
+```
+
 #### Indexing in parallel
 
 The partitioned fragdb files can be indexed in parallel:
 
 \b
 ```shell
-% ls ChEMBL_CYP3A4_hERG.*.fragdb | qsub mmpdb index
-WARNING: No --output filename specified. Saving to 'ChEMBL_CYP3A4_hERG.0000.mmpdb'.
-WARNING: No --output filename specified. Saving to 'ChEMBL_CYP3A4_hERG.0001.mmpdb'.
-WARNING: No --output filename specified. Saving to 'ChEMBL_CYP3A4_hERG.0002.mmpdb'.
-WARNING: No --output filename specified. Saving to 'ChEMBL_CYP3A4_hERG.0003.mmpdb'.
-WARNING: No --output filename specified. Saving to 'ChEMBL_CYP3A4_hERG.0004.mmpdb'.
-WARNING: No --output filename specified. Saving to 'ChEMBL_CYP3A4_hERG.0005.mmpdb'.
-WARNING: No --output filename specified. Saving to 'ChEMBL_CYP3A4_hERG.0006.mmpdb'.
-WARNING: No --output filename specified. Saving to 'ChEMBL_CYP3A4_hERG.0007.mmpdb'.
-WARNING: No --output filename specified. Saving to 'ChEMBL_CYP3A4_hERG.0008.mmpdb'.
-WARNING: No --output filename specified. Saving to 'ChEMBL_CYP3A4_hERG.0009.mmpdb'.
+% ls partition.*.fragdb | qsub mmpdb index
+WARNING: No --output filename specified. Saving to 'partition.0000.mmpdb'.
+WARNING: No --output filename specified. Saving to 'partition.0001.mmpdb'.
+WARNING: No --output filename specified. Saving to 'partition.0002.mmpdb'.
+WARNING: No --output filename specified. Saving to 'partition.0003.mmpdb'.
+WARNING: No --output filename specified. Saving to 'partition.0004.mmpdb'.
+WARNING: No --output filename specified. Saving to 'partition.0005.mmpdb'.
+WARNING: No --output filename specified. Saving to 'partition.0006.mmpdb'.
+WARNING: No --output filename specified. Saving to 'partition.0007.mmpdb'.
+WARNING: No --output filename specified. Saving to 'partition.0008.mmpdb'.
+WARNING: No --output filename specified. Saving to 'partition.0009.mmpdb'.
 ```
 
 (If you don't like these warning messages, use the `--quiet` flag.)
@@ -889,18 +951,27 @@ option, which only works if no two mmpdb files share the same constant:
 
 \b
 ```shell
-% mmpdb merge ChEMBL_CYP3A4_hERG.*.mmpdb -o ChEMBL_CYP3A4_hERG.mmpdb
+% mmpdb merge partition.*.mmpdb -o ChEMBL_CYP3A4_hERG_distributed.mmpdb
+Merged 'partition.0000.mmpdb' (1/10). Time: 0.01
+Merged 'partition.0001.mmpdb' (2/10). Time: 0.03
+Merged 'partition.0002.mmpdb' (3/10). Time: 0.09
+Merged 'partition.0003.mmpdb' (4/10). Time: 0.16
+Merged 'partition.0004.mmpdb' (5/10). Time: 0.14
+Merged 'partition.0005.mmpdb' (6/10). Time: 0.22
+Merged 'partition.0006.mmpdb' (7/10). Time: 0.22
+Merged 'partition.0007.mmpdb' (8/10). Time: 0.28
+Merged 'partition.0008.mmpdb' (9/10). Time: 0.37
+Merged 'partition.0009.mmpdb' (10/10). Time: 0.35
 ```
 
 Let's take a look:
 
 \b
 ```shell
-% mmpdb list ChEMBL_CYP3A4_hERG.mmpdb
-          Name           #cmpds #rules #pairs #envs  #stats  |-------- Title --------| Properties
-ChEMBL_CYP3A4_hERG.mmpdb   4428  21282 203856 143661      0  Merged MMPs from 10 files <none>
+% mmpdb list ChEMBL_CYP3A4_hERG_distributed.mmpdb
+                Name                 #cmpds #rules #pairs #envs  #stats  |-------- Title --------| Properties
+ChEMBL_CYP3A4_hERG_distributed.mmpdb   1852  21279   2896 143638      0  Merged MMPs from 10 files <none>
 ```
-
 
 """)
 
@@ -1116,21 +1187,22 @@ properties are not known.
 #### mmpdb help-admin
 @command(name="help-admin")
 def help_admin():
-    "Overview on how to use administor an mmpdb database"
+    "Overview of the information and administrative commands"
 
     wrap_for_help("""\
 The administrative commands are:
 
 \b
-* fragdb_list: summarize fragment database contents
-* list: summarize MMP database
-* loadprops: add or modify property information
-* smicat: list the structures in a fragment or MMP database
-* rulecat: list the rules in an MMP database
-* propcat: show the properties in an MMP database
-* proprulecat: show the properties for each rule in an MMP database
-* drop_index: drop the MMP database indices
-* create_index: (re)create the MMP database indices
+* fragdb_list: Summarize zero or more fragdb databases
+* list: Summarize the contents of zero or more databases
+* loadprops: Load properties for existing structures
+* smicat: Write the mmpdb SMILES as a SMILES file
+* rulecat: Show the rules in an mmpdb file
+* propcat: Write the database properties to a properties file
+* proprulecat: Write the property rules to stdout or a file
+* drop_index: Drop the database indices
+* create_index: Create the database indices
+* show_merge_profile:  Show information from a merge --profile database
 
 A fragment database contains a set of fragmentations. It is a SQLite
 file on the local database, typically with a name ending `.fragdb`.
