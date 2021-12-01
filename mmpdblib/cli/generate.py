@@ -83,65 +83,30 @@ class FragmentType(SMILES_MIXIN, click.ParamType):
 
         return self.cansmi(mol)
 
-FIELD_TITLES = {
-    "start": (
-        "start",
-        "initial compound SMILES",
-        ),
-    "constant": (
-        "constant",
-        "constant fragment SMILES",
-        ),
-    "query": (
-        "query",
-        "query fragment SMILES",
-        ),
-    "radius": (
-        "r",
-        "environment radius",
-        ),
-    "smarts": (
-        "smarts",
-        "environment SMARTS",
-        ),
-    "pseudosmiles": (
-        "pseudosmiles",
-        "environment pseudo-SMILES",
-        ),
-    "generated": (
-        "generated",
-        "generated SMILES",
-        ),
-    "num_pairs": (
-        "#pairs",
-        "number of pairs from the corresponding rule",
-        ),
-    "lhs_id": (
-        "lhs_id",
-        "LHS id of a representative pair for the rule",
-        ),
-    "lhs_smiles": (
-        "lhs_smiles",
-        "LHS SMILES of a representative pair for the rule",
-        ),
-    "rhs_id": (
-        "rhs_id",
-        "RHS id of a representative pair for the rule",
-        ),
-    "rhs_smiles": (
-        "rhs_smiles",
-        "RHS SMILES of a representative pair for the rule",
-        ),
-    "rule_id": (
-        "rule_id",
-        "internal database rule id",
-        ),
-    "swapped": (
-        "swapped",
-        "direction of the transform in the rule",
-        ),
+COLUMN_DESCRIPTIONS = {
+    "start": "initial compound SMILES (constant + from_smiles)",
+    "constant": "constant fragment SMILES",
+    "from_smiles": "SMILES of the fragment to modify (derived from the query)",
+    "to_smiles": "SMILES of the modified fragment",
+    "r": "environment radius",
+    "smarts": "environment SMARTS for the constant",
+    "pseudosmiles": "environment pseudo-SMILES for the constant",
+    "final": "generated SMILES (constant + to_smiles)",
+    "#pairs": "number of pairs from the environment rule",
+    "pair_from_id": "id of the 'from' compound in a representative pair",
+    "pair_from_smiles": "SMILES of the 'from' compound in a representative pair",
+    "pair_to_id": "id of the 'to' compound in a representative pair",
+    "pair_to_smiles": "SMILES of the 'to' compound in a representative pair",
+    "rule_id": "internal database rule id",
+    "env_rule_id": "internal database environment rule id",
+    "swapped": "direction of the transform in the rule",
     }
 
+DEFAULT_COLUMNS = (
+        "start,constant,from_smiles,to_smiles,r,pseudosmiles,final,#pairs,"
+        "pair_from_id,pair_from_smiles,pair_to_id,pair_to_smiles"
+        )
+    
     
 class ColumnFields(click.ParamType):
     name = "STR1,STR2,..."
@@ -151,8 +116,8 @@ class ColumnFields(click.ParamType):
             return value
         fields = value.split(",")
         for field in fields:
-            if field not in FIELD_TITLES:
-                known = ", ".join(repr(s) for s in FIELD_TITLES)
+            if field not in COLUMN_DESCRIPTIONS:
+                known = ", ".join(repr(s) for s in COLUMN_DESCRIPTIONS)
                 self.fail(f"Unsupported column {field!r}. Available columns are {known}.")
         return fields
         
@@ -259,7 +224,7 @@ def get_subqueries(dataset, query_smiles, reporter):
 @click.option(
     "--smiles",
     type = SmilesType(),
-    help = "The full molecule",
+    help = "The full molecule to process",
     )
 
 @click.option(
@@ -306,14 +271,13 @@ def get_subqueries(dataset, query_smiles, reporter):
 @click.option(
     "--columns",
     type=ColumnFields(),
-    default = "start,constant,query,radius,pseudosmiles,generated,num_pairs,lhs_id,lhs_smiles,rhs_id,rhs_id",
-    show_default=True,
-    help="a comma-separated list of output fields",
+    default = DEFAULT_COLUMNS,
+    help=f"A comma-separated list of output fields: (default: {DEFAULT_COLUMNS!r})",
     )
 @click.option(
     "--titles",
     type=ColumnTitles(),
-    help="a comma-separated list of column titles (default based on the --fields)",
+    help="A comma-separated list of column titles (default uses --fields)",
     )
     
 
@@ -322,7 +286,7 @@ def get_subqueries(dataset, query_smiles, reporter):
     "--explain",
     is_flag=True,
     default=False,
-    help="Explain each of the steps in the transformation process",
+    help="Explain the steps in the generation process",
 )
 
 @click.pass_obj
@@ -340,7 +304,7 @@ def generate(
         titles,
         explain,
         ):
-    """Generate 1-cut transforms"""
+    """Apply 1-cut database transforms to a molecule"""
     reporter.set_explain(explain)
 
     num_options = (smiles is not None) + (query_smiles is not None) + (constant_smiles is not None)
@@ -351,7 +315,7 @@ def generate(
         raise click.UsageError("Must specify --smiles or at most two of --smiles, --constant, and --query")
 
     if titles is None:
-        titles = [FIELD_TITLES[column][0] for column in columns]
+        titles = columns[:]
     else:
         if len(columns) != len(titles):
             raise click.UsageError(
@@ -362,7 +326,13 @@ def generate(
     
     dataset = open_dataset_from_options_or_exit(database_options, reporter.quiet)
     cursor = dataset.get_cursor()
-    inner_cursor = dataset.get_cursor()
+
+    # Figure out if I need to get a representative pair
+    need_pair_colums = ("pair_from_id", "pair_from_smiles", "pair_to_id", "pair_to_smiles")
+    if any((column in columns) for column in need_pair_colums):
+        pair_cursor = dataset.get_cursor()
+    else:
+        pair_cursor = None
 
     # Get fragmentation options from the database, limited to 1-cut
     options = dataset.get_fragment_options()
@@ -372,8 +342,8 @@ def generate(
     if num_options == 1:
         assert smiles is not None
         queries = get_queries_from_smiles(smiles, fragment_filter, reporter)
-        # Already enumerate all subqueries
-        subqueries = False
+        # XXX Thinking about this
+        ## subqueries = False
     else:
         if smiles is None:
             queries = get_queries_from_constant_and_query(
@@ -388,19 +358,19 @@ def generate(
             raise AssertionError
 
     if subqueries:
-        for constant_smiles, query_smiles_list in queries:
-            assert len(query_smiles_list) == 1, (constant_smiles, query_smiles_list)
-            query_smiles = query_smiles_list[0]
-            query_smiles_list.extend(get_subqueries(dataset, query_smiles, reporter))
+        for constant_smiles, from_smiles_list in queries:
+            assert len(from_smiles_list) == 1, (constant_smiles, from_smiles_list)
+            from_smiles = from_smiles_list[0]
+            from_smiles_list.extend(get_subqueries(dataset, from_smiles, reporter))
 
     output_file.write(title_line)
-    for constant_smiles, query_smiles_list in queries:
+    for constant_smiles, from_smiles_list in queries:
         for result in generate_from_constant(
                         dataset = dataset,
                         cursor = cursor,
-                        inner_cursor = inner_cursor,
+                        pair_cursor = pair_cursor,
                         constant_smiles = constant_smiles,
-                        query_smiles_list = query_smiles_list,
+                        from_smiles_list = from_smiles_list,
                         radius = radius,
                         min_pairs = min_pairs,
                         reporter = reporter,
@@ -415,15 +385,18 @@ def generate(
 def generate_from_constant(
         dataset,
         cursor,
-        inner_cursor,
+        pair_cursor,
         constant_smiles,
-        query_smiles_list,
+        from_smiles_list,
         radius,
         min_pairs,
         reporter,
         ):
     # I need to get the database.execute() so "?" is handled portably
     db = dataset.mmpa_db
+
+    # Set some defaults
+    pair_from_id = pair_from_smiles = pair_to_id = pair_to_smiles = None
     
     # From the constant part generate environment fingerprint
     reporter.explain(f"Using constant SMILES {constant_smiles} with radius {radius}.")
@@ -459,14 +432,14 @@ SELECT rule_id
     reporter.explain(f"Number of matching environment rules: {len(rule_ids)}")
 
 
-    for query_smiles in query_smiles_list:
-        labeled_query_smiles = add_label_1(query_smiles)
-        start_smiles, start_mol = weld_fragments(constant_smiles, labeled_query_smiles)
+    for from_smiles in from_smiles_list:
+        labeled_from_smiles = add_label_1(from_smiles)
+        start_smiles, start_mol = weld_fragments(constant_smiles, labeled_from_smiles)
         
         # Get the rule_smiles.id for the query smiles
-        labeled_query_smiles_id = dataset.get_rule_smiles_id(labeled_query_smiles, cursor=cursor)
-        if labeled_query_smiles_id is None:
-            reporter.explain(f"Query SMILES {labeled_query_smiles} is not a rule_smiles in the database.")
+        labeled_from_smiles_id = dataset.get_rule_smiles_id(labeled_from_smiles, cursor=cursor)
+        if labeled_from_smiles_id is None:
+            reporter.explain(f"Query SMILES {labeled_from_smiles} is not a rule_smiles in the database.")
             continue
 
         # Find rules with the given SMILES on either side and enough pairs
@@ -494,22 +467,26 @@ INNER JOIN
 ON t1.rule_id = t2.rule_id
    WHERE n >= ?
 ORDER BY n DESC
-""", (labeled_query_smiles_id, labeled_query_smiles_id, fpid, min_pairs), cursor=cursor)
+""", (labeled_from_smiles_id, labeled_from_smiles_id, fpid, min_pairs), cursor=cursor)
 
         num_matching_rules = 0
         for rule_id, from_smiles, to_smiles, rule_environment_id, num_pairs in result:
             num_matching_rules += 1
-            #print(f"{query_smiles},{rule_id},{from_smiles},{to_smiles},{rule_environment_id},{num_pairs}")
+            #print(f"{from_smiles},{rule_id},{from_smiles},{to_smiles},{rule_environment_id},{num_pairs}")
 
-            if from_smiles == labeled_query_smiles:
+            if from_smiles == labeled_from_smiles:
                 swap = False
-            elif to_smiles == labeled_query_smiles:
+            elif to_smiles == labeled_from_smiles:
                 from_smiles, to_smiles = to_smiles, from_smiles
                 swap = True
             else:
-                raise AssertionError(from_smiles, to_smiles, labeled_query_smiles)
-            
-            inner_result = db.execute("""
+                raise AssertionError(from_smiles, to_smiles, labeled_from_smiles)
+
+            new_smiles, welded_mol = weld_fragments(constant_smiles, to_smiles)
+
+            if pair_cursor is not None:
+                # Pick a representative pair
+                pair_result = db.execute("""
   SELECT cmpd1.public_id, cmpd1.clean_smiles, cmpd2.public_id, cmpd2.clean_smiles
     FROM pair,
          compound AS cmpd1,
@@ -519,30 +496,32 @@ ORDER BY n DESC
      AND pair.compound2_id = cmpd2.id
 ORDER BY cmpd1.clean_num_heavies * cmpd1.clean_num_heavies + cmpd2.clean_num_heavies * cmpd2.clean_num_heavies
  LIMIT 1
-""", (rule_environment_id,), cursor = inner_cursor)
-            have_one = False
-            for lhs_id, lhs_smiles, rhs_id, rhs_smiles in inner_result:
-                if swap:
-                    lhs_id, lhs_smiles, rhs_id, rhs_smiles = rhs_id, rhs_smiles, lhs_id, lhs_smiles
+""", (rule_environment_id,), cursor = pair_cursor)
+                have_one = False
+                for pair_from_id, pair_from_smiles, pair_to_id, pair_to_smiles in pair_result:
+                    have_one = True
+                    if swap:
+                        pair_from_id, pair_from_smiles, pair_to_id, pair_to_smiles = (
+                            pair_to_id, pair_to_smiles, pair_from_id, pair_from_smiles
+                            )
+                assert have_one
 
-                new_smiles, welded_mol = weld_fragments(constant_smiles, to_smiles)
-                yield {
-                    "start": start_smiles,
-                    "constant": constant_smiles,
-                    "query": query_smiles,
-                    "radius": radius,
-                    "smarts": env_fp.smarts,
-                    "pseudosmiles": env_fp.pseudosmiles,
-                    "generated": new_smiles,
-                    "num_pairs": num_pairs,
-                    "lhs_id": lhs_id,
-                    "lhs_smiles": lhs_smiles,
-                    "rhs_id": rhs_id,
-                    "rhs_smiles": rhs_smiles,
-                    "rule_id": rule_id,
-                    "swapped": int(swap),
-                    }
-                have_one = True
-            assert have_one
-
-        reporter.explain(f"Number of rules for {query_smiles}: {num_matching_rules}")
+            yield {
+                "start": start_smiles,
+                "constant": constant_smiles,
+                "from_smiles": from_smiles,
+                "to_smiles": to_smiles,
+                "r": radius,
+                "smarts": env_fp.smarts,
+                "pseudosmiles": env_fp.pseudosmiles,
+                "final": new_smiles,
+                "#pairs": num_pairs,
+                "pair_from_id": pair_from_id,
+                "pair_from_smiles": pair_from_smiles,
+                "pair_to_id": pair_to_id,
+                "pair_to_smiles": pair_to_smiles,
+                "rule_id": rule_id,
+                "swapped": int(swap),
+                }
+            
+        reporter.explain(f"Number of rules for {from_smiles}: {num_matching_rules}")
