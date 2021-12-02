@@ -81,6 +81,7 @@ def wrap_for_readme(text):
     width = 78
     text = text.strip("\r\n")
     text = click.wrap_text(text, width=width, preserve_paragraphs=True)
+    text.replace("\b", "")
     click.echo(text)
 
 wrap = wrap_for_help
