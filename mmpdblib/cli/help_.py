@@ -129,7 +129,10 @@ The overall process is:
 4) Find transforms for a given structure; and/or
 
 5) Predict a property for a structure given the known
-   property for another structure
+   property for another structure; and/or
+
+6) Apply 1-cut rules to generate new structures from a given
+   structure.
 
 Some terminology:
 
@@ -149,12 +152,41 @@ rule.
 The "rule environment" extends the transformation to include
 information about the local environment of the attachment points on
 the constant part. The environment fingerprint is based on the RDKit
-circular fingerprints for the attachment points. There is one rule
-environment for each available radius. Larger radii correspond to more
-specific environments. The "rule environment statistics" table stores
-information about the distribution of property changes for all of the
-pairs which contain the given rule and environment, with one table
-for each property.
+circular fingerprints for the attachment points, expressed as a
+canonical SMARTS pattern, and alternatively, as a "pseudo"-SMILES
+string, which is a bit less precise but easier to understand and
+visualize.
+
+The fingerprint SMARTS pattern describes the Morgan circular
+fingerprint invariants around the attachment points. Here's a 2-cut
+example split across three lines:
+
+\b
+  [#0;X1;H0;+0;!R:1]-[#6;X4;H1;+0;R](-[#6;X4;H2;+0;R])-[#6;X4;H2;+0;R].
+  [#0;X1;H0;+0;!R:2]-[#7;X3;H0;+0;R](-[#6;X4;H2;+0;R])-[#6;X4;H2;+0;R].
+  [#0;X1;H0;+0;!R:3]-[#6;X3;H0;+0;R](:[#6;X3;H1;+0;R]):[#6;X3;H1;+0;R]
+
+The SMARTS modifiers, like "H0" to require no hydrogens, are needed to
+match the Morgan invariants but are quite the eye-full. The
+psuedosmiles alternative is:
+
+\b
+  [*:1]-[CH](-[CH2](~*))-[CH2](~*).
+  [*:2]-[N](-[CH2](~*))-[CH2](~*).
+  [*:3]-[c](:[cH](~*)):[cH](~*)
+
+This can be processed by RDKit, if sanitization is disabled, and
+turned into an image.
+
+CAUTION! The "`(~*)`" terms are used to represent the SMARTS
+connectivity terms "X<digit>", but they do not necessarily all
+represent distinct atoms!
+
+There is one rule environment for each available radius. Larger radii
+correspond to more specific environments. The "rule environment
+statistics" table stores information about the distribution of
+property changes for all of the pairs which contain the given rule and
+environment, with one table for each property.
 
 ### 1) Fragment structures
 
@@ -422,6 +454,93 @@ You might try enabling the "`--explain`" option to see why the algorithm
 selected a given transformation, or use "`--save-details`" to save the 
 list of possible rules to the file `pred_detail_rules.txt` and to save 
 the list of rule pairs to `pred_detail_pairs.txt`.
+
+### 6) Use MMP to generate new structures
+
+The rules in a MMP database give a sort of "playbook" about the
+transformations which might be explored in medicinal chemistry. These
+rule can be applied to a given structure to generate new related
+structures, following a method related to the transform command but
+ignoring any property information. Here's an example using the default
+radius of 0, which means the environment fingerprint is ignored. (The
+columns have been re-formatted for the documentation.)
+
+\b
+```shell
+  % mmpdb generate --smiles 'c1ccccc1C(O)C' test_data.mmpdb
+  start             constant  from_smiles  to_smiles          r  pseudosmiles  final
+  CC(O)c1ccccc1  *C(C)c1ccccc1  [*:1]O    [*:1][H]            0  [*:1](~*)  CCc1ccccc1
+  CC(O)c1ccccc1  *C(C)c1ccccc1  [*:1]O    [*:1]N              0  [*:1](~*)  CC(N)c1ccccc1
+  CC(O)c1ccccc1  *C(C)c1ccccc1  [*:1]O    [*:1]Cl             0  [*:1](~*)  CC(Cl)c1ccccc1
+  CC(O)c1ccccc1  *C(C)O     [*:1]c1ccccc1 [*:1]c1ccccc1O      0  [*:1](~*)  CC(O)c1ccccc1O
+  CC(O)c1ccccc1  *C(C)O     [*:1]c1ccccc1 [*:1]c1ccccc1N      0  [*:1](~*)  CC(O)c1ccccc1N
+  CC(O)c1ccccc1  *C(C)O     [*:1]c1ccccc1 [*:1]c1cc(O)ccc1N   0  [*:1](~*)  CC(O)c1cc(O)ccc1N
+  CC(O)c1ccccc1  *C(C)O     [*:1]c1ccccc1 [*:1]c1ccc(O)cc1N   0  [*:1](~*)  CC(O)c1ccc(O)cc1N
+  CC(O)c1ccccc1  *C(C)O     [*:1]c1ccccc1 [*:1]C1CCCC1        0  [*:1](~*)  CC(O)C1CCCC1
+  CC(O)c1ccccc1  *C(C)O     [*:1]c1ccccc1 [*:1]c1ccccc1Cl     0  [*:1](~*)  CC(O)c1ccccc1Cl
+  CC(O)c1ccccc1  *C(C)O     [*:1]c1ccccc1 [*:1]c1ccc(N)c(N)c1 0  [*:1](~*)  CC(O)c1ccc(N)c(N)c1
+  CC(O)c1ccccc1  *C(C)O     [*:1]c1ccccc1 [*:1]c1cc(O)ccc1O   0  [*:1](~*)  CC(O)c1cc(O)ccc1O
+  CC(O)c1ccccc1  *C(C)O     [*:1]c1ccccc1 [*:1]c1ccc(O)c(O)c1 0  [*:1](~*)  CC(O)c1ccc(O)c(O)c1
+  CC(O)c1ccccc1  *C(C)O     [*:1]c1ccccc1 [*:1]c1ccc(O)cc1O   0  [*:1](~*)  CC(O)c1ccc(O)cc1O
+
+\b
+  #pairs  pair_from_id  pair_from_smiles  pair_to_id  pair_to_smiles
+  4       2-aminophenol  Nc1ccccc1O     phenylamine        Nc1ccccc1
+  3       phenol         Oc1ccccc1      phenylamine        Nc1ccccc1
+  1       catechol       Oc1ccccc1O     2-chlorophenol     Oc1ccccc1Cl
+  2       phenylamine    Nc1ccccc1      2-aminophenol      Nc1ccccc1O
+  2       phenylamine    Nc1ccccc1      o-phenylenediamine Nc1ccccc1N
+  1       phenylamine    Nc1ccccc1      amidol             Nc1ccc(O)cc1N
+  1       phenylamine    Nc1ccccc1      amidol             Nc1ccc(O)cc1N
+  1       phenylamine    Nc1ccccc1      cyclopentanol      NC1CCCC1
+  1       phenol         Oc1ccccc1      2-chlorophenol     Oc1ccccc1Cl
+  1       phenol         Oc1ccccc1      amidol             Nc1ccc(O)cc1N
+  1       phenol         Oc1ccccc1      hydroxyquinol      Oc1ccc(O)c(O)c1
+  1       phenol         Oc1ccccc1      hydroxyquinol      Oc1ccc(O)c(O)c1
+  1       phenol         Oc1ccccc1      hydroxyquinol      Oc1ccc(O)c(O)c1
+```
+
+The second half the output shows the number of known pairs for the
+given rule environment (use `--min-pairs N` to require at least N
+pairs), and gives a representative pair from the dataset.
+
+In the above example, all of the fragmentations in the specified
+`--smiles` are used. Alternatively, you may specify `--smiles` and one
+of `--constant` or `--query` to use that specific fragmentation, or
+use `--constant` and `--query` (without `--smiles`) to specify the
+exact pair.
+
+There is also an option to generate `--subqueries`. This generates all
+of the unique 1-cut fragmentations of the query, and uses them as
+additional queries. I'll use the `--constant` to specify the phynol
+group, leaving the aminomethanol available as the query. I'll use
+`--subqueries` to include fragments of the query. I'll limit the
+output `--columns` to the start and final SMILES structures, and the
+number of pairs. I'll use `--explain` to display debug information,
+and finally, I'll use `--no-header` to make the output a bit less
+complicated:
+
+\b
+```shell
+  % mmpdb generate --smiles 'c1ccccc1C(O)N' --constant '*c1ccccc1' test_data.mmpdb \\
+       --subqueries --columns start,final,#pairs --explain --no-header
+  Number of subqueries: 4
+  Subqueries are: ['*CN', '*CO', '*N', '*O']
+  Using constant SMILES *c1ccccc1 with radius 0.
+  Environment SMARTS: [#0;X1;H0;+0;!R:1] pseudoSMILES: [*:1](~*)
+  Number of matching environment rules: 42
+  Query SMILES [*:1]C(N)O is not a rule_smiles in the database.
+  Query SMILES [*:1]CN is not a rule_smiles in the database.
+  Query SMILES [*:1]CO is not a rule_smiles in the database.
+  Nc1ccccc1	Oc1ccccc1	3
+  Nc1ccccc1	c1ccccc1	2
+  Nc1ccccc1	Clc1ccccc1	1
+  Number of rules for [*:1]N: 3
+  Oc1ccccc1	c1ccccc1	4
+  Oc1ccccc1	Nc1ccccc1	3
+  Oc1ccccc1	Clc1ccccc1	1
+  Number of rules for [*:1]O: 3
+```
 
 """)
 
