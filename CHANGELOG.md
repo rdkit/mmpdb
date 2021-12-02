@@ -1,6 +1,45 @@
 # CHANGELOG
 
-## mmpdb (in development)
+## mmpdb 3.0b1 - 2021-12-03
+
+A large number of changes to merge three different development tracks
+and add new features.
+
+The "fragments" file format has been replaced with a SQLite-based
+"fragdb" file format. This makes it much easier to develop tools to
+work on fragment data sets.
+
+New functionality to create an MMP data set in a distributed compute
+environment. Some of the features are:
+
+- split a SMILES file into a set of smaller SMILES files
+- the default "fragment" file output is now based on the input name
+- fragment files can be re-partitioned by constant fragments:
+    - the "fragdb_constants" file generates fragment information
+    - the "fragdb_partition" create re-partitioned fragdb files
+- the default "index" file output is now based on the input name
+- there are tools to merge fragdb and mmpdb files into one
+
+As a result, mmpdb can now handle significantly larger data sets.
+
+Added support for Postgres.
+
+Added a new "generate" command to apply 1-cut transforms to a
+structure, using MMP rules as a playbook.
+
+Replaced the SHA256-based Morgan fingerprint signature with a
+canonical SMARTS representing the Morgan fingerprint environment. This
+is difficult to understand or depict, so also include a "pseudo"
+SMILES that can be parsed by RDKit (if sanitize is disabled) and
+drawn. The new environment fingerprint also include the SMARTS of its
+parent, that is, the SMARTS with a smaller radius.
+
+Switched to 'click' for command-line parsing, removed the vendered
+version of the peewee ORM, and switched to a modern "pyproject.toml"
+project configuration with a setup.cfg which declares its dependencies.
+
+
+## mmpdb 2.2-dev (the GitHub development track)
 
 The `fragment` and `smifrag` commands now support options for
 supervised fragmentation based on a specified set of R-group SMILES to
