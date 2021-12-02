@@ -493,7 +493,7 @@ def generate_from_constant(
     # Get the environment fingerprint id
     fpids = dataset.get_smarts_ids([env_fp.smarts], cursor=cursor)
     if not fpids:
-        reporter.report("Constant SMILES environment fingerprint not present in the database.")
+        reporter.explain("Constant SMILES environment fingerprint not present in the database.")
         return
     assert len(fpids) == 1, (env_fp.smarts, fpids)
     fpid = list(fpids)[0]
