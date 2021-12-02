@@ -308,17 +308,17 @@ ID     SMILES    MW_from_smiles    MW_to_smiles    MW_radius
 1    Clc1ccccn1     [*:1]O          [*:1]Cl           1
 2     Nc1ccccn1     [*:1]O          [*:1]N            1
 3     c1ccncc1      [*:1]O          [*:1][H]          1
-
+
       MW_smarts                        MW_pseudosmiles    MW_rule_environment_id 
 [#0;X1;H0;+0;!R:1]-[#6;X3;H0;+0;R]    [*:1]-[#6](~*)(~*)    299
 [#0;X1;H0;+0;!R:1]-[#6;X3;H0;+0;R]    [*:1]-[#6](~*)(~*)    276
 [#0;X1;H0;+0;!R:1]-[#6;X3;H0;+0;R]    [*:1]-[#6](~*)(~*)    268
-
+
 MW_count    MW_avg    MW_std    MW_kurtosis    MW_skewness
     1        18.5
     3        -1         0            0
     4       -16         0            0
-
+
 MW_min  MW_q1  MW_median  MW_q3  MW_max  MW_paired_t    MW_p_value
  18.5    18.5   18.5      18.5    18.5
  -1      -1     -1        -1      -1      1e+08    
@@ -349,17 +349,17 @@ ID   SMILES    MP_from_smiles   MP_to_smiles   MP_radius
 1   Clc1ccccn1    [*:1]O           [*:1]Cl        1
 2    Nc1ccccn1    [*:1]O           [*:1]N         1
 3    c1ccncc1     [*:1]O           [*:1][H]       1
-
+
 MP_smarts                            MP_pseudosmiles     MP_rule_environment_id
 [#0;X1;H0;+0;!R:1]-[#6;X3;H0;+0;R]   [*:1]-[#6](~*)(~*)   299
 [#0;X1;H0;+0;!R:1]-[#6;X3;H0;+0;R]   [*:1]-[#6](~*)(~*)   276
 [#0;X1;H0;+0;!R:1]-[#6;X3;H0;+0;R]   [*:1]-[#6](~*)(~*)   268
-
+
 MP_count   MP_avg   MP_std   MP_kurtosis   MP_skewness   
    1       -97            
    3       -16.667   75.235     -1.5        -0.33764   
    3       -93       76.727     -1.5        -0.32397   
-
+
 MP_min   MP_q1   MP_median   MP_q3   MP_max   MP_paired_t   MP_p_value
  -97      -97       -97       -97     -97      
  -72      -65.75    -47        40      69        0.3837      0.73815
