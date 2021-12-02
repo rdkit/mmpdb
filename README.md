@@ -5,7 +5,7 @@
 
 
 A package to identify matched molecular pairs and use them to predict
-property changes.
+property changes and generate new molecular structures.
 
 
 ------------------
