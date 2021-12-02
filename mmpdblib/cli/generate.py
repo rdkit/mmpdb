@@ -384,9 +384,6 @@ def generate(
                         min_pairs = min_pairs,
                         reporter = reporter,
                         ):
-            if 0:
-                for k in result:
-                    assert k in FIELD_TITLES, k
             output_line = output_format_str.format_map(result)
             output_file.write(output_line)
         
