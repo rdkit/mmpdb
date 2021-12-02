@@ -122,7 +122,7 @@ class ColumnFields(click.ParamType):
         return fields
         
 
-class ColumnTitles(click.ParamType):
+class ColumnHeaders(click.ParamType):
     name = "STR1,STR2,..."
 
     def convert(self, value, param, ctx):
@@ -187,7 +187,8 @@ def get_subqueries(dataset, query_smiles, reporter):
         return []
 
     # The fragmentations are symmetrical. I can limit my search to the constant_smiles.
-    subqueries = []
+    # There may be duplicate subqueries, so use a set to filter them out.
+    subqueries = set()
     for frag in record.fragmentations:
         constant_smiles = frag.constant_smiles
         assert "[*]" not in constant_smiles
@@ -205,11 +206,10 @@ def get_subqueries(dataset, query_smiles, reporter):
                 continue
             subquery = constant_smiles
             
-        subqueries.append((-frag.constant_num_heavies, subquery))
+        subqueries.add((-frag.constant_num_heavies, subquery))
 
-    # Sort from largest to smallest
-    subqueries.sort()
-    subqueries = [subquery for (num_heavies, subquery) in subqueries]
+    # Sort from largest to smallest and extract the SMILES
+    subqueries = [subquery for (num_heavies, subquery) in sorted(subqueries)]
 
     reporter.explain(f"Number of subqueries: {len(subqueries)}")
     if subqueries:
@@ -275,9 +275,15 @@ def get_subqueries(dataset, query_smiles, reporter):
     help=f"A comma-separated list of output fields: (default: {DEFAULT_COLUMNS!r})",
     )
 @click.option(
-    "--titles",
-    type=ColumnTitles(),
-    help="A comma-separated list of column titles (default uses --fields)",
+    "--headers",
+    type=ColumnHeaders(),
+    help="A comma-separated list of column headers (default uses --fields)",
+    )
+@click.option(
+    "--header/--no-header",
+    "include_header",
+    default=True,
+    help = "Use --no-header to exclude the column headers in the output",
     )
     
 
@@ -301,7 +307,8 @@ def generate(
         min_pairs,
         output_file,
         columns,
-        titles,
+        headers,
+        include_header,
         explain,
         ):
     """Apply 1-cut database transforms to a molecule"""
@@ -314,14 +321,14 @@ def generate(
     if num_options == 3:
         raise click.UsageError("Must specify --smiles or at most two of --smiles, --constant, and --query")
 
-    if titles is None:
-        titles = columns[:]
+    if headers is None:
+        headers = columns[:]
     else:
-        if len(columns) != len(titles):
+        if len(columns) != len(headers):
             raise click.UsageError(
-                f"Mismatch between the number of --columns ({len(columns)}) and --titles ({len(titles)})"
+                f"Mismatch between the number of --columns ({len(columns)}) and --headers ({len(headers)})"
                 )
-    title_line = "\t".join(titles) + "\n"
+    header_line = "\t".join(headers) + "\n"
     output_format_str = "\t".join('{' + column + '}' for column in columns) + "\n"
     
     dataset = open_dataset_from_options_or_exit(database_options, reporter.quiet)
@@ -363,7 +370,9 @@ def generate(
             from_smiles = from_smiles_list[0]
             from_smiles_list.extend(get_subqueries(dataset, from_smiles, reporter))
 
-    output_file.write(title_line)
+    if include_header:
+        output_file.write(header_line)
+        
     for constant_smiles, from_smiles_list in queries:
         for result in generate_from_constant(
                         dataset = dataset,
