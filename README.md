@@ -17,17 +17,24 @@ property changes and generate new molecular structures.
 The package has been tested on Python 3.9.
 
 You will need a copy of the RDKit cheminformatics toolkit, available
-from http://rdkit.org/ . Apart from other standard scientific python 
-libraries like scipy and numpy, this is the only required third-party
-dependency for normal operation, though several optional third-party
-packages may be used if available.
+from http://rdkit.org/ , which in turn requires NumPy. You will also
+need SciPy, peewee, and click. The latter three are listed as
+dependencies in setup.cfg and should be installed automatically.
 
-  - The matched molecular pairs are stored in a SQLite database. The
-APSW module from https://github.com/rogerbinns/apsw gives slightly
-better analysis performance than Python's built-in SQLite module.
+Optional components you may find useful are:
 
-  - The "`--memory`" option in the index command requires the psutil
-module (see https://pypi.python.org/pypi/psutil/ ) to get memory
+  - By default the matched molecular pairs are stored in a SQLite
+database. The APSW module from https://github.com/rogerbinns/apsw
+gives slightly better analysis performance than Python's built-in
+SQLite module.
+
+  - The matched molecular pairs may instead by be stored in a Postgres
+database. These were tested using the
+[psycopg2](https://www.psycopg.org/) adapter. See `mmpdb
+help-postgres` for more information.
+
+ - The "`--memory`" option in the index command requires the
+[psutil](https://pypi.python.org/pypi/psutil/) module to get memory
 use information.
 
 
@@ -49,7 +56,7 @@ command-line arguments, describe how they are used, and show
 examples of use.
 
 The subcommands starting with "help-" print additional information
-about a given topic. Much of the read of this README come from the
+about a given topic. Much of the text of this README come from the
 output of
 
 ```shell
@@ -76,7 +83,8 @@ Molecular Pair Platform for Large Multiproperty Data Sets. *J. Chem.
 Inf. Model.*, **2018**, *58 (5)*, pp 902–910. 
 https://pubs.acs.org/doi/10.1021/acs.jcim.8b00173
 
-For more about the methods to scale mmpdb to larger datasets, see:
+For more about the methods to scale mmpdb to larger datasets and
+generate new molecules, see:
 
 M. Awale, J. Hert, L. Guasch, S. Riniker, C. Kramer.
 The Playbooks of Medicinal Chemistry Design Moves. *J. Chem. 
