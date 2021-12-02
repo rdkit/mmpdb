@@ -295,7 +295,15 @@ def replace_wildcard_with_H(smiles):
 
 def make_single_cut(mol, atom_pair, chiral_flags, fragment_filter):
     fragmented_mol, other_atom_table = fragment_on_atom_pairs(mol, [atom_pair])
-    frag1_indices, frag2_indices = Chem.GetMolFrags(fragmented_mol)
+    try:
+        frag1_indices, frag2_indices = Chem.GetMolFrags(fragmented_mol)
+    except ValueError:
+        # There is a bug in RDKit's ring detection which causes it to 
+        # interpret some ring bonds as chain bonds:
+        #    https://github.com/rdkit/rdkit/issues/4016
+        # The best we can do is ignore it.
+        return None
+        
 
     # Remove the indices for the wildcard atoms (should be the last two atoms in the molecule)
     num_atoms = fragmented_mol.GetNumAtoms()
@@ -780,8 +788,8 @@ def fragment_mol(mol, fragment_filter, num_heavies=None):
             fragmentations = make_single_cut(mol, cut_list[0], chiral_flags, fragment_filter)
         else:
             fragmentations = make_multiple_cuts(mol, cut_list, chiral_flags, fragment_filter)
-            if fragmentations is None:  # Fragmentation has been filtered out
-                continue
+        if fragmentations is None:  # Fragmentation has been filtered out
+            continue
 
         for fragmentation in fragmentations:
             key = fragmentation.get_unique_key()  # XXX + "012" + YYY
