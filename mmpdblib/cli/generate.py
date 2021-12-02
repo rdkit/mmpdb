@@ -87,7 +87,7 @@ COLUMN_DESCRIPTIONS = {
     "start": "initial compound SMILES (constant + from_smiles)",
     "constant": "constant fragment SMILES",
     "from_smiles": "SMILES of the fragment to modify (derived from the query)",
-    "to_smiles": "SMILES of the modified fragment",
+    "to_smiles": "SMILES of the modified fragment (from the database rule)",
     "r": "environment radius",
     "smarts": "environment SMARTS for the constant",
     "pseudosmiles": "environment pseudo-SMILES for the constant",
@@ -101,6 +101,8 @@ COLUMN_DESCRIPTIONS = {
     "env_rule_id": "internal database environment rule id",
     "swapped": "direction of the transform in the rule",
     }
+
+COLUMN_EPILOG = "".join(f"\b\n* {column}: {description}" for (column, description) in COLUMN_DESCRIPTIONS.items())
 
 DEFAULT_COLUMNS = (
         "start,constant,from_smiles,to_smiles,r,pseudosmiles,final,#pairs,"
@@ -217,9 +219,81 @@ def get_subqueries(dataset, query_smiles, reporter):
     
     return subqueries
 
+# The 'generate' command
+
+generate_epilog = f"""
+
+Use the DATABASE as a source of rules to generate new structures from
+a given input structure. Only 1-cut rules are supported.
+
+The core algorithm starts with a constant and a variable part (called
+the "query"). The environment fingerprint for the constant, at radius
+`-r` (default: 0) is found, and used to search the database for
+matching rule environments where its corresponding rule has the query
+SMILES on either side of the transform. If the environment has at
+least `--min-pairs` pairs then use the other side of the tranform to
+replace the query and generate a new structure.
+
+The constant and variable parts can be specified directly, as
+`--constant` and `--query`.
+
+Alternatively, specify the `--smiles` and one of `--constant` or
+`--query` and mmpdb will use the database's fragmentation options to
+identify the other part.
+
+Alternatively, if only `--smiles` is given then all of its constant
+and variable parts will be used, again, fragmented according to the
+database's fragmentation options.
+
+The `--subqueries` option generates subfragments of the query
+fragments and uses those as additional query fragments.
+
+By default the output is written to stdout as tab-separated columns
+with a header. Use `--no-header` to omit the header. Use `--output` to
+write the output to a named file.
+
+The following columns are available, though not all are included by
+default:
+
+{COLUMN_EPILOG}
+
+Use `--columns`, containing a comma-separated list of column names, to
+select a different set of columns or to change the output order. The
+default is:
+
+  {DEFAULT_COLUMNS}
+
+By default the column header is the column name. Use `--headers` to
+specify alternate names. This must be a comma-separated list of header
+names, with the same length as `--columns`.
+
+For example, the following generates columns with only the start
+SMILES (with header "FROM_SMILES" and made from the subquery fragment
+merged with the constant), and the final SMILES (with header
+"TO_SMILES" and made from the SMILES on the other side of the matching
+transform.
+
+\b
+```shell
+  % mmpdb --quiet generate --smiles c1ccccc1CC1CC1 --radius 1 merged.mmpdb \\
+      --subqueries --columns start,from_smiles,to_smiles,final \\
+      --headers "START_SMILES,lhs_frag,rhs_frag,END_SMILES"
+  START_SMILES	lhs_frag	rhs_frag	END_SMILES
+  c1ccc(CC2CC2)cc1	[*:1]CC1CC1	[*:1][H]	c1ccccc1
+  c1ccc(CC2CC2)cc1	[*:1]CC1CC1	[*:1]c1cc(C)nn1C	Cc1cc(-c2ccccc2)n(C)n1
+  c1ccc(CC2CC2)cc1	[*:1]CC1CC1	[*:1]N1CCCCC1	c1ccc(N2CCCCC2)cc1
+  c1ccc(C2CC2)cc1	[*:1]C1CC1	[*:1][H]	c1ccccc1
+  c1ccc(C2CC2)cc1	[*:1]C1CC1	[*:1]OC	COc1ccccc1
+     ... lines omitted ...
+  CC1CC1	[*:1]C	[*:1]CCCC	CCCCC1CC1
+  CC1CC1	[*:1]C	[*:1]COc1ccc(OC)cc1	COc1ccc(OCC2CC2)cc1
+```
+
+"""
 
 @command(
     name = "generate",
+    epilog = generate_epilog,
     )
 @click.option(
     "--smiles",
@@ -244,14 +318,14 @@ def get_subqueries(dataset, query_smiles, reporter):
 @click.option(
     "--subqueries / --no-subqueries",
     default = False,
-    help = "If specified, also generate and include subqueries",
+    help = "If specified, also generate and include subfragments of the query fragment",
     )
 
 @click.option(
     "--radius",
     default = 0, # XXX Is this right?
     type = radius_type(),
-    help = "Fingerprint radius (default: 0)",
+    help = "Fingerprint environment radius (default: 0)",
     )
 
 @click.option(
@@ -272,7 +346,7 @@ def get_subqueries(dataset, query_smiles, reporter):
     "--columns",
     type=ColumnFields(),
     default = DEFAULT_COLUMNS,
-    help=f"A comma-separated list of output fields: (default: {DEFAULT_COLUMNS!r})",
+    help=f"A comma-separated list of output fields (see below for the default)",
     )
 @click.option(
     "--headers",
@@ -280,8 +354,10 @@ def get_subqueries(dataset, query_smiles, reporter):
     help="A comma-separated list of column headers (default uses --fields)",
     )
 @click.option(
-    "--header/--no-header",
+    # Not using --header since it's to easy to get mixed up with --headers
+    "--no-header",
     "include_header",
+    is_flag=True,
     default=True,
     help = "Use --no-header to exclude the column headers in the output",
     )
@@ -386,7 +462,8 @@ def generate(
                         ):
             output_line = output_format_str.format_map(result)
             output_file.write(output_line)
-        
+
+    output_file.close()
 
 def generate_from_constant(
         dataset,
