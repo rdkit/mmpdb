@@ -183,6 +183,9 @@ class MultiCommand(FormatEpilog, click.MultiCommand):
         return list(_commands)
 
     def get_command(self, ctx, name):
+        # secret alias
+        if name == "transmogrify":
+            name = "generate"
         path = _commands.get(name, None)
         if path is None:
             # Return None to indicate the command is not available.
