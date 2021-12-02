@@ -47,8 +47,9 @@ use information.
 The package includes a command-line program named "mmpdb". This
 support many subcommands. For examples:
 
-  "`mmpdb fragment`" -- fragment a SMILES file
-  "`mmpdb index`" -- find matched molecular pairs in a fragment file
+* "`mmpdb fragment`" -- fragment a SMILES file
+
+* "`mmpdb index`" -- find matched molecular pairs in a fragment file
 
 Use the "`--help`" option to get more information about any of the
 commands. For example, "`mmpdb fragment --help`" will print the
@@ -60,8 +61,8 @@ about a given topic. Much of the text of this README come from the
 output of
 
 ```shell
-   % mmpdb help-analysis 
-   % mmpdb help-distributed 
+ % mmpdb help-analysis 
+ % mmpdb help-distributed 
 ```
 
 If you wish to experiment with a simple test set, use
@@ -137,17 +138,21 @@ The fingerprint SMARTS pattern describes the Morgan circular fingerprint
 invariants around the attachment points. Here's a 2-cut example split across
 three lines:
 
-  [#0;X1;H0;+0;!R:1]-[#6;X4;H1;+0;R](-[#6;X4;H2;+0;R])-[#6;X4;H2;+0;R].
-  [#0;X1;H0;+0;!R:2]-[#7;X3;H0;+0;R](-[#6;X4;H2;+0;R])-[#6;X4;H2;+0;R].
-  [#0;X1;H0;+0;!R:3]-[#6;X3;H0;+0;R](:[#6;X3;H1;+0;R]):[#6;X3;H1;+0;R]
+```
+[#0;X1;H0;+0;!R:1]-[#6;X4;H1;+0;R](-[#6;X4;H2;+0;R])-[#6;X4;H2;+0;R].
+[#0;X1;H0;+0;!R:2]-[#7;X3;H0;+0;R](-[#6;X4;H2;+0;R])-[#6;X4;H2;+0;R].
+[#0;X1;H0;+0;!R:3]-[#6;X3;H0;+0;R](:[#6;X3;H1;+0;R]):[#6;X3;H1;+0;R]
+```
 
 The SMARTS modifiers, like "H0" to require no hydrogens, are needed to match
 the Morgan invariants but are quite the eye-full. The psuedosmiles alternative
 is:
 
-  [*:1]-[CH](-[CH2](~*))-[CH2](~*).
-  [*:2]-[N](-[CH2](~*))-[CH2](~*).
-  [*:3]-[c](:[cH](~*)):[cH](~*)
+```
+[*:1]-[CH](-[CH2](~*))-[CH2](~*).
+[*:2]-[N](-[CH2](~*))-[CH2](~*).
+[*:3]-[c](:[cH](~*)):[cH](~*)
+```
 
 This can be processed by RDKit, if sanitization is disabled, and turned into
 an image.
@@ -417,36 +422,36 @@ environment fingerprint is ignored. (The columns have been re-formatted for
 the documentation.)
 
 ```shell
-  % mmpdb generate --smiles 'c1ccccc1C(O)C' test_data.mmpdb
-  start             constant  from_smiles  to_smiles          r  pseudosmiles  final
-  CC(O)c1ccccc1  *C(C)c1ccccc1  [*:1]O    [*:1][H]            0  [*:1](~*)  CCc1ccccc1
-  CC(O)c1ccccc1  *C(C)c1ccccc1  [*:1]O    [*:1]N              0  [*:1](~*)  CC(N)c1ccccc1
-  CC(O)c1ccccc1  *C(C)c1ccccc1  [*:1]O    [*:1]Cl             0  [*:1](~*)  CC(Cl)c1ccccc1
-  CC(O)c1ccccc1  *C(C)O     [*:1]c1ccccc1 [*:1]c1ccccc1O      0  [*:1](~*)  CC(O)c1ccccc1O
-  CC(O)c1ccccc1  *C(C)O     [*:1]c1ccccc1 [*:1]c1ccccc1N      0  [*:1](~*)  CC(O)c1ccccc1N
-  CC(O)c1ccccc1  *C(C)O     [*:1]c1ccccc1 [*:1]c1cc(O)ccc1N   0  [*:1](~*)  CC(O)c1cc(O)ccc1N
-  CC(O)c1ccccc1  *C(C)O     [*:1]c1ccccc1 [*:1]c1ccc(O)cc1N   0  [*:1](~*)  CC(O)c1ccc(O)cc1N
-  CC(O)c1ccccc1  *C(C)O     [*:1]c1ccccc1 [*:1]C1CCCC1        0  [*:1](~*)  CC(O)C1CCCC1
-  CC(O)c1ccccc1  *C(C)O     [*:1]c1ccccc1 [*:1]c1ccccc1Cl     0  [*:1](~*)  CC(O)c1ccccc1Cl
-  CC(O)c1ccccc1  *C(C)O     [*:1]c1ccccc1 [*:1]c1ccc(N)c(N)c1 0  [*:1](~*)  CC(O)c1ccc(N)c(N)c1
-  CC(O)c1ccccc1  *C(C)O     [*:1]c1ccccc1 [*:1]c1cc(O)ccc1O   0  [*:1](~*)  CC(O)c1cc(O)ccc1O
-  CC(O)c1ccccc1  *C(C)O     [*:1]c1ccccc1 [*:1]c1ccc(O)c(O)c1 0  [*:1](~*)  CC(O)c1ccc(O)c(O)c1
-  CC(O)c1ccccc1  *C(C)O     [*:1]c1ccccc1 [*:1]c1ccc(O)cc1O   0  [*:1](~*)  CC(O)c1ccc(O)cc1O
+% mmpdb generate --smiles 'c1ccccc1C(O)C' test_data.mmpdb
+start             constant  from_smiles  to_smiles          r  pseudosmiles  final
+CC(O)c1ccccc1  *C(C)c1ccccc1  [*:1]O    [*:1][H]            0  [*:1](~*)  CCc1ccccc1
+CC(O)c1ccccc1  *C(C)c1ccccc1  [*:1]O    [*:1]N              0  [*:1](~*)  CC(N)c1ccccc1
+CC(O)c1ccccc1  *C(C)c1ccccc1  [*:1]O    [*:1]Cl             0  [*:1](~*)  CC(Cl)c1ccccc1
+CC(O)c1ccccc1  *C(C)O     [*:1]c1ccccc1 [*:1]c1ccccc1O      0  [*:1](~*)  CC(O)c1ccccc1O
+CC(O)c1ccccc1  *C(C)O     [*:1]c1ccccc1 [*:1]c1ccccc1N      0  [*:1](~*)  CC(O)c1ccccc1N
+CC(O)c1ccccc1  *C(C)O     [*:1]c1ccccc1 [*:1]c1cc(O)ccc1N   0  [*:1](~*)  CC(O)c1cc(O)ccc1N
+CC(O)c1ccccc1  *C(C)O     [*:1]c1ccccc1 [*:1]c1ccc(O)cc1N   0  [*:1](~*)  CC(O)c1ccc(O)cc1N
+CC(O)c1ccccc1  *C(C)O     [*:1]c1ccccc1 [*:1]C1CCCC1        0  [*:1](~*)  CC(O)C1CCCC1
+CC(O)c1ccccc1  *C(C)O     [*:1]c1ccccc1 [*:1]c1ccccc1Cl     0  [*:1](~*)  CC(O)c1ccccc1Cl
+CC(O)c1ccccc1  *C(C)O     [*:1]c1ccccc1 [*:1]c1ccc(N)c(N)c1 0  [*:1](~*)  CC(O)c1ccc(N)c(N)c1
+CC(O)c1ccccc1  *C(C)O     [*:1]c1ccccc1 [*:1]c1cc(O)ccc1O   0  [*:1](~*)  CC(O)c1cc(O)ccc1O
+CC(O)c1ccccc1  *C(C)O     [*:1]c1ccccc1 [*:1]c1ccc(O)c(O)c1 0  [*:1](~*)  CC(O)c1ccc(O)c(O)c1
+CC(O)c1ccccc1  *C(C)O     [*:1]c1ccccc1 [*:1]c1ccc(O)cc1O   0  [*:1](~*)  CC(O)c1ccc(O)cc1O
 
-  #pairs  pair_from_id  pair_from_smiles  pair_to_id  pair_to_smiles
-  4       2-aminophenol  Nc1ccccc1O     phenylamine        Nc1ccccc1
-  3       phenol         Oc1ccccc1      phenylamine        Nc1ccccc1
-  1       catechol       Oc1ccccc1O     2-chlorophenol     Oc1ccccc1Cl
-  2       phenylamine    Nc1ccccc1      2-aminophenol      Nc1ccccc1O
-  2       phenylamine    Nc1ccccc1      o-phenylenediamine Nc1ccccc1N
-  1       phenylamine    Nc1ccccc1      amidol             Nc1ccc(O)cc1N
-  1       phenylamine    Nc1ccccc1      amidol             Nc1ccc(O)cc1N
-  1       phenylamine    Nc1ccccc1      cyclopentanol      NC1CCCC1
-  1       phenol         Oc1ccccc1      2-chlorophenol     Oc1ccccc1Cl
-  1       phenol         Oc1ccccc1      amidol             Nc1ccc(O)cc1N
-  1       phenol         Oc1ccccc1      hydroxyquinol      Oc1ccc(O)c(O)c1
-  1       phenol         Oc1ccccc1      hydroxyquinol      Oc1ccc(O)c(O)c1
-  1       phenol         Oc1ccccc1      hydroxyquinol      Oc1ccc(O)c(O)c1
+#pairs  pair_from_id  pair_from_smiles  pair_to_id  pair_to_smiles
+4       2-aminophenol  Nc1ccccc1O     phenylamine        Nc1ccccc1
+3       phenol         Oc1ccccc1      phenylamine        Nc1ccccc1
+1       catechol       Oc1ccccc1O     2-chlorophenol     Oc1ccccc1Cl
+2       phenylamine    Nc1ccccc1      2-aminophenol      Nc1ccccc1O
+2       phenylamine    Nc1ccccc1      o-phenylenediamine Nc1ccccc1N
+1       phenylamine    Nc1ccccc1      amidol             Nc1ccc(O)cc1N
+1       phenylamine    Nc1ccccc1      amidol             Nc1ccc(O)cc1N
+1       phenylamine    Nc1ccccc1      cyclopentanol      NC1CCCC1
+1       phenol         Oc1ccccc1      2-chlorophenol     Oc1ccccc1Cl
+1       phenol         Oc1ccccc1      amidol             Nc1ccc(O)cc1N
+1       phenol         Oc1ccccc1      hydroxyquinol      Oc1ccc(O)c(O)c1
+1       phenol         Oc1ccccc1      hydroxyquinol      Oc1ccc(O)c(O)c1
+1       phenol         Oc1ccccc1      hydroxyquinol      Oc1ccc(O)c(O)c1
 ```
 
 The second half the output shows the number of known pairs for the given rule
@@ -468,24 +473,24 @@ display debug information, and finally, I'll use `--no-header` to make the
 output a bit less complicated:
 
 ```shell
-  % mmpdb generate --smiles 'c1ccccc1C(O)N' --constant '*c1ccccc1' test_data.mmpdb \
-       --subqueries --columns start,final,#pairs --explain --no-header
-  Number of subqueries: 4
-  Subqueries are: ['*CN', '*CO', '*N', '*O']
-  Using constant SMILES *c1ccccc1 with radius 0.
-  Environment SMARTS: [#0;X1;H0;+0;!R:1] pseudoSMILES: [*:1](~*)
-  Number of matching environment rules: 42
-  Query SMILES [*:1]C(N)O is not a rule_smiles in the database.
-  Query SMILES [*:1]CN is not a rule_smiles in the database.
-  Query SMILES [*:1]CO is not a rule_smiles in the database.
-  Nc1ccccc1     Oc1ccccc1       3
-  Nc1ccccc1     c1ccccc1        2
-  Nc1ccccc1     Clc1ccccc1      1
-  Number of rules for [*:1]N: 3
-  Oc1ccccc1     c1ccccc1        4
-  Oc1ccccc1     Nc1ccccc1       3
-  Oc1ccccc1     Clc1ccccc1      1
-  Number of rules for [*:1]O: 3
+% mmpdb generate --smiles 'c1ccccc1C(O)N' --constant '*c1ccccc1' test_data.mmpdb \
+     --subqueries --columns start,final,#pairs --explain --no-header
+Number of subqueries: 4
+Subqueries are: ['*CN', '*CO', '*N', '*O']
+Using constant SMILES *c1ccccc1 with radius 0.
+Environment SMARTS: [#0;X1;H0;+0;!R:1] pseudoSMILES: [*:1](~*)
+Number of matching environment rules: 42
+Query SMILES [*:1]C(N)O is not a rule_smiles in the database.
+Query SMILES [*:1]CN is not a rule_smiles in the database.
+Query SMILES [*:1]CO is not a rule_smiles in the database.
+Nc1ccccc1     Oc1ccccc1       3
+Nc1ccccc1     c1ccccc1        2
+Nc1ccccc1     Clc1ccccc1      1
+Number of rules for [*:1]N: 3
+Oc1ccccc1     c1ccccc1        4
+Oc1ccccc1     Nc1ccccc1       3
+Oc1ccccc1     Clc1ccccc1      1
+Number of rules for [*:1]O: 3
 ```
 
 ## Distributed computing
