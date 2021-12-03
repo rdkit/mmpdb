@@ -186,13 +186,16 @@ INSERT INTO profiler.mmpdb_times (label, t) VALUES ("insert env_fp_map", juliand
 -- Must have UNIQUE INDEX ON rule_environment (rule_id, environment_fingerprint_id, radius)
 
 
-INSERT OR IGNORE INTO rule_environment (rule_id, environment_fingerprint_id, radius)
-  SELECT rule_map.new_id, env_fp_map.new_id, old_rule_env.radius
+INSERT INTO rule_environment (rule_id, environment_fingerprint_id, radius, num_pairs)
+  SELECT rule_map.new_id, env_fp_map.new_id, old_rule_env.radius, num_pairs
     FROM old.rule_environment AS old_rule_env,
          lut.rule_map AS rule_map,
          lut.env_fp_map AS env_fp_map
    WHERE old_rule_env.rule_id = rule_map.old_id
      AND old_rule_env.environment_fingerprint_id = env_fp_map.old_id
+ ON CONFLICT (rule_id, environment_fingerprint_id, radius)
+ DO UPDATE
+     SET num_pairs = num_pairs + excluded.num_pairs
          ;
 
 INSERT INTO profiler.mmpdb_times (label, t) VALUES ("insert rule_environment", julianday("now"));

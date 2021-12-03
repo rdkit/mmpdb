@@ -166,8 +166,15 @@ UPDATE_DATASET_SQL = (
     "    num_pairs=(SELECT COUNT(*) FROM pair), \n"
     "    num_rule_environments=(SELECT COUNT(*) FROM rule_environment), \n"
     "    num_rule_environment_stats=(SELECT COUNT(*) FROM rule_environment_statistics) \n"
-    "     WHERE id = 1")
+    "     WHERE id = 1"
+    )
 
+UPDATE_RULE_ENV_NUM_PAIRS = (
+    "UPDATE rule_environment \n"
+    "    SET num_pairs = ( \n"
+    "       SELECT COUNT(*) FROM pair WHERE pair.rule_environment_id = rule_environment.id) \n"
+    )
+    
 ADD_PROPERTY_NAME_SQL = (
     "INSERT INTO property_name (id, name) VALUES (?, ?)"
     )
@@ -182,8 +189,8 @@ ADD_ENVIRONMENT_FINGERPRINT_SQL = (
     )
 ADD_RULE_ENVIRONMENT_SQL = (
     "INSERT INTO "
-    "  rule_environment (id, rule_id, environment_fingerprint_id,  radius) "
-    "  VALUES (?, ?, ?, ?)"
+    "  rule_environment (id, rule_id, environment_fingerprint_id,  radius, num_pairs) "
+    "  VALUES (?, ?, ?, ?, 0)"
     )
 ADD_COMPOUND_SQL = (
     "INSERT INTO "
@@ -296,14 +303,10 @@ class BaseRDBMSIndexWriter(StartMixin):
         
         reporter.update("Computing sizes ...")
 
-        
-        ## num_compounds = self._get_table_count("compound")
-        ## num_rules = self._get_table_count("rule")
-        ## num_pairs = self._get_table_count("pair")
-        ## num_envs = self._get_table_count("rule_environment")
-        ## num_stats = self._get_table_count("rule_environment_statistics")
-
         sql = self.prepare_single(UPDATE_DATASET_SQL)
+        self.conn.execute(sql)
+        
+        sql = self.prepare_single(UPDATE_RULE_ENV_NUM_PAIRS)
         self.conn.execute(sql)
         
         reporter.update("")
@@ -830,6 +833,9 @@ def open_rdbms_index_writer(filename, title, replace, is_sqlite=False):
 def update_counts(cursor):
     cursor.execute(UPDATE_DATASET_SQL)
 
+def update_env_fp_num_pairs(cursor):
+    cursor.execute(UPDATE_ENV_FP_NUM_PAIRS)
+    
 ### format-specific writers
 def _open_output(destination, compression, replace):
     if compression:
@@ -953,6 +959,7 @@ def write_sqlite_files(dirname):
     with open(os.path.join(dirname, "load_mmpdb_data.sqlite"), "w") as f:
         f.write(LOAD_SQLITE_SCRIPT)
         f.write(UPDATE_DATASET_SQL + ";\n")
+        f.write(UPDATE_RULE_ENV_NUM_PAIRS + ";\n")
         f.write(SQLITE_FIX_NULLS)
 
 LOAD_PSQL_SCRIPT = r"""
@@ -1014,6 +1021,7 @@ def write_postgres_files(dirname):
     with open(os.path.join(dirname, "load_mmpdb_data.psql"), "w") as f:
         f.write(LOAD_PSQL_SCRIPT)
         f.write(UPDATE_DATASET_SQL + ";\n")
+        f.write(UPDATE_RULE_ENV_NUM_PAIRS + ";\n")
         f.write("\\echo Finished copying mmpdb dataset.\n")
 
 

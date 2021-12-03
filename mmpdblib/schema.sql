@@ -164,8 +164,8 @@ CREATE TABLE rule_environment (
  id $PRIMARY_KEY$,
  rule_id INTEGER REFERENCES rule(id),
  environment_fingerprint_id INTEGER REFERENCES environment_fingerprint(id),
- radius INTEGER
- -- should I keep track of the number of pairs?
+ radius INTEGER,
+ num_pairs INTEGER
  -- (the rule_env..._statistics "count" is the number of pairs with a given property)
  );
 
