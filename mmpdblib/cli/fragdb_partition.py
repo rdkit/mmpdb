@@ -295,6 +295,7 @@ ATTACH DATABASE ":memory:" AS merge;
 CREATE TABLE merge.required_constants (
   constant_smiles TEXT
 );
+
     """)
 
     # Add the constants for this database subset
@@ -302,7 +303,7 @@ CREATE TABLE merge.required_constants (
 INSERT INTO merge.required_constants (constant_smiles) VALUES (?)
 """, ((smiles,) for smiles in subset)
      )
-    
+
     # Index
     output_c.execute("CREATE INDEX merge.required_constants_idx ON required_constants(constant_smiles)")
 
@@ -343,22 +344,20 @@ def export_options(output_c):
     output_c.execute("INSERT INTO options SELECT * FROM old.options")
     
 def export_subset(output_c):
-    # Copy the erorr_record rows
-    output_c.execute("""
+    schema._execute_sql(output_c, """
+-- Copy the error_record rows
 INSERT INTO error_record (title, input_smiles, errmsg)
 SELECT title, input_smiles, errmsg
-  FROM old.error_record
-""")
+  FROM old.error_record;
     
-    # Copy the record rows
-    output_c.execute("""
+-- Copy the record rows
 INSERT INTO record (title, input_smiles, num_normalized_heavies, normalized_smiles)
 SELECT title, input_smiles, num_normalized_heavies, normalized_smiles
-  FROM old.record
-""")
+  FROM old.record;
 
-    # Copy the relevant fragmentations
-    output_c.execute("""
+-- Copy the relevant fragmentation with this constant
+-- Need to map to the correct record id
+
 INSERT INTO fragmentation (
     record_id,
     num_cuts,
@@ -371,7 +370,7 @@ INSERT INTO fragmentation (
     constant_symmetry_class,
     constant_smiles,
     constant_with_H_smiles) 
-  SELECT record_id,
+  SELECT new_record.id,
          num_cuts,
          enumeration_label,
          variable_num_heavies,
@@ -383,9 +382,13 @@ INSERT INTO fragmentation (
          old_fragmentation.constant_smiles,
          constant_with_H_smiles
     FROM old.fragmentation AS old_fragmentation,
-         merge.required_constants AS required_constants
+         merge.required_constants AS required_constants,
+         record AS new_record,
+         old.record AS old_record
    WHERE old_fragmentation.constant_smiles = required_constants.constant_smiles
-   ;
+     AND old_fragmentation.record_id = old_record.id
+     AND old_record.title = new_record.title
+       ;
 """)
     
 
