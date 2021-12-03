@@ -262,7 +262,7 @@ class BaseRDBMSIndexWriter(StartMixin):
         return sql
         
 
-    def create_schema(self, replace=False):
+    def create_schema(self):
         raise NotImplementedError
 
     ## def _execute(self, sql, args=()):
@@ -537,7 +537,7 @@ class TransactionMixin(object):
 
 class BaseSQLiteIndexWriter(SingleIndexWriterMixin, BaseRDBMSIndexWriter):
     """Base class for using Python's own 'sqlite3' module or the 'apsw' module"""
-    def create_schema(self, replace=False):
+    def create_schema(self):
         schema.create_schema_for_sqlite(self.db)
         
 class SQLiteIndexWriter(NoTransactionMixin, BaseSQLiteIndexWriter):
@@ -614,7 +614,7 @@ class PostgresIndexWriter(TransactionMixin, BatchIndexWriterMixin, BaseRDBMSInde
             c.close()
             conn.close()
 
-    def create_schema(self, replace=False):
+    def create_schema(self):
         # Check that the database is empty
         c = self.conn
         c.execute("SELECT table_name FROM information_schema.tables")
@@ -626,9 +626,8 @@ class PostgresIndexWriter(TransactionMixin, BatchIndexWriterMixin, BaseRDBMSInde
                 existing_table_names.append(table_name)
 
         if existing_table_names:
-            if replace:
-                for table_name in existing_table_names:
-                    c.execute("DROP TABLE {} CASCADE".format(_quote_postgres_database(c, table_name)))
+            for table_name in existing_table_names:
+                c.execute("DROP TABLE {} CASCADE".format(_quote_postgres_database(c, table_name)))
             else:
                 from .index_algorithm import DatabaseAlreadyExists
                 tables = ", ".join(existing_table_names)
@@ -749,16 +748,16 @@ class BaseSQLWriter(TransactionMixin, BatchIndexWriterMixin, BaseRDBMSIndexWrite
     pass
 
 class SQLiteSQLWriter(BaseSQLWriter):
-    def create_schema(self, replace=False):
+    def create_schema(self):
         schema.create_schema_for_sqlite(self.db)
 
 class PostgresSQLWriter(BaseSQLWriter):
-    def create_schema(self, replace=False):
+    def create_schema(self):
         schema.create_schema(self.db, schema.PostgresConfig)
 
     
-def open_sql_writer(destination, title, variant, compression, replace):
-    outfile = _open_output(destination, compression, replace=replace)
+def open_sql_writer(destination, title, variant, compression):
+    outfile = _open_output(destination, compression)
     db = FlatSQLFile(outfile)
     if variant == "sqlite":
         writer_class = SQLiteSQLWriter
@@ -769,12 +768,12 @@ def open_sql_writer(destination, title, variant, compression, replace):
         
     conn = db.cursor()
     writer = writer_class(destination, db, conn, title)
-    writer.create_schema(replace=False)
+    writer.create_schema()
     return writer
 
 ####
 
-def open_rdbms_index_writer(filename, title, replace, is_sqlite=False):
+def open_rdbms_index_writer(filename, title, is_sqlite=False):
     # See if this is a database URI
     from playhouse import db_url
     import peewee
@@ -811,10 +810,6 @@ def open_rdbms_index_writer(filename, title, replace, is_sqlite=False):
         # Filename. Use the SQLite interface.
 
         if filename != ":memory:":
-            if os.path.exists(filename) and not replace:
-                from .index_algorithm import DatabaseAlreadyExists
-                raise DatabaseAlreadyExists("SQLite file", filename, "File exists")
-            
             if os.path.exists(filename):
                 os.unlink(filename)
         if apsw is None:
@@ -827,7 +822,7 @@ def open_rdbms_index_writer(filename, title, replace, is_sqlite=False):
     conn = db.cursor()
     
     writer = writer_class(filename, db, conn, title)
-    writer.create_schema(replace=replace)
+    writer.create_schema()
     return writer
 
 def update_counts(cursor):
@@ -837,44 +832,40 @@ def update_env_fp_num_pairs(cursor):
     cursor.execute(UPDATE_ENV_FP_NUM_PAIRS)
     
 ### format-specific writers
-def _open_output(destination, compression, replace):
+def _open_output(destination, compression):
     if compression:
         format_hint = ".gz"
     else:
         format_hint = ""
-    if destination is not None and os.path.exists(destination):
-        if not replace:
-            from .index_algorithm import DatabaseAlreadyExists
-            raise DatabaseAlreadyExists("file", destination, "file exists")
     return fileio.open_output(destination, format_hint)
     
 
 # Can be a helpful summary
 def _open_csv(destination, compression,
                 title, fragment_options, fragment_index, index_options, properties,
-                environment_cache, replace):
-    outfile = _open_output(destination, compression, replace=replace)
+                environment_cache):
+    outfile = _open_output(destination, compressionf)
     return CSVPairWriter(outfile, fragment_options, fragment_index,
                          index_options, properties)
 
 # Text-based version somewhat useful for debugging
-def _open_mmpa(destination, compression, title, replace):
-    outfile = _open_output(destination, compression, replace=replace)
+def _open_mmpa(destination, compression, title):
+    outfile = _open_output(destination, compression)
     return open_table_index_writer(outfile)
 
 # SQLite database
-def _open_mmpdb(destination, compression, title, replace):
+def _open_mmpdb(destination, compression, title):
     if compression:
         raise ValueError("mmpdb output does not support compression")
-    return open_rdbms_index_writer(destination, title, replace=replace)
+    return open_rdbms_index_writer(destination, title)
 
 # SQL for SQLite 
-def _open_sqlite_sql(destination, compression, title, replace):
-    return open_sql_writer(destination, title, "sqlite", compression, replace=replace)
+def _open_sqlite_sql(destination, compression, title):
+    return open_sql_writer(destination, title, "sqlite", compression)
 
 # SQL for Postgres
-def _open_postgres_sql(destination, compression, title, replace):
-    return open_sql_writer(destination, title, "postgres", compression, replace=replace)
+def _open_postgres_sql(destination, compression, title):
+    return open_sql_writer(destination, title, "postgres", compression)
 
 def NO_TABS(s):
     return s.replace("\t", " ")
@@ -954,7 +945,7 @@ def write_sqlite_files(dirname):
         f.write("ANALYZE\n")
 
     filename = os.path.join(dirname, "load_mmpdb_schema.sqlite")
-    open_sql_writer(filename, None, "sqlite", False, replace=True).close()
+    open_sql_writer(filename, None, "sqlite", False).close()
         
     with open(os.path.join(dirname, "load_mmpdb_data.sqlite"), "w") as f:
         f.write(LOAD_SQLITE_SCRIPT)
@@ -1016,7 +1007,7 @@ def write_postgres_files(dirname):
         f.write("\\echo Done.\n")
 
     filename = os.path.join(dirname, "load_mmpdb_schema.psql")
-    open_sql_writer(filename, None, "postgres", False, replace=True).close()
+    open_sql_writer(filename, None, "postgres", False).close()
         
     with open(os.path.join(dirname, "load_mmpdb_data.psql"), "w") as f:
         f.write(LOAD_PSQL_SCRIPT)
@@ -1143,11 +1134,7 @@ class CSVDWriter(StartMixin):
              NULLABLE(paired_t), NULLABLE(p_value)))
 
 
-def _open_csvd(destination, compression, title, replace):
-    if (not replace) and os.path.exists(destination):
-        from .index_algorithm import DatabaseAlreadyExists
-        raise DatabaseAlreadyExists("directory", destination, "path exists")
-        
+def _open_csvd(destination, compression, title):
     os.makedirs(destination, exist_ok=True)
     writer = CSVDWriter(
         destination = destination,
@@ -1181,16 +1168,16 @@ class BaseFormatInfo(object):
 
     def open(self, destination, compression,
                  title, fragment_options, fragment_index, index_options, properties,
-                 environment_cache, replace):
+                 environment_cache):
         return self.opener(destination, compression,
                                title, fragment_options, fragment_index, index_options, properties,
-                               environment_cache, replace)
+                               environment_cache)
             
 class FormatInfo(BaseFormatInfo):
     def open(self, destination, compression,
                  title, fragment_options, fragment_index, index_options, properties,
-                 environment_cache, replace):
-        index_writer = self.opener(destination, compression, title, replace)
+                 environment_cache):
+        index_writer = self.opener(destination, compression, title)
         return index_algorithm.MMPWriter(index_writer, fragment_options, fragment_index,
                                              index_options, properties)
         
@@ -1219,7 +1206,7 @@ _init_format_info()
 
 def open_mmpa_writer(destination, format, title, fragment_options,
                      fragment_index, index_options, properties,
-                     environment_cache, replace=False):
+                     environment_cache):
     compression = False
     
     if format is None:
@@ -1254,4 +1241,4 @@ def open_mmpa_writer(destination, format, title, fragment_options,
 
     return format_info.open(destination, compression, title, fragment_options,
                                 fragment_index, index_options, properties,
-                                environment_cache, replace=replace)
+                                environment_cache)

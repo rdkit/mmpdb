@@ -382,11 +382,6 @@ entire structure, and save the transformation in both A>>B and B>>A
         "If not present, guess from the filename, and default to 'mmpdb'"
     ),
 )
-@click.option(
-    "--replace / --no-replace",
-    default = False,
-    help = "With --replace, replace any existing database. Default is --no-replace.",
-    )
 
 @click.option(
     "--title",
@@ -413,7 +408,6 @@ def index(
     memory,
     output_format,
     output_filename,
-    replace,
     fragment_filename,
 ):
     """Index fragments and find matched molecular pairs
@@ -491,23 +485,16 @@ def index(
         reporter=reporter,
     )
 
-    try:
-        pair_writer = index_algorithm.open_mmpa_writer(
-            output_filename,
-            format=output_format,
-            title=title,
-            fragment_options=fragment_reader.options,
-            fragment_index=fragment_index,
-            index_options=index_options,
-            properties=properties,
-            environment_cache=environment_cache,
-            replace=replace,
-            )
-    except index_algorithm.DatabaseAlreadyExists as err:
-        die(
-            f"Cannot create index because {err.type} {err.destination!r} already exists. "
-            "Use --replace to overwrite it."
-            )
+    pair_writer = index_algorithm.open_mmpa_writer(
+        output_filename,
+        format=output_format,
+        title=title,
+        fragment_options=fragment_reader.options,
+        fragment_index=fragment_index,
+        index_options=index_options,
+        properties=properties,
+        environment_cache=environment_cache,
+        )
         
     with pair_writer:
         pair_writer.start()

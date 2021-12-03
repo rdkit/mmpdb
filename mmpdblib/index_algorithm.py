@@ -1373,7 +1373,6 @@ def open_mmpa_writer(
     index_options,
     properties,
     environment_cache,
-    replace = False,
 ):
     from . import index_writers
     return index_writers.open_mmpa_writer(
@@ -1385,7 +1384,6 @@ def open_mmpa_writer(
         index_options = index_options,
         properties = properties,
         environment_cache = environment_cache,
-        replace = replace,
     )
 
 

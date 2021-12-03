@@ -287,13 +287,12 @@ def open_output_database(
         title,
         fragment_options,
         index_options,
-        replace,
         ):
     import sqlite3
     from .. import index_writers, reporters
     try:
         writer = index_writers.open_rdbms_index_writer(
-            output_filename, title, replace=True, is_sqlite=True)
+            output_filename, title, is_sqlite=True)
     except IOError as err:
         die(f"Cannot open SQLite file {output_filename!r}: {err}")
     except sqlite3.OperationalError as err:
@@ -384,11 +383,6 @@ SELECT old_compound.public_id, old_compound.clean_smiles, new_compound.clean_smi
     help = 'The output database filename (the default is "merged.mmpdb")',
     )
 @click.option(
-    "--replace / --no-replace",
-    default = False,
-    help = "With --replace, replace any existing database. Default is --no-replace.",
-    )
-@click.option(
     "--profile",
     "profile_path",
     type = click.Path(),
@@ -402,7 +396,6 @@ def merge(
         databases_options,
         title,
         output_filename,
-        replace,
         profile_path,
         ):
     """Merge multiple mmpdb databases
@@ -475,7 +468,6 @@ def merge(
                         title,
                         fragment_options,
                         index_options,
-                        replace,
                         )
                     output_c = output_db.cursor()
                     try:

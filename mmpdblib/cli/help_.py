@@ -1124,15 +1124,6 @@ I'll index into that database:
 % mmpdb index test_data.fragdb -o postgres://localhost/dalke
 ```
 
-By default the command will not replace any existing dataset unless
-you specify `--replace`:
-
-\b
-```
-% mmpdb index test_data.fragdb -o postgres://localhost/dalke
-Cannot create index because Postgres database 'postgres://localhost/dalke' already exists. Use --replace to overwrite it.
-```
-
 The `list` command knows how to work with a Postgres URL, both given a single database URL:
 
 \b
