@@ -59,6 +59,7 @@ class TestIndexCommandline(unittest.TestCase):
         self.assertEqual(
             options,
             {
+                "min_radius": 0,
                 "max_radius": 5,
                 "max_variable_heavies": 10,
                 "smallest_transformation_only": False,
@@ -91,6 +92,7 @@ class TestIndexCommandline(unittest.TestCase):
                 "symmetric": True,
                 "max_frac_trans": 3.0,
                 "max_heavies_transf": 25,
+                "min_radius": 0,
                 "max_radius": 5,
                 "max_variable_heavies": 29,
                 "max_variable_ratio": 0.99,
@@ -108,6 +110,7 @@ class TestIndexCommandline(unittest.TestCase):
         self.assertEqual(
             options,
             {
+                "min_radius": 0,
                 "max_radius": 5,
                 "symmetric": False,
                 "smallest_transformation_only": False,

@@ -17,7 +17,7 @@ Name         #cmpds #rules #pairs #envs  #stats  |- Title -| Properties
 """.split()
 
 _expected_fields = """\
-test_data_2019.mmpdb      9     47    342    321    533  MMPs from 'test_data.fragments'                                    MW MP
+test_data_2019.mmpdb      9     47    342    321    533  MMPs from 'test_data.fragdb'                                    MW MP
 """.split()
 
 
@@ -84,8 +84,10 @@ class TestList(unittest.TestCase):
         # the 'Created' line will need to be updated.
         num_checked = 0
         for expected_line in """
-      Created: 2021-11-01 21:47:48.270622
-        #compounds/property: (no properties)
+        Name         #cmpds #rules #pairs #envs  #stats  |--------- Title ----------| Properties
+test_data_2019.mmpdb      9     47    342    321    533  MMPs from 'test_data.fragdb' MW MP
+      Created: 2021-12-03 13:57:35.268963
+        #compounds/property:  8/MP 9/MW
         #smiles for rules: 21  for constants: 10
         Fragment options:
           cut_smarts: [#6+0;!$(*=,#[!#6])]!@!=!#[!#0;!#1;!$([CH2]);!$([CH3][CH2])]
@@ -97,7 +99,9 @@ class TestList(unittest.TestCase):
           rotatable_smarts: [!$([NH]!@C(=O))&!D1&!$(*#*)]-&!@[!$([NH]!@C(=O))&!D1&!$(*#*)]
           salt_remover: <default>
         Index options:
+          max_radius: 5
           max_variable_heavies: 10
+          min_radius: 0
           smallest_transformation_only: False
           symmetric: False
         """.splitlines():
@@ -107,7 +111,7 @@ class TestList(unittest.TestCase):
             self.assertIn(expected_line, result.output)
             num_checked += 1
 
-        self.assertEqual(num_checked, 16)
+        self.assertEqual(num_checked, 20)
 
 
 if __name__ == "__main__":
