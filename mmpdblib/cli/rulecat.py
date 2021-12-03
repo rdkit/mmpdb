@@ -33,4 +33,4 @@ def rulecat(
     for rule in dataset.iter_rules(rule_c):
         outfile.write(f"{rule.from_smiles}\t{rule.to_smiles}\n")
                     
-            
+    outfile.close()
