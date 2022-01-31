@@ -34,6 +34,7 @@
 #
 
 import click
+import sys
 
 from .click_utils import (
     command,
@@ -159,12 +160,17 @@ def list_(
         reporter,
         apsw_warning = False,
     ):
-
         name = dbinfo.name
         name_width = max(name_width, len(name))
         name_list.append(name)
 
         table_sizes = dataset.get_table_sizes(recount)
+        if not table_sizes.all_defined():
+            reporter.warning(
+                f"Pre-computed table counts not available in {dbinfo.get_human_name()}. "
+                "Forcing --recount."
+                )
+            table_sizes = dataset.get_table_sizes(recount=True)
 
         num_compounds = table_sizes.num_compounds
         num_compounds_width = max(num_compounds_width, len(str(num_compounds)))

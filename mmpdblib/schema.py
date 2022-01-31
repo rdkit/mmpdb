@@ -204,6 +204,15 @@ class TableSizes(object):
         self.num_rule_environments = num_rule_environments
         self.num_rule_environment_stats = num_rule_environment_stats
 
+    def all_defined(self):
+        return (
+            self.num_compounds is not None and
+            self.num_rules is not None and
+            self.num_pairs is not None and
+            self.num_rule_environments is not None and
+            self.num_rule_environment_stats is not None
+            )
+
 
 class MMPDatabase(object):
     def __init__(self, db):
