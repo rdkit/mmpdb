@@ -14,8 +14,9 @@ from .click_utils import (
     open_dataset_from_options_or_exit,
     )
 
-from .. import fragment_types
+from .. import fragment_algorithm
 from .. import fragment_records
+from .. import fragment_types
 
 ATOM_MAP_PROP = "molAtomMapNumber"
 
@@ -92,6 +93,7 @@ COLUMN_DESCRIPTIONS = {
     "smarts": "environment SMARTS for the constant",
     "pseudosmiles": "environment pseudo-SMILES for the constant",
     "final": "generated SMILES (constant + to_smiles)",
+    "heavies_diff": "change in the number of heavy atoms",
     "#pairs": "number of pairs from the environment rule",
     "pair_from_id": "id of the 'from' compound in a representative pair",
     "pair_from_smiles": "SMILES of the 'from' compound in a representative pair",
@@ -105,8 +107,8 @@ COLUMN_DESCRIPTIONS = {
 COLUMN_EPILOG = "".join(f"\b\n* {column}: {description}" for (column, description) in COLUMN_DESCRIPTIONS.items())
 
 DEFAULT_COLUMNS = (
-        "start,constant,from_smiles,to_smiles,r,pseudosmiles,final,#pairs,"
-        "pair_from_id,pair_from_smiles,pair_to_id,pair_to_smiles"
+        "start,constant,from_smiles,to_smiles,r,pseudosmiles,final,heavies_diff,"
+        "#pairs,pair_from_id,pair_from_smiles,pair_to_id,pair_to_smiles"
         )
     
     
@@ -518,6 +520,7 @@ SELECT rule_id
     for from_smiles in from_smiles_list:
         labeled_from_smiles = add_label_1(from_smiles)
         start_smiles, start_mol = weld_fragments(constant_smiles, labeled_from_smiles)
+        start_num_heavies = fragment_algorithm.count_num_heavies(start_mol)
         
         # Get the rule_smiles.id for the query smiles
         labeled_from_smiles_id = dataset.get_rule_smiles_id(labeled_from_smiles, cursor=cursor)
@@ -566,6 +569,7 @@ ORDER BY n DESC
                 raise AssertionError(from_smiles, to_smiles, labeled_from_smiles)
 
             new_smiles, welded_mol = weld_fragments(constant_smiles, to_smiles)
+            final_num_heavies = fragment_algorithm.count_num_heavies(welded_mol)
 
             if pair_cursor is not None:
                 # Pick a representative pair
@@ -598,6 +602,7 @@ ORDER BY cmpd1.clean_num_heavies * cmpd1.clean_num_heavies + cmpd2.clean_num_hea
                 "smarts": env_fp.smarts,
                 "pseudosmiles": env_fp.pseudosmiles,
                 "final": new_smiles,
+                "heavies_diff": final_num_heavies - start_num_heavies,
                 "#pairs": num_pairs,
                 "pair_from_id": pair_from_id,
                 "pair_from_smiles": pair_from_smiles,
