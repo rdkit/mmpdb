@@ -33,6 +33,7 @@
 import sys
 import os.path
 import datetime
+from dataclasses import dataclass
 
 import importlib.resources
 
@@ -333,6 +334,26 @@ class Rule:
         self.to_smiles = to_smiles
     def __repr__(self):
         return f"Rule({self.id}, {self.from_smiles!r}, {self.to_smiles!r})"
+
+@dataclass
+class RuleEnvironment:
+    mmpa_db: object
+    id: int
+    rule_id: int
+    smarts: str
+    pseudosmiles: str
+    parent_smarts: str
+    radius: int
+    num_pairs: int
+    from_smiles: str
+    to_smiles: str
+    def iter_pairs(self, cursor=None):
+        c = self.mmpa_db.execute("""
+SELECT id, rule_environment_id, compound1_id, compound2_id, constant_id
+  FROM pair
+ WHERE rule_environment_id = ?""", (self.id,), cursor=cursor)
+        for id, rule_environment_id, compound1_id, compound2_id, constant_id in c:
+            yield Pair(id, rule_environment_id, compound1_id, compound2_id, constant_id)
     
 class Pair(object):
     def __init__(self, pair_id, rule_environment_id, compound1_id, compound2_id, constant_id):
@@ -580,6 +601,24 @@ SELECT rule.id, from_smiles.smiles, to_smiles.smiles
    AND rule.to_smiles_id = to_smiles.id
 """, (), cursor=cursor)
         return (Rule(*row) for row in c)
+    
+    def iter_rule_environments(self, cursor=None):
+        c = self.mmpa_db.execute("""
+  SELECT rule_env.id, rule_env.rule_id,
+         env_fp.smarts, env_fp.pseudosmiles, env_fp.parent_smarts,
+         rule_env.radius, rule_env.num_pairs,
+         from_smiles.smiles, to_smiles.smiles
+    FROM rule_environment as rule_env,
+         rule, 
+         environment_fingerprint as env_fp,
+         rule_smiles AS from_smiles,
+         rule_smiles AS to_smiles
+   WHERE rule_env.rule_id = rule.id
+     AND rule.from_smiles_id = from_smiles.id
+     AND rule.to_smiles_id = to_smiles.id
+ORDER BY rule_env.rule_id, env_fp.smarts, rule_env.radius
+""", (), cursor=cursor)
+        return (RuleEnvironment(self.mmpa_db, *row) for row in c)
     
     def iter_selected_property_rules(self, from_smiles, to_smiles, property_id, *, min_count=None, cursor=None):
         if from_smiles is not None and to_smiles is not None:
