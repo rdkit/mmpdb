@@ -48,7 +48,7 @@ class SingleDatabase:
     GROUP BY constant_smiles
     )
    WHERE ? <= n AND n <= ?
-ORDER BY n DESC
+ORDER BY n DESC, constant_smiles
 """
         args = (min_constant_num_heavies, min_count, max_count)
 
