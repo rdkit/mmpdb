@@ -520,8 +520,7 @@ class TransactionMixin(object):
         super(TransactionMixin, self).start(fragment_options, index_options)
     
     def close(self):
-        self.conn.close()
-        self.db.execute("COMMIT")
+        #self.db.execute("COMMIT")
         self.db.close()
 
     def commit(self):
