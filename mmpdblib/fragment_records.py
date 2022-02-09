@@ -196,6 +196,14 @@ def make_fragment_records(smiles_reader, fragment_filter, cache=None, pool=None,
                 print("Skipping %s: %s" % (err, where), file=sys.stderr)
                 continue
 
+            except fragment_types.FragmentationFailure as err:
+                yield fragment_types.FragmentErrorRecord(
+                    id,
+                    input_smiles,
+                    str(err),
+                    )
+                continue
+
             except Exception:
                 # Something unexpected happened.
                 # Give some idea of what failed.

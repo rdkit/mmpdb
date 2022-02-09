@@ -85,7 +85,7 @@ def smifrag(ctx, fragment_options, smiles):
         reporter=reporter,
     )
     if record.errmsg:
-        die(f"Cannot parse smiles: {record.errmsg}")
+        die(f"Cannot process SMILES: {record.errmsg}")
 
     columns = [
         ["#cuts"],

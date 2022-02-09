@@ -181,6 +181,16 @@ def add_fragment_options(command):
             f"fragments are very small (default: {OPTS.min_heavies_per_const_frag})"
         ),
     )
+    
+    add_option(
+        "--max-up-enumerations",
+        type=nonnegative_int(),
+        metavar="N",
+        help=(
+            "Maximum number of up-enumerations "
+            f"(default: {OPTS.max_up_enumerations})"
+        ),
+    )
 
     # Wrap the command to convert the fragment option parameters
     # into a single object
@@ -213,6 +223,7 @@ def make_fragment_options(
     num_cuts,
     salt_remover,
     min_heavies_per_const_frag,
+    max_up_enumerations,
 ):
     from .. import (
         fragment_types,
@@ -261,4 +272,5 @@ def make_fragment_options(
         salt_remover=salt_remover,
         method=method,
         min_heavies_per_const_frag=min_heavies_per_const_frag,
+        max_up_enumerations=max_up_enumerations,
     )

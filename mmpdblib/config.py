@@ -145,79 +145,8 @@ DEFAULT_FRAGMENT_OPTIONS = fragment_types.FragmentOptions(
     method="chiral",
     salt_remover="<default>",
     min_heavies_per_const_frag=0,
+    max_up_enumerations=1000,
 )
-
-
-def add_fragment_arguments(parser):
-    p = parser
-    OPTS = DEFAULT_FRAGMENT_OPTIONS
-    p.add_argument(
-        "--max-heavies",
-        type=parse_max_heavies_value,
-        metavar="N",
-        default=None,
-        help="Maximum number of non-hydrogen atoms, or 'none' (default: %r)" % (OPTS.max_heavies,),
-    )
-
-    p.add_argument(
-        "--max-rotatable-bonds",
-        type=parse_max_rotatable_bonds_value,
-        metavar="N",
-        default=None,
-        help="Maximum number of rotatable bonds (default: %d)" % (OPTS.max_rotatable_bonds,),
-    )
-
-    p.add_argument(
-        "--rotatable-smarts",
-        metavar="SMARTS",
-        help="SMARTS pattern to detect rotatable bonds (default: %r)" % (OPTS.rotatable_smarts,),
-    )
-
-    p.add_argument(
-        "--salt-remover",
-        metavar="FILENAME",
-        help="File containing RDKit SaltRemover definitions. The default ('<default>') "
-        "uses RDKit's standard salt remover. Use '<none>' to not remove salts.",
-    )
-
-    g = p.add_mutually_exclusive_group()
-    alias_names = ", ".join(repr(alias.name) for alias in smarts_aliases.cut_smarts_aliases)
-
-    g.add_argument(
-        "--cut-smarts",
-        metavar="SMARTS",
-        help="alternate SMARTS pattern to use for cutting (default: %r), or use one of: %s"
-        % (OPTS.cut_smarts, alias_names),
-    )
-
-    g.add_argument(
-        "--cut-rgroup",
-        metavar="SMILES",
-        action="append",
-        help="cut on the attachment point for the given R-group SMILES",
-    )
-
-    g.add_argument(
-        "--cut-rgroup-file",
-        metavar="FILENAME",
-        help="read R-group SMILES from the named file",
-    )
-
-    p.add_argument(
-        "--num-cuts",
-        choices=(1, 2, 3),
-        type=parse_num_cuts_value,
-        help="number of cuts to use (default: %d)" % (OPTS.num_cuts,),
-    )
-
-    p.add_argument(
-        "--min-heavies-per-const-frag",
-        type=parse_min_heavies_per_const_frag_value,
-        metavar="N",
-        default=None,
-        help="Ignore fragmentations where one or more constant fragments are very small (default: %r)"
-        % (OPTS.min_heavies_per_const_frag,),
-    )
 
 
 ###### Index

@@ -35,7 +35,7 @@ import re
 from rdkit import Chem
 import itertools
 from . import smiles_syntax  # for validation
-from .fragment_types import Fragmentation
+from .fragment_types import Fragmentation, FragmentationFailure
 
 #####
 
@@ -628,6 +628,7 @@ def make_multiple_cuts(mol, atom_pairs, chiral_flags, fragment_filter):
 
     seen_smiles = set()
     #
+    num_up_enumerations = 0
     for enumeration_label, chiral_assignments in up_enumerate(
         fragmented_mol,
         constant_atom_indices,
@@ -635,6 +636,10 @@ def make_multiple_cuts(mol, atom_pairs, chiral_flags, fragment_filter):
         chiral_flags,
         new_chiral_flags,
     ):
+        if num_up_enumerations > fragment_filter.max_up_enumerations:
+            raise FragmentationFailure(f"Exceeded up-enumeration limit of {fragment_filter.max_up_enumerations}")
+        num_up_enumerations += 1
+        
         if enumeration_label == EnumerationLabel.NO_ENUMERATION:
             assert chiral_assignments is None
             atom_ranks = new_atom_ranks

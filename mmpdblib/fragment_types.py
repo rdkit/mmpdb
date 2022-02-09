@@ -57,6 +57,8 @@ except ImportError:
 
     Literal = LiteralClass()
 
+class FragmentationFailure(Exception):
+    pass
 
 @dataclass
 class FragmentOptions:
@@ -69,6 +71,7 @@ class FragmentOptions:
     method: Literal["chiral"]
     salt_remover: str
     min_heavies_per_const_frag: int
+    max_up_enumerations: int
 
     def to_dict(self):
         return dataclasses.asdict(self)
@@ -225,6 +228,7 @@ def parse_num_cuts(num_cuts):
 class FragmentFilter(object):
     def __init__(
         self,
+        *,
         max_heavies,
         max_rotatable_bonds,
         rotatable_pattern,
@@ -234,6 +238,7 @@ class FragmentFilter(object):
         method,
         options,
         min_heavies_per_const_frag,
+        max_up_enumerations,
     ):
         if rotatable_pattern is None:
             max_rotatable_bonds = None
@@ -247,6 +252,7 @@ class FragmentFilter(object):
         self.method = method
         self.options = options
         self.min_heavies_per_const_frag = min_heavies_per_const_frag
+        self.max_up_enumerations = max_up_enumerations
 
     def normalize(self, mol):
         # XXX Remove existing isotope labels?
@@ -339,7 +345,9 @@ def get_fragment_filter(fragment_options):
         salt_remover = call(parse_salt_remover, "salt_remover")
     except IOError as err:
         raise FragmentValueError("salt_remover", options.salt_remover, f"Cannot open salt file: {err}")
-
+    
+    max_up_enumerations = options.max_up_enumerations
+    
     return FragmentFilter(
         max_heavies=max_heavies,
         max_rotatable_bonds=max_rotatable_bonds,
@@ -350,6 +358,7 @@ def get_fragment_filter(fragment_options):
         method=method,
         options=fragment_options,
         min_heavies_per_const_frag=min_heavies_per_const_frag,
+        max_up_enumerations=max_up_enumerations,
     )
 
 
