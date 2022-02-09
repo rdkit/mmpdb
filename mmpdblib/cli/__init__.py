@@ -69,11 +69,11 @@ command_groups = [
             ("loadprops", "loadprops.loadprops"),
             ("smicat", "smicat.smicat"),
             ("rulecat", "rulecat.rulecat"),
+            ("ruleenvcat", "ruleenvcat.ruleenvcat"),
             ("propcat", "propcat.propcat"),
             ("proprulecat", "proprulecat.proprulecat"),
             ("drop_index", "drop_index.drop_index"),
             ("create_index", "create_index.create_index"),
-            ("show_merge_profile", "merge.show_merge_profile"),
             ],
     ), (
         "Help commands", [
