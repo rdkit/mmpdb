@@ -1,18 +1,24 @@
-import os
-import time
+import sys
 import sqlite3
+import os
+import glob
+import time
+import math
+from contextlib import contextmanager
 
 import click
 
-from .click_utils import (
+from mmpdblib import (
+    dbutils,
+    index_writers,
+    reporters,
+    schema,
+    )
+from mmpdblib.cli.click_utils import (
     command,
     die,
     add_multiple_databases_parameters,
     )
-
-from .. import dbutils
-from .. import index_writers
-from .. import schema
 
 merge_epilog = """
 
@@ -27,238 +33,629 @@ of "merged.mmpdb".
 The default title for the output database is of the form "Merged MMPs
 from 3 files". Use `--title` to specify an alternate title.
 
-EXPERIMENTAL: The `--profile` option logs progress and timing
-information to a named SQLite file. Use `mmpdb show_merge_profile` for
-a text-oriented description of the profile.
-
 """
 
-LUT_CREATE_TABLE = """
 
-CREATE TABLE lut.rule_map (
-  old_id INTEGER PRIMARY KEY,
-  new_id INTEGER
-);
+def format_progress(i, n):
+    percent = 100.0 * (i+1) / n
+    return f"Processing {i+1}/{n} ({percent:.1f}%)"
 
-CREATE TABLE lut.env_fp_map (
-  old_id INTEGER PRIMARY KEY,
-  new_id INTEGER
-);
+def enumerate_progress(filenames):
+    n = len(filenames)
+    for i, filename in enumerate(filenames):
+        percent = 100.0 * (i+1) / n
+        progress_str = f"in {filename!r} file {i+1}/{n} ({percent:.1f}%)"
+        yield i, progress_str, filename
 
-CREATE TABLE lut.rule_env_map (
-  old_id INTEGER PRIMARY KEY,
-  new_id INTEGER
-);
+def SECS(start_time, end_time):
+    dt = end_time - start_time
+    assert dt >= 0.0
+    if dt == 0.0:
+        return "0 seconds"
+    
+    if dt < 1.0:
+        prec = int(-math.log10(dt)) + 2
+        return f"%.{prec}f seconds" % (dt,)
+    else:
+        return f"{dt:.1f} seconds"
+    
+        
+@contextmanager
+def progress(reporter, start_msg):
+    t1 = time.time()
+    msg = start_msg + " ..."
+    reporter.update(msg)
+    try:
+        yield
+    except:
+        t2 = time.time()
+        reporter.report(msg + f" Exception after {SECS(t1, t2)}!")
+        raise
+    else:
+        t2 = time.time()
+        reporter.update(msg + f" Done in {SECS(t1, t2)}.")
+    
+    
 
-"""
+@contextmanager
+def transaction(c):
+    c.execute("BEGIN TRANSACTION")
+    try:
+        yield c
+    except:
+        try:
+            c.execute("ROLLBACK")
+        except sqlite3.OperationalError:
+            pass
+        raise
+    else:
+        c.execute("COMMIT")
 
-MERGE_CREATE_INDEX_SQL = """
+
+@contextmanager
+def attach_as_old(c, filename):
+    c.execute("ATTACH DATABASE ? AS old", (filename,))
+    c.execute("BEGIN TRANSACTION")
+    try:
+        try:
+            yield
+        except:
+            try:
+                c.execute("ROLLBACK")
+            except sqlite3.OperationalError:
+                pass
+            raise
+        else:
+            c.execute("COMMIT")
+    finally:
+        c.execute("DETACH DATABASE old")
+
+###### Stage 1: Copy over the compound table
+
+CREATE_COMPOUND_SQL = """
+-- CREATE TABLE compound (
+--   id INTEGER PRIMARY KEY,
+--   public_id VARCHAR(255) NOT NULL UNIQUE,
+--   input_smiles VARCHAR(255) NOT NULL,
+--   clean_smiles VARCHAR(255) NOT NULL,
+--   clean_num_heavies INTEGER NOT NULL
+--   );
+
 CREATE UNIQUE INDEX idx_compound ON compound(public_id);
-CREATE UNIQUE INDEX idx_rule_smiles ON rule_smiles(smiles);
-CREATE UNIQUE INDEX idx_rule ON rule (from_smiles_id, to_smiles_id);
-CREATE UNIQUE INDEX idx_env_fp ON environment_fingerprint (smarts, parent_smarts);
-CREATE UNIQUE INDEX idx_rule_env ON rule_environment (rule_id, environment_fingerprint_id, radius);
-CREATE UNIQUE INDEX idx_constant_smiles ON constant_smiles(smiles);
 """
 
-MERGE_DROP_INDEX_SQL = """
-DROP INDEX idx_compound;
-DROP INDEX idx_rule_smiles;
-DROP INDEX idx_rule;
-DROP INDEX idx_env_fp;
-DROP INDEX idx_rule_env;
-DROP INDEX idx_constant_smiles;
+def create_compound_table(c):
+    c.executescript(CREATE_COMPOUND_SQL)
+    
+def clear_compound_table(c):
+    c.execute("DELETE FROM compound")
+
+# Use a per-file table mapping compound id to the new compound id
+
+CREATE_COMPOUND_MAP_SQL = """
+CREATE TABLE compound_map_{db_id} (
+  old_compound_id INTEGER PRIMARY KEY NOT NULL,
+  new_compound_id INTEGER NOT NULL,
+  FOREIGN KEY (new_compound_id) REFERENCES compound (id)
+)
 """
 
-# Here's the schema to create the --profile database
-PROFILE_SCHEMA = """
-CREATE TABLE IF NOT EXISTS profiler.mmpdb_times (
-  id integer primary key,
-  label string,
-  t timestamp
-);
-"""
+def create_compound_map_table(c, db_id):
+    assert isinstance(db_id, int) and db_id >= 0
+    c.execute(CREATE_COMPOUND_MAP_SQL.format(db_id=db_id))
 
-MERGE_DATABASE_SQL = """
+def process_compound_tables(c, filenames, reporter):
+    start_time = time.time()
+    reporter.report("[Stage 1/7] Merging compound records ...")
 
--- This expects the database to import to be attached as 'old'
--- using something like:
---   ATTACH DATABASE "subset.000.mmpdb" AS old
--- 
--- and a timer database (which may be ":memory:") as 'profiler', like:
---   ATTACH DATABASE "times.db" as profiler;
+    create_compound_table(c)
+    for db_id, progress_str, filename in enumerate_progress(filenames):
+        with transaction(c):
+            create_compound_map_table(c, db_id)
 
--- Step 1: Copy over the compound table
+        with attach_as_old(c, filename):
+            num_compounds, = next(c.execute("SELECT count(*) FROM old.compound"))
+            with progress(reporter,
+                              f"[Stage 1/7] #compounds: {num_compounds} {progress_str}"):
+                process_compound_table(c, db_id, filename)
 
--- Must have UNIQUE INDEX ON compound (public_id)
--- The merge code ensured duplicate entries have the same clean_smiles.
+    with transaction(c):
+        num_compounds, = next(c.execute("SELECT count(*) FROM compound"))
+        with progress(reporter, f"[Stage 1/7] Exporting {num_compounds} compound records"):
+            export_compound_table(c)
+        clear_compound_table(c)
+        
+    end_time = time.time()
+    reporter.report(
+        f"[Stage 1/7] Merged {num_compounds} compound records in {SECS(start_time, end_time)}.")
 
-
-INSERT INTO profiler.mmpdb_times (label, t) VALUES ("start merge", julianday("now"));
-
+def process_compound_table(c, db_id, filename):
+    # I've already verified that matching public_id means
+    # the (clean_smiles, clean_num_heavies) are the same.
+    c.execute("""
 INSERT OR IGNORE INTO compound (public_id, input_smiles, clean_smiles, clean_num_heavies)
  SELECT public_id, input_smiles, clean_smiles, clean_num_heavies
    FROM old.compound
-        ;
+    """)
+    # update the map
+    c.execute("""
+INSERT INTO compound_map_{db_id} (old_compound_id, new_compound_id)
+  SELECT old_compound.id, compound.id
+    FROM compound, old.compound AS old_compound
+   WHERE compound.public_id = old_compound.public_id
+    """.format(db_id=db_id),)
 
-INSERT INTO profiler.mmpdb_times (label, t) VALUES ("insert compound", julianday("now"));
+def export_compound_table(c):
+    c.execute("""
+INSERT INTO new.compound (id, public_id, input_smiles, clean_smiles, clean_num_heavies)
+SELECT id, public_id, input_smiles, clean_smiles, clean_num_heavies FROM compound
+""")
 
--- Step 2: Copy over the rule_smiles
+###### Stage 2: Copy over the rule_smiles
 
--- Must have UNIQUE INDEX ON rule_smiles (smiles)
+CREATE_RULE_SMILES_SQL = """
+-- CREATE TABLE rule_smiles (
+--   id INTEGER PRIMARY KEY,
+--   smiles VARCHAR(255) NOT NULL UNIQUE,
+--   num_heavies INTEGER
+-- );
 
+CREATE UNIQUE INDEX rule_smiles_smiles on rule_smiles (smiles);
+"""
+
+def create_rule_smiles_table(c):
+    c.executescript(CREATE_RULE_SMILES_SQL)
+
+def clear_rule_smiles_table(c):
+    c.execute("DELETE FROM rule_smiles")
+
+# Use a per-file table mapping rule_smiles id to the new rule_smiles id
+
+CREATE_RULE_SMILES_MAP_SQL = """
+CREATE TABLE rule_smiles_map_{db_id} (
+  old_rule_smiles_id INTEGER PRIMARY KEY NOT NULL,
+  new_rule_smiles_id INTEGER NOT NULL,
+  FOREIGN KEY (new_rule_smiles_id) REFERENCES rule_smiles (id)
+)
+"""
+
+def create_rule_smiles_map_table(c, db_id):
+    assert isinstance(db_id, int) and db_id >= 0
+    c.execute(CREATE_RULE_SMILES_MAP_SQL.format(db_id=db_id))
+
+def process_rule_smiles_tables(c, filenames, reporter):
+    start_time = time.time()
+    reporter.report("[Stage 2/7] Merging rule_smiles tables ...")
+
+    create_rule_smiles_table(c)
+    for db_id, progress_str, filename in enumerate_progress(filenames):
+        with transaction(c):
+            create_rule_smiles_map_table(c, db_id)
+        
+        with attach_as_old(c, filename):
+            num_rule_smiles, = next(c.execute("SELECT count(*) FROM old.rule_smiles"))
+            with progress(reporter,
+                              f"[Stage 2/7] #rule_smiles rows: {num_rule_smiles} {progress_str}"):
+                process_rule_smiles_table(c, db_id)
+
+    with transaction(c):
+        num_rule_smiles, = next(c.execute("SELECT count(*) FROM rule_smiles"))
+        with progress(reporter, f"[Stage 2/7] Exporting {num_rule_smiles} rule_smiles records"):
+            export_rule_smiles_table(c)
+        clear_rule_smiles_table(c)
+
+    end_time = time.time()
+    reporter.report(
+        f"[Stage 2/7] Merged {num_rule_smiles} rule_smiles records in {SECS(start_time, end_time)}."
+        )
+        
+def process_rule_smiles_table(c, db_id):
+    old_n, = next(c.execute("SELECT count(*) from rule_smiles"))
+    c.execute("""
 INSERT OR IGNORE INTO rule_smiles (smiles, num_heavies)
  SELECT smiles, num_heavies
    FROM old.rule_smiles
-        ;
+    """)
+    new_n, = next(c.execute("SELECT count(*) from rule_smiles"))
+    # update the map
+    old_n, = next(c.execute("SELECT count(*) FROM rule_smiles_map_{db_id}".
+                             format(db_id=db_id)))
+    c.execute("""
+INSERT INTO rule_smiles_map_{db_id} (old_rule_smiles_id, new_rule_smiles_id)
+  SELECT old_rule_smiles.id, rule_smiles.id
+    FROM rule_smiles, old.rule_smiles AS old_rule_smiles
+   WHERE rule_smiles.smiles = old_rule_smiles.smiles
+""".format(db_id=db_id))
+    new_n, = next(c.execute("SELECT count(*) FROM rule_smiles_map_{db_id}".
+                             format(db_id=db_id)))
+    
+def export_rule_smiles_table(c):
+    c.execute("""
+INSERT INTO new.rule_smiles (id, smiles, num_heavies)
+SELECT id, smiles, num_heavies FROM rule_smiles
+""")
 
-INSERT INTO profiler.mmpdb_times (label, t) VALUES ("insert rule_smiles", julianday("now"));
+###### Stage 3: Merge any rules
 
--- Step 3: Merge any rules
+CREATE_RULE_SQL = """
+-- CREATE TABLE rule (
+--   id INTEGER PRIMARY KEY NOT NULL,
+--   from_smiles_id INTEGER NOT NULL REFERENCES rule_smiles(id),
+--   to_smiles_id INTEGER NOT NULL REFERENCES rule_smiles(id)
+-- );
+CREATE UNIQUE INDEX idx_rule ON rule (from_smiles_id, to_smiles_id);
+"""
 
--- Must have UNIQUE INDEX ON rule (from_smiles_id, to_smiles_id)
+def create_rule_table(c):
+    c.executescript(CREATE_RULE_SQL)
 
+def clear_rule_table(c):
+    c.execute("DELETE FROM rule")
+
+# Use a per-file table mapping rule id to the new rule id
+
+CREATE_RULE_MAP_SQL = """
+CREATE TABLE rule_map_{db_id} (
+  old_rule_id INTEGER PRIMARY KEY NOT NULL,
+  new_rule_id INTEGER NOT NULL,
+  FOREIGN KEY (new_rule_id) REFERENCES rule (id)
+)
+"""
+
+def create_rule_map_table(c, db_id):
+    assert isinstance(db_id, int) and db_id >= 0
+    c.execute(CREATE_RULE_MAP_SQL.format(db_id=db_id))
+
+def process_rule_tables(c, filenames, reporter):
+    start_time = time.time()
+    reporter.report("[Stage 3/7] Merging rule tables ...")
+    
+    create_rule_table(c)
+    for db_id, progress_str, filename in enumerate_progress(filenames):
+        with transaction(c):
+            create_rule_map_table(c, db_id)
+        
+        with attach_as_old(c, filename):
+            num_rules, = next(c.execute("SELECT count(*) FROM old.rule"))
+            with progress(reporter,
+                              f"[Stage 3/7] #rules: {num_rules} {progress_str}"):
+                process_rule_table(c, db_id)
+
+    with transaction(c):
+        num_rules, = next(c.execute("SELECT count(*) FROM rule"))
+        with progress(reporter, f"[Stage 3/7] Exporting {num_rules} rule records"):
+            export_rule_table(c)
+        clear_rule_table(c)
+
+    end_time = time.time()
+    reporter.report(
+        f"[Stage 3/7] Merged {num_rules} rule records in {SECS(start_time, end_time)}."
+        )
+
+def process_rule_table(c, db_id):
+    c.execute("""
 INSERT OR IGNORE INTO rule (from_smiles_id, to_smiles_id)
- SELECT new_from_smiles.id, new_to_smiles.id
+ SELECT from_smiles_map.new_rule_smiles_id, to_smiles_map.new_rule_smiles_id
    FROM old.rule AS old_rule,
-        old.rule_smiles AS old_from_smiles,
-        old.rule_smiles AS old_to_smiles,
-        rule_smiles AS new_from_smiles,
-        rule_smiles AS new_to_smiles
-  WHERE (    old_rule.from_smiles_id = old_from_smiles.id
-         AND old_rule.to_smiles_id = old_to_smiles.id)
-    AND (old_from_smiles.smiles = new_from_smiles.smiles
-         AND old_to_smiles.smiles = new_to_smiles.smiles)
+        rule_smiles_map_{db_id} AS from_smiles_map,
+        rule_smiles_map_{db_id} AS to_smiles_map
+  WHERE old_rule.from_smiles_id = from_smiles_map.old_rule_smiles_id
+    AND old_rule.to_smiles_id = to_smiles_map.old_rule_smiles_id
         ;
+""".format(db_id=db_id))
 
-INSERT INTO profiler.mmpdb_times (label, t) VALUES ("insert rule", julianday("now"));
+    c.execute("""
+INSERT INTO rule_map_{db_id} (old_rule_id, new_rule_id)
+SELECT old_rule.id, new_rule.id
+  FROM old.rule AS old_rule,
+       rule AS new_rule,
+       rule_smiles_map_{db_id} AS from_smiles_map,
+       rule_smiles_map_{db_id} AS to_smiles_map
+ WHERE old_rule.from_smiles_id = from_smiles_map.old_rule_smiles_id
+   AND old_rule.to_smiles_id = to_smiles_map.old_rule_smiles_id
+   AND new_rule.from_smiles_id = from_smiles_map.new_rule_smiles_id
+   AND new_rule.to_smiles_id = to_smiles_map.new_rule_smiles_id
+""".format(db_id=db_id))
 
--- Step 4. Table mapping old rule id to new rule id
+    
+def export_rule_table(c):
+    c.execute("""
+INSERT INTO new.rule (id, from_smiles_id, to_smiles_id)
+SELECT id, from_smiles_id, to_smiles_id FROM rule
+""")
+    
+###### Stage 4: Merge environment_fingerprint
 
--- This simplifies steps 6 and 7
+CREATE_ENVIRONMENT_FINGERPRINT_SQL = """
+-- CREATE TABLE environment_fingerprint (
+--  id INTEGER PRIMARY KEY NOT NULL,
+--  smarts VARCHAR(1024) NOT NULL,
+--  pseudosmiles VARCHAR(400) NOT NULL,
+--  parent_smarts VARCHAR(1024) NOT NULL
+-- );
 
-DELETE FROM lut.rule_map;
+CREATE UNIQUE INDEX idx_env_fp ON environment_fingerprint (smarts, parent_smarts);
+"""
 
-INSERT INTO lut.rule_map (old_id, new_id) 
- SELECT old_rule.id, new_rule.id
-   FROM old.rule AS old_rule,
-        old.rule_smiles AS old_from_smiles,
-        old.rule_smiles AS old_to_smiles,
-        rule AS new_rule,
-        rule_smiles AS new_from_smiles,
-        rule_smiles AS new_to_smiles
-  WHERE (old_rule.from_smiles_id = old_from_smiles.id
-         AND old_rule.to_smiles_id = old_to_smiles.id)
-    AND (old_from_smiles.smiles = new_from_smiles.smiles
-         AND old_to_smiles.smiles = new_to_smiles.smiles)
-    AND (new_rule.from_smiles_id = new_from_smiles.id
-         AND new_rule.to_smiles_id = new_to_smiles.id)
-        ;
+def create_environment_fingerprint_table(c):
+    c.executescript(CREATE_ENVIRONMENT_FINGERPRINT_SQL)
 
-INSERT INTO profiler.mmpdb_times (label, t) VALUES ("insert rule_map", julianday("now"));
+def clear_environment_fingerprint_table(c):
+    c.execute("DELETE FROM environment_fingerprint")
 
--- Step 5: Merge environment_fingerprint
+# Use a per-file table mapping environment fingerprint id to the new environment fingerprint id
 
--- Must have UNIQUE INDEX ON environment_fingerprint (smarts, parent_smarts)
--- (I haven't checked if I only need to use the smarts.)
+CREATE_ENVIRONMENT_FINGERPRINT_MAP_SQL = """
+CREATE TABLE environment_fingerprint_map_{db_id} (
+  old_environment_fingerprint_id INTEGER PRIMARY KEY NOT NULL,
+  new_environment_fingerprint_id INTEGER NOT NULL,
+  FOREIGN KEY (new_environment_fingerprint_id) REFERENCES environment_fingerprint (id)
+)
+"""
 
+def create_environment_fingerprint_map_table(c, db_id):
+    assert isinstance(db_id, int) and db_id >= 0
+    c.execute(CREATE_ENVIRONMENT_FINGERPRINT_MAP_SQL.format(db_id=db_id))
+
+def process_environment_fingerprint_tables(c, filenames, reporter):
+    start_time = time.time()
+    reporter.report("[Stage 4/7] Merging environment_fingerprint records ...")
+    
+    create_environment_fingerprint_table(c)
+    for db_id, progress_str, filename in enumerate_progress(filenames):
+        with transaction(c):
+            create_environment_fingerprint_map_table(c, db_id)
+
+        with attach_as_old(c, filename):
+            num_env_fps, = next(c.execute("SELECT count(*) FROM old.environment_fingerprint"))
+            with progress(reporter,
+                              f"[Stage 4/7] #env. fps: {num_env_fps} {progress_str}"):
+                process_environment_fingerprint_table(c, db_id)
+        
+    with transaction(c):
+        num_env_fps, = next(c.execute("SELECT count(*) FROM environment_fingerprint"))
+        with progress(reporter, f"[Stage 4/7] Exporting {num_env_fps} rule records"):
+            export_environment_fingerprint_table(c)
+        clear_environment_fingerprint_table(c)
+    
+    end_time = time.time()
+    reporter.report(
+        f"[Stage 4/7] Merged {num_env_fps} environment_fingerprint records in {SECS(start_time, end_time)}."
+        )
+        
+
+def process_environment_fingerprint_table(c, db_id):
+    c.execute("""
 INSERT OR IGNORE INTO environment_fingerprint (smarts, pseudosmiles, parent_smarts)
   SELECT smarts, pseudosmiles, parent_smarts
     FROM old.environment_fingerprint
-         ;
+    """)
+    
+    # update the map
+    c.execute("""
+INSERT INTO environment_fingerprint_map_{db_id}
+     (old_environment_fingerprint_id, new_environment_fingerprint_id)
+  SELECT old_environment_fingerprint.id,
+         new_environment_fingerprint.id
+    FROM old.environment_fingerprint as old_environment_fingerprint,
+         environment_fingerprint as new_environment_fingerprint
+   WHERE old_environment_fingerprint.smarts = new_environment_fingerprint.smarts
+     AND old_environment_fingerprint.parent_smarts = new_environment_fingerprint.parent_smarts
+    """.format(db_id=db_id),)
 
-INSERT INTO profiler.mmpdb_times (label, t) VALUES ("insert env_fp", julianday("now"));
+def export_environment_fingerprint_table(c):
+    c.execute("""
+INSERT INTO new.environment_fingerprint (id, smarts, pseudosmiles, parent_smarts)
+SELECT id, smarts, pseudosmiles, parent_smarts FROM environment_fingerprint
+""")
 
-DELETE FROM lut.env_fp_map;
+###### Stage 5: Merge rule_environment
 
-INSERT INTO lut.env_fp_map (old_id, new_id)
-  SELECT old_env_fp.id, new_env_fp.id
-    FROM old.environment_fingerprint as old_env_fp,
-         environment_fingerprint as new_env_fp
-   WHERE old_env_fp.smarts = new_env_fp.smarts
-     AND old_env_fp.parent_smarts = new_env_fp.parent_smarts
-         ;
+CREATE_RULE_ENVIRONMENT_SQL = """
+-- CREATE TABLE rule_environment (
+--  id INTEGER PRIMARY KEY,
+--  rule_id INTEGER REFERENCES rule(id),
+--  environment_fingerprint_id INTEGER REFERENCES environment_fingerprint(id),
+--  radius INTEGER,
+--  num_pairs INTEGER
+--  );
 
-INSERT INTO profiler.mmpdb_times (label, t) VALUES ("insert env_fp_map", julianday("now"));
+CREATE UNIQUE INDEX idx_rule_env ON rule_environment (rule_id, environment_fingerprint_id, radius);
+"""
 
--- Step 6: Merge rule_environment
+def create_rule_environment_table(c):
+  c.executescript(CREATE_RULE_ENVIRONMENT_SQL)
 
--- Must have UNIQUE INDEX ON rule_environment (rule_id, environment_fingerprint_id, radius)
+def clear_rule_environment_table(c):
+  c.execute("DELETE FROM rule_environment")
 
+# Use a per-file table mapping rule environment id to the new rule environment id
 
+CREATE_RULE_ENVIRONMENT_MAP_SQL = """
+CREATE TABLE rule_environment_map_{db_id} (
+  old_rule_environment_id INTEGER PRIMARY KEY,
+  new_rule_environment_id INTEGER,
+  FOREIGN KEY (new_rule_environment_id) REFERENCES rule_environment(id)
+)
+"""
+
+def create_rule_environment_map_table(c, db_id):
+    assert isinstance(db_id, int) and db_id >= 0
+    c.execute(CREATE_RULE_ENVIRONMENT_MAP_SQL.format(db_id=db_id))
+
+def process_rule_environment_tables(c, filenames, reporter):
+    start_time = time.time()
+    reporter.report("[Stage 5/7] Merging rule environment records ...")
+
+    create_rule_environment_table(c)
+        
+    for db_id, progress_str, filename in enumerate_progress(filenames):
+        with transaction(c):
+            create_rule_environment_map_table(c, db_id)
+
+        with attach_as_old(c, filename):
+            num_rule_envs, = next(c.execute("SELECT count(*) FROM old.rule_environment"))
+            with progress(reporter,
+                              f"[Stage 5/7] #rule envs: "
+                              f"{num_rule_envs} {progress_str}"):
+                process_rule_environment_table(c, db_id)
+        
+    with transaction(c):
+        num_rule_envs, = next(c.execute("SELECT count(*) FROM rule_environment"))
+        with progress(reporter, f"[Stage 5/7] Exporting {num_rule_envs} rule environment records"):
+            export_rule_environment_table(c)
+        clear_rule_environment_table(c)
+    
+    end_time = time.time()
+    reporter.report(
+        f"[Stage 5/7] Merged {num_rule_envs} rule environment records in {SECS(start_time, end_time)}."
+        )
+        
+
+def process_rule_environment_table(c, db_id):
+    c.execute("""
 INSERT INTO rule_environment (rule_id, environment_fingerprint_id, radius, num_pairs)
-  SELECT rule_map.new_id, env_fp_map.new_id, old_rule_env.radius, num_pairs
-    FROM old.rule_environment AS old_rule_env,
-         lut.rule_map AS rule_map,
-         lut.env_fp_map AS env_fp_map
-   WHERE old_rule_env.rule_id = rule_map.old_id
-     AND old_rule_env.environment_fingerprint_id = env_fp_map.old_id
+  SELECT rule_map.new_rule_id,
+         environment_fingerprint_map.new_environment_fingerprint_id,
+         old_rule_environment.radius,
+         old_rule_environment.num_pairs
+    FROM old.rule_environment AS old_rule_environment,
+         rule_map_{db_id} AS rule_map,
+         environment_fingerprint_map_{db_id} AS environment_fingerprint_map
+   WHERE old_rule_environment.rule_id = rule_map.old_rule_id
+     AND old_rule_environment.environment_fingerprint_id =
+               environment_fingerprint_map.old_environment_fingerprint_id
  ON CONFLICT (rule_id, environment_fingerprint_id, radius)
  DO UPDATE
      SET num_pairs = num_pairs + excluded.num_pairs
          ;
+    """.format(db_id=db_id))
+    
+    # update the map
+    c.execute("""
+INSERT INTO rule_environment_map_{db_id} (old_rule_environment_id, new_rule_environment_id)
+ SELECT old_rule_environment.id,
+        new_rule_environment.id
+   FROM old.rule_environment AS old_rule_environment,
+        rule_environment AS new_rule_environment,
+        rule_map_{db_id} AS rule_map,
+        environment_fingerprint_map_{db_id} AS environment_fingerprint_map
+  WHERE old_rule_environment.rule_id = rule_map.old_rule_id
+    AND new_rule_environment.rule_id = rule_map.new_rule_id
+    AND old_rule_environment.radius = new_rule_environment.radius
+    AND old_rule_environment.environment_fingerprint_id = 
+           environment_fingerprint_map.old_environment_fingerprint_id
+    AND new_rule_environment.environment_fingerprint_id = 
+           environment_fingerprint_map.new_environment_fingerprint_id
+    """.format(db_id=db_id))
 
-INSERT INTO profiler.mmpdb_times (label, t) VALUES ("insert rule_environment", julianday("now"));
 
--- Step 7: Table mapping old rule environment to new rule environment
+def export_rule_environment_table(c):
+  c.execute("""
+INSERT INTO new.rule_environment (id, rule_id, environment_fingerprint_id, radius, num_pairs)
+SELECT id, rule_id, environment_fingerprint_id, radius, num_pairs FROM rule_environment
+""")
+    
+###### Stage 6: Merge constant_smiles and pairs
 
+# CREATE TABLE pair (
+#   id $PRIMARY_KEY$,
+#   rule_environment_id INTEGER REFERENCES rule_environment (id) NOT NULL,
+#   compound1_id INTEGER NOT NULL REFERENCES compound (id),
+#   compound2_id INTEGER NOT NULL REFERENCES compound (id),
+#   constant_id INTEGER REFERENCES constant_smiles(id)
+#   );
 
-DELETE FROM lut.rule_env_map;
+CREATE_CONSTANT_SMILES_SQL = """
+-- CREATE TABLE constant_smiles (
+--   id INTEGER PRIMARY_KEY,
+--   smiles VARCHAR(255)
+-- );
 
-INSERT INTO lut.rule_env_map (old_id, new_id)
-  SELECT old_rule_env.id, new_rule_env.id
-    FROM old.rule_environment AS old_rule_env,
-         rule_environment AS new_rule_env,
-         lut.rule_map AS rule_map,
-         lut.env_fp_map AS env_fp_map
-   WHERE old_rule_env.rule_id = rule_map.old_id
-     AND new_rule_env.rule_id = rule_map.new_id
-     AND old_rule_env.environment_fingerprint_id = env_fp_map.old_id
-     AND new_rule_env.environment_fingerprint_id = env_fp_map.new_id
-     AND old_rule_env.radius = new_rule_env.radius
-         ;
+CREATE UNIQUE INDEX idx_constant_smiles ON constant_smiles(smiles);
+"""
 
-INSERT INTO profiler.mmpdb_times (label, t) VALUES ("insert rule_env_map", julianday("now"));
+def create_constant_smiles_table(c):
+    c.execute(CREATE_CONSTANT_SMILES_SQL)
 
--- Step 8: Merge constant_smiles
+def process_pair_tables(c, filenames, reporter):
+    start_time = time.time()
+    reporter.report("[Stage 6/7] Merging constant_smiles and pair records ...")
 
--- requires a unique index
+    create_constant_smiles_table(c)
+    for db_id, progress_str, filename in enumerate_progress(filenames):
+        with attach_as_old(c, filename):
+            num_constants, = next(c.execute("SELECT count(*) FROM old.constant_smiles"))
+            num_pairs, = next(c.execute("SELECT count(*) FROM old.pair"))
+            with progress(reporter,
+                              f"[Stage 6/7] #constants: {num_constants} "
+                              f"and #pairs: {num_pairs} "
+                              f"{progress_str}"):
+                process_constant_smiles_table(c, db_id)
+                process_pair_table(c, db_id)
 
+    with transaction(c):
+        num_constants, = next(c.execute("SELECT count(*) FROM constant_smiles"))
+        with progress(reporter, f"[Stage 6/7] Exporting {num_constants} constant SMILES"):
+            export_constant_smiles_table(c)
+    
+    num_pairs, = next(c.execute("SELECT count(*) FROM new.pair"))
+    end_time = time.time()
+    reporter.report(
+        f"[Stage 6/7] Merged {num_constants} constant SMILES "
+        f"and {num_pairs} pair records in {SECS(start_time, end_time)}"
+        )
+
+def process_constant_smiles_table(c, db_id):
+    c.execute("""
 INSERT OR IGNORE INTO constant_smiles (smiles)
    SELECT smiles
      FROM old.constant_smiles
           ;
+    """)
+    
+def process_pair_table(c, db_id):
+    c.execute("""
+INSERT INTO new.pair (rule_environment_id, compound1_id, compound2_id, constant_id)
+ SELECT rule_environment_map.new_rule_environment_id,
+        compound1_map.new_compound_id,
+        compound2_map.new_compound_id,
+        new_constant_smiles.id
 
-INSERT INTO profiler.mmpdb_times (label, t) VALUES ("insert constant_smiles", julianday("now"));
-
--- Step 9: Merge pairs
-
--- These are all unique because the constant_smiles wasn't seen earlier
-
-INSERT INTO pair (rule_environment_id, compound1_id, compound2_id, constant_id) 
- SELECT rule_env_map.new_id, new_compound1.id, new_compound2.id, new_constant.id
    FROM old.pair AS old_pair,
-        lut.env_fp_map AS rule_env_map,
-        old.compound as old_compound1,
-        old.compound as old_compound2,
-        compound as new_compound1,
-        compound as new_compound2,
-        old.constant_smiles as old_constant,
-        constant_smiles as new_constant
-  WHERE (    old_pair.rule_environment_id = rule_env_map.old_id
-         AND old_pair.compound1_id = old_compound1.id
-         AND old_pair.compound2_id = old_compound2.id
-         AND old_pair.constant_id = old_constant.id)
-    AND old_compound1.public_id = new_compound1.public_id
-    AND old_compound2.public_id = new_compound2.public_id
-    AND old_constant.smiles = new_constant.smiles
-        ;
+        rule_environment_map_{db_id} AS rule_environment_map,
+        compound_map_{db_id} AS compound1_map,
+        compound_map_{db_id} AS compound2_map,
+        old.constant_smiles as old_constant_smiles,
+        constant_smiles as new_constant_smiles
+  WHERE old_pair.rule_environment_id = rule_environment_map.old_rule_environment_id
+    AND old_pair.compound1_id = compound1_map.old_compound_id
+    AND old_pair.compound2_id = compound2_map.old_compound_id
+    AND old_pair.constant_id = old_constant_smiles.id
+    AND old_constant_smiles.smiles = new_constant_smiles.smiles
+    ;
+    """.format(db_id=db_id))
 
-INSERT INTO profiler.mmpdb_times (label, t) VALUES ("insert pairs", julianday("now"));
+def export_constant_smiles_table(c):
+    c.execute("""
+INSERT INTO new.constant_smiles (id, smiles)
+SELECT id, smiles FROM constant_smiles
+""")
 
-INSERT INTO profiler.mmpdb_times (label, t) VALUES ("end merge", julianday("now"));
+######
 
-"""
+def get_dataset_options(dataset, reporter):
+    fragment_options = dataset.get_fragment_options()
+    index_options = dataset.get_index_options()
+
+    # Warn that properties will not be merged
+    property_names = dataset.get_property_names()
+    if property_names:
+        msg = ", ".join(repr(name) for name in property_names)
+        reporter.warning(
+            f"Unable to merge properties from {dbinfo.get_human_name()}: {msg}"
+            )
+    return fragment_options, index_options
 
 def _check_options_mismatch(category, dbinfo, options, first_dbinfo, first_options):
     d = options.to_dict()
@@ -282,14 +679,141 @@ def check_options_mismatch(dbinfo, fragment_options, index_options,
     _check_options_mismatch("fragment", dbinfo, fragment_options, first_dbinfo, first_fragment_options)
     _check_options_mismatch("index", dbinfo, fragment_options, first_dbinfo, first_fragment_options)
 
-def open_output_database(
+    
+def verify_options(databases, reporter):
+    first_dbinfo = None
+    first_fragment_options = None
+    first_index_options = None
+
+    for database in databases:
+        dbinfo = dbutils.DBFile(database)
+        try:
+            dataset = dbinfo.open_database(
+                quiet=reporter.quiet,
+                apsw_warning=False,
+                ).get_dataset()
+        except dbutils.DBError as err:
+            die(f"Cannot connect to {dbinfo.get_human_name()}: {err}")
+
+        with dataset.mmpa_db:
+            fragment_options, index_options = get_dataset_options(dataset, reporter)
+            if first_dbinfo is None:
+                first_dbinfo = dbinfo
+                first_fragment_options = fragment_options
+                first_index_options = index_options
+            else:
+                check_options_mismatch(
+                    dbinfo, fragment_options, index_options,
+                    first_dbinfo, first_fragment_options, first_index_options,
+                    )
+
+    return first_fragment_options, first_index_options
+
+def verify_consistency(verify, databases, reporter):
+    assert verify in ("off", "options", "constants", "all")
+    if verify == "off":
+        databases = [databases[0]]
+    
+    for database in databases:
+        # Require it to be a SQLite database
+        if not os.path.exists(database):
+            die(f"Cannot merge: mmpdb file {database!r} does not exist.")
+
+    fragment_options, index_options = verify_options(databases, reporter)
+    if verify in ("off", "options"):
+        return fragment_options, index_options
+
+    # check for duplicate constants and mismatched SMILES
+    db = sqlite3.connect(":memory:")
+    c = db.cursor()
+    c.executescript("""
+CREATE TABLE constant_smiles (
+   smiles VARCHAR(255),
+   database VARCHAR(1024)
+    );
+CREATE INDEX constant_smiles_on_smiles ON constant_smiles (smiles);
+
+CREATE TABLE compound (
+   public_id VARCHAR(255) NOT NULL UNIQUE,
+   clean_smiles VARCHAR(255) NOT NULL UNIQUE,
+   clean_num_heavies INTEGER NOT NULL,
+   database VARCHAR(1024)
+    );
+CREATE INDEX compound_on_public_id ON compound (public_id);
+""")
+
+    if verify == "constants":
+        what = "Verifying constant SMILES ..."
+    else:
+        what = "Verifying constant SMILES and compounds..."
+    
+    for database in reporter.progress(databases, what, len(databases)):
+        with attach_as_old(c, database):
+            # Search for duplicate constant SMILES
+            for smiles, old_database in c.execute("""
+SELECT new_constant_smiles.smiles, new_constant_smiles.database
+  FROM old.constant_smiles as old_constant_smiles,
+       constant_smiles as new_constant_smiles
+ WHERE old_constant_smiles.smiles = new_constant_smiles.smiles
+            """):
+                reporter.update("")
+                die(
+                    "Cannot merge multiple mmpdb databases with the same shared constants.",
+                    f"Duplicate constant {smiles!r} found in {old_database!r} and {database!r}."
+                    )
+
+            # Update the constant SMILES
+            c.execute("""
+INSERT INTO constant_smiles (smiles, database)
+SELECT old_constant_smiles.smiles, ?
+  FROM old.constant_smiles as old_constant_smiles
+            """, (database,))
+
+            if verify == "constants":
+                continue
+            
+            # Search for changes in the compound SMILES
+            for (public_id,
+                prev_clean_smiles, prev_clean_num_heavies, prev_database,
+                old_clean_smiles, old_clean_num_heavies) in c.execute("""
+SELECT compound.public_id, compound.clean_smiles, compound.clean_num_heavies, compound.database,
+       old_compound.clean_smiles, old_compound.clean_num_heavies
+  FROM compound, old.compound AS old_compound
+ WHERE compound.public_id = old_compound.public_id AND (
+         compound.clean_smiles != old_compound.clean_smiles OR
+         compound.clean_num_heavies != old_compound.clean_num_heavies)
+                """):
+                reporter.update("")
+                die("Cannot merge mmpdb databases with mismatching compound records.",
+                    f"Compound public id {public_id!r} "
+                    f"found in {prev_database!r} with SMILES {prev_clean_smiles!r} "
+                    f"({prev_clean_num_heavies} heavies) "
+                    f"and {database!r} with SMILES {old_clean_smiles!r} "
+                    f"({old_clean_num_heavies} heavies).")
+
+            # Update the compound table
+            c.execute("""
+INSERT OR IGNORE INTO compound (public_id, clean_smiles, clean_num_heavies, database)
+SELECT public_id, clean_smiles, clean_num_heavies, ?
+  FROM old.compound AS old_compound
+""", (database,))
+            
+
+    return fragment_options, index_options
+
+####
+
+def create_output_database(
         output_filename,
         title,
         fragment_options,
         index_options,
         ):
-    import sqlite3
-    from .. import index_writers, reporters
+    if os.path.exists(output_filename):
+        try:
+            os.unlink(output_filename)
+        except Exception:
+            pass
     try:
         writer = index_writers.open_rdbms_index_writer(
             output_filename, title, is_sqlite=True)
@@ -300,73 +824,11 @@ def open_output_database(
 
     writer.start(fragment_options, index_options)
 
-    # Create the index
-    writer.end(reporters.Quiet())
-    writer.close()
-    try:
-        db = sqlite3.connect(output_filename)
-    except sqlite3.OperationalError as err:
-        die(f"Unexpected problem re-opening mmpdb file {output_filename!r}: {err}")
-
-    #db.execute("PRAGMA journal_mode=WAL")
-    db.execute("PRAGMA synchronous=OFF")
-    return db
-
-def add_time(output_c, label):
-    output_c.execute(
-        'INSERT INTO profiler.mmpdb_times (label, t) VALUES (?, julianday("now"))',
-        (label,),
-        )
-
-def attach_lut(output_c):
-    output_c.execute('ATTACH DATABASE ":memory:" AS lut')
-    schema._execute_sql(output_c, LUT_CREATE_TABLE)
+    writer.commit()
+    #writer.close() # The commit() includes a close() ... I wonder why I did that.
     
-def attach_profiler(output_c, profile_path):
-    if profile_path is None:
-        output_c.execute('ATTACH DATABASE ":memory:" AS profiler')
-    else:
-        try:
-            output_c.execute('ATTACH DATABASE ? AS profiler', (profile_path,))
-        except sqlite3.DatabaseError as err:
-            die(f"Cannot attach profiler database {profile_path!r}: {err}")
+######
 
-    try:
-        output_c.execute(PROFILE_SCHEMA)
-    except sqlite3.OperationalError as err:
-        die(f"Cannot create profiler schema in {profile_path!r}: {err}")
-    
-    add_time(output_c, "start")
-    
-
-def check_for_duplicate_constants(output_c, database):
-    for smiles, in output_c.execute("""
-SELECT old_constant_smiles.smiles
-  FROM old.constant_smiles as old_constant_smiles,
-       constant_smiles as new_constant_smiles
- WHERE old_constant_smiles.smiles = new_constant_smiles.smiles
-"""):
-        die(
-            "Can only merge mmpdb databases with no shared constants.",
-            f"Duplicate constant {smiles!r} found in {database!r} ."
-            )
-
-
-def check_for_different_clean_smiles(output_c, database):
-    # Check any records with a different clean_smiles
-    for public_id, old_clean_smiles, new_clean_smiles in output_c.execute("""
-SELECT old_compound.public_id, old_compound.clean_smiles, new_compound.clean_smiles
-  FROM old.compound as old_compound,
-       compound as new_compound
- WHERE old_compound.public_id = new_compound.public_id
-   AND old_compound.clean_smiles != new_compound.clean_smiles
-"""):
-        die(
-            "Cannot merge. Record {public_id!r} in {database!r} has a SMILES {old_clean_smiles!r}",
-            "but a previously merged file has the SMILES {new_clean_smiles!r}.",
-            )
-
-        
 @command(
     epilog=merge_epilog,
     )
@@ -382,21 +844,20 @@ SELECT old_compound.public_id, old_compound.clean_smiles, new_compound.clean_smi
     type = click.Path(),
     help = 'The output database filename (the default is "merged.mmpdb")',
     )
-@click.option(
-    "--profile",
-    "profile_path",
-    type = click.Path(),
-    default = None,
-    help = "Store SQL profile information to this SQLite database",
-    )
 @add_multiple_databases_parameters()
+@click.option(
+    "--verify",
+    type = click.Choice(["off", "options", "constants", "all"]),
+    default = "all",
+    help = "level of consistency checking",
+    )
 @click.pass_obj
 def merge(
         reporter,
         databases_options,
         title,
         output_filename,
-        profile_path,
+        verify,
         ):
     """Merge multiple mmpdb databases
 
@@ -404,7 +865,9 @@ def merge(
 
     Properties are ignored because merging them is not meaningful.
     """
-    
+    start_time = time.time()
+    reporter = reporters.get_reporter("verbose")
+    reporter.quiet = False
     databases = databases_options.databases
     if not databases:
         die("Must specify at least one mmpdb database.")
@@ -415,241 +878,55 @@ def merge(
     if output_filename is None:
         output_filename = "merged.mmpdb"
         reporter.warning(f"No --output file specified, using {output_filename!r}")
+
+    fragment_options, index_options = verify_consistency(verify, databases, reporter)
+
+    # Create an empty output file
+    create_output_database(
+        output_filename = output_filename,
+        title = title,
+        fragment_options = fragment_options,
+        index_options = index_options,
+        )
     
-    first_dbinfo = None
-    first_fragment_options = None
-    first_index_options = None
+    # Let's do this!
+    working_db = sqlite3.connect(":memory:")
+    schema.create_schema_for_sqlite(working_db)
 
-    output_db = None
-    output_c = None
+    c = working_db.cursor()
+    
+    c.execute("ATTACH DATABASE ? AS new", (output_filename,))
 
-    db = None
-    c = None
-    try:
-        for database_i, database in enumerate(databases, 1):
-            # Require it to be a SQLite database
-            if not os.path.exists(database):
-                die(f"mmpdb file {database!r} does not exist")
-            dbinfo = dbutils.DBFile(database)
-            
-            try:
-                dataset = dbinfo.open_database(
-                    quiet=reporter.quiet,
-                    apsw_warning=False,
-                    ).get_dataset()
-            except dbutils.DBError as err:
-                die(f"Cannot connect to {dbinfo.get_human_name()}: {err}\n")
-
-            db = dataset.mmpa_db
-            with db:
-                # Get options
-                fragment_options = dataset.get_fragment_options()
-                index_options = dataset.get_index_options()
-
-                # Warn that properties will not be merged
-                property_names = dataset.get_property_names()
-                if property_names:
-                    msg = ", ".join(repr(name) for name in property_names)
-                    reporter.warning(
-                        f"Unable to merge properties from {dbinfo.get_human_name()}: {msg}"
-                        )
-
-            
-                # Ensure the options are compatible
-                if first_dbinfo is None:
-                    # First time through
-                    first_dbinfo = dbinfo
-                    first_fragment_options = fragment_options
-                    first_index_options = index_options
-
-                    # Create the output database
-                    output_db = open_output_database(
-                        output_filename,
-                        title,
-                        fragment_options,
-                        index_options,
-                        )
-                    output_c = output_db.cursor()
-                    try:
-                        schema._execute_sql(output_c, MERGE_CREATE_INDEX_SQL)
-                    except sqlite3.DatabaseError as err:
-                        output_c.close()
-                        output_db.close()
-                        output_c = output_db = None
-                        die(f"Cannot use {output_filename!r}: {err}")
-                        
-                    except Exception:
-                        output_c.close()
-                        output_db.close()
-                        output_c = output_db = None
-                        raise
-
-                    attach_lut(output_c)
-                    attach_profiler(output_c, profile_path)
-
-                else:
-                    check_options_mismatch(
-                            dbinfo,
-                            fragment_options,
-                            index_options,
-                            first_dbinfo,
-                            first_fragment_options,
-                            first_index_options,
-                            )
-
-            # Attach and merge
-            add_time(output_c, f"merging {database!r}")
-            start_time = time.time()
-            reporter.update(f"Merging {database!r} ({database_i}/{len(databases)}) ...")
-            
-            try:
-                output_c.execute("ATTACH DATABASE ? AS old", (database,))
-            except sqlite3.OperationalError as err:
-                reporter.report(f"Merging {database!r}. FAILED!")
-                die(f"Cannot attach {database!r} to {output_file!r}: {err}")
-
-            try:
-                try:
-                    check_for_duplicate_constants(output_c, database)
-                    check_for_different_clean_smiles(output_c, database)
-
-                    # Merge
-                    try:
-                        schema._execute_sql(output_c, MERGE_DATABASE_SQL)
-                    except Exception:
-                        ## breakpoint()
-                        raise
-                    ## Debug code to see the query plan
-##                     output_c.execute("""
-## EXPLAIN
-## INSERT OR IGNORE INTO rule_environment (rule_id, environment_fingerprint_id, radius)
-##   SELECT rule_map.new_id, env_fp_map.new_id, old_rule_env.radius
-##     FROM old.rule_environment AS old_rule_env,
-##          lut.rule_map AS rule_map,
-##          lut.env_fp_map AS env_fp_map
-##    WHERE old_rule_env.rule_id = rule_map.old_id
-##      AND old_rule_env.environment_fingerprint_id = env_fp_map.old_id
-##          ;
-## """)
-##                     def STR(s, n):
-##                         if s is None:
-##                             s = ""
-##                         return str(s).ljust(n)
-##                     print()
-##                     print("addr  opcode         p1    p2    p3    p4             p5  comment")
-##                     print("----  -------------  ----  ----  ----  -------------  --  -------------")
-##                     for addr, opcode, p1, p2, p3, p4, p5, comment in output_c:
-##                         print(
-##                             f"{STR(addr, 4)}  {STR(opcode, 13)}  {STR(p1, 4)}  {STR(p2, 4)}  "
-##                             f"{STR(p3, 4)}  {STR(p4, 13)}  {STR(p5, 2)}  {STR(comment, 15)}"
-##                             )
-##                     print()
-                            
-                finally:
-                    try:
-                        output_c.execute("COMMIT")
-                    except sqlite3.OperationalError:
-                        pass
-                    output_c.execute("DETACH DATABASE old")
-                    # Following the recommendation at
-                    #   https://sqlite.org/lang_analyze.html
-                    output_c.execute("PRAGMA analysis_limit=400")
-                    output_c.execute("PRAGMA optimize")
-            except:
-                reporter.report(f"Merging {database!r}. FAILED!")
-                output_c.close()
-                output_db.close()
-                output_c = output_db = None
-                raise
-            reporter.report(
-                f"Merged {database!r} ({database_i}/{len(databases)}). "
-                f"Time: {time.time()-start_time:.2f}"
-                )
-                
-
-    finally:
-        if output_c is not None:
-            try:
-                output_c.execute("COMMIT")
-            except sqlite3.OperationalError:
-                pass
-            output_c.execute("DETACH DATABASE lut")
-
-            add_time(output_c, "start finalization")
-            schema._execute_sql(output_c, MERGE_DROP_INDEX_SQL)
-            add_time(output_c, "drop indices")
-
-            index_writers.update_counts(output_c)
-            add_time(output_c, "update counts")
-            output_c.execute("ANALYZE")
-            add_time(output_c, "analyze")
-            add_time(output_c, "end finalization")
-            add_time(output_c, "end")
-            output_c.execute("COMMIT")
-            output_c.close()
-            output_db.close()
-
-show_merge_profile_epilog = """
-
-EXPERIMENTAL!
-
-The `--profile` option of the `mmpdb merge` command saves profile
-information to a SQLite database, and gives a way to see more detailed
-progress during the merge process.
-
-This command shows the log in a more human-readable version.
-"""
-
-@command(
-    name="show_merge_profile",
-    epilog=show_merge_profile_epilog,
-    )
-@click.argument(
-    "profile_path",
-    type = click.Path(),
-    metavar = "PROF.db",
-    )
-def show_merge_profile(profile_path):
-    "Show information from a merge --profile database"
-
-    if not os.path.exists(profile_path):
-        die(f"Profile database does not exist: {profile_path!r}")
+    filenames = databases
+    process_compound_tables(c, filenames, reporter)
+    process_rule_smiles_tables(c, filenames, reporter)
+    process_rule_tables(c, filenames, reporter)
+    process_environment_fingerprint_tables(c, filenames, reporter)
+    process_rule_environment_tables(c, filenames, reporter)
+    process_pair_tables(c, filenames, reporter)
 
     try:
-        db = sqlite3.connect(profile_path)
-    except sqlite3.DatabaseError as err:
-        die(f"Cannot connect to SQLite database {profile_path!r}: {err}")
+        c.execute("COMMIT")
+    except sqlite3.OperationalError:
+        pass
+    c.execute("DETACH DATABASE new")
+    c.close()
+    working_db.close()
 
-    c = db.cursor()
-
-    try:
-        try:
-            c.execute("SELECT strftime('%Y-%m-%d %H:%M:%f', t), label, t FROM mmpdb_times ORDER BY id")
-        except sqlite3.DatabaseError as err:
-            die(f"Cannot use SQLite database {profile_path!r}: {err}")
-        except sqlite3.OperationalError as err:
-            die(f"Cannot get times from {profile_path!r}: {err}")
-
-        prev_t = None
-        start_t = None
-        click.echo(f"T-T0\tdelta_T\ttimestamp\tlabel")
-        
-        N_secs = 86400 # number of second in a day
-        for datetime_str, label, t in c:
-            if prev_t is None:
-                prev_t = t
-                start_t = t
-            msg = "{:.3f}\t{:.3f}\t{}\t{}".format(
-                (t-start_t)*N_secs, # elapsed since start
-                (t-prev_t)*N_secs,  # delta since previous
-                datetime_str,
-                label,
-                )
-            click.echo(msg)
-            prev_t = t
-        
-        c.close()
-        
-    finally:
-        db.close()
-        
+    reporter.update("[Stage 7/7] Indexing and analyzing...")
+    output_db = sqlite3.connect(output_filename)
+    start_index_time = time.time()
+    with transaction(output_db.cursor()) as c:
+        schema.create_index(c)
+        index_writers.update_counts(c)
+        c.execute("ANALYZE")  # should I .pragma limit the size?
+    end_index_time = time.time()
+    reporter.report(
+        f"[Stage 7/7] Indexed and analyzed the merged records in {SECS(start_index_time, end_index_time)}."
+        )
+    
+    end_time = time.time()
+    reporter.report(f"Merged {len(filenames)} files in {SECS(start_time, end_time)}.")
+    
+if __name__ == "__main__":
+    merge()
