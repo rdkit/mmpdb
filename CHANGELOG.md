@@ -1,13 +1,13 @@
 # CHANGELOG
 
-## mmpdb 3.0b1 - 2021-12-03
+## mmpdb 3.0b1 - 2021-02-09
 
 A large number of changes to merge three different development tracks
 and add new features.
 
 The "fragments" file format has been replaced with a SQLite-based
 "fragdb" file format. This makes it much easier to develop tools to
-work on fragment data sets.
+work on fragment data sets instead of processing a JSON-Lines file.
 
 New functionality to create an MMP data set in a distributed compute
 environment. Some of the features are:
@@ -22,7 +22,8 @@ environment. Some of the features are:
 
 As a result, mmpdb can now handle significantly larger data sets.
 
-Added support for Postgres.
+Added support for Postgres for direct index database creation. (The
+new distributed compute tools require SQLite.)
 
 Added a new "generate" command to apply 1-cut transforms to a
 structure, using MMP rules as a playbook.
