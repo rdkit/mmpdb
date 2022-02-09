@@ -10,9 +10,72 @@ property changes and generate new molecular structures.
 
 ------------------
 
+## Installation
+
+mmpdb 3.0 must be installed before use. (Earlier versions of mmpdb
+could be run in-place, in the top-level directory.) This will also
+ensure that the SciPy, peewee, and click packages are installed.
+
+To install from PyPI using
+[pip](https://pip.pypa.io/en/stable/user_guide/), which comes with
+Python:
+
+On macOS and other Unix-like systems:
+```
+python -m pip install mmpdb
+```
+On Windows:
+```
+py -m pip install mmpdb
+```
+
+If you are using a virtual environment (eg, with
+[venv](https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/#creating-a-virtual-environment)
+or
+[conda](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html)
+then the installer will place a copy of the relevant files into the
+virtual environment's Python package directory, and place the
+`mmpdb` command-line driver in your path.
+
+If you are not using a virtual environment (and you should be using a
+virtual environment) then the installer will place the relevant files
+into Python's system directory. If you do not have write permissions
+to that directory, or only want to install it for your personal use,
+then add the `--user` flag at the end of the install command.
+
+To install from source directory, go to the top-level directory then
+do:
+
+On macOS and other Unix-like systems:
+```
+python -m pip install .
+```
+
+On Windows:
+```
+py -m pip install .
+```
+
+If you plan to modify the source code and want the installation to use
+the local directory rather than make a copy into the package
+directory, then you need an "editable" installation,
+
+On macOS and other Unix-like systems:
+```
+python -m pip install -e .
+```
+
+On Windows:
+```
+py -m pip install -e .
+```
+
+(Assuming the dependencies are installed then it is possible to use
+mmpdb without installation by going to the top-level directory and
+using `python -m mmpdblib` or, for Windows, `py -m mmpdlib`. This is
+not recommended.)
 
 ## Requirements
-
 
 The package has been tested on Python 3.9.
 
