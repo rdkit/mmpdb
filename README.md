@@ -100,6 +100,10 @@ help-postgres` for more information.
 [psutil](https://pypi.python.org/pypi/psutil/) module to get memory
 use information.
 
+NOTE: mmpdb 2 used a JSON-Lines format for the fragment files, and
+suggested an optional package with faster JSON parsing. mmpdb 3 no
+longer uses this format.
+
 
 ------------------
 
