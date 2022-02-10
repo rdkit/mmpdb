@@ -606,6 +606,10 @@ filenames it also shows a 'total' line.
 
 ### Distributed fragmentation generation
 
+NOTE: This method can also be used to process larger data sets on a single
+machine because the `mmpdb merge` step uses less memory than the `mmpdb
+index`.
+
 The `fragment` command supports multi-processing with the `-j` flag, which
 scales to about 4 or 8 processors. For larger data sets you can break the
 SMILES dataset into multiple files, fragment each file indepenently, then
@@ -652,16 +656,16 @@ By default this generates files which look like:
 
 ```shell
 % ls -l ChEMBL_CYP3A4_hERG.*.smi
--rw-r--r--  1 dalke  admin  141307 Nov 15 14:41 ChEMBL_CYP3A4_hERG.0000.smi
--rw-r--r--  1 dalke  admin  152002 Nov 15 14:41 ChEMBL_CYP3A4_hERG.0001.smi
--rw-r--r--  1 dalke  admin  127397 Nov 15 14:41 ChEMBL_CYP3A4_hERG.0002.smi
--rw-r--r--  1 dalke  admin  137930 Nov 15 14:41 ChEMBL_CYP3A4_hERG.0003.smi
--rw-r--r--  1 dalke  admin  130585 Nov 15 14:41 ChEMBL_CYP3A4_hERG.0004.smi
--rw-r--r--  1 dalke  admin  150072 Nov 15 14:41 ChEMBL_CYP3A4_hERG.0005.smi
--rw-r--r--  1 dalke  admin  139620 Nov 15 14:41 ChEMBL_CYP3A4_hERG.0006.smi
--rw-r--r--  1 dalke  admin  133347 Nov 15 14:41 ChEMBL_CYP3A4_hERG.0007.smi
--rw-r--r--  1 dalke  admin  131310 Nov 15 14:41 ChEMBL_CYP3A4_hERG.0008.smi
--rw-r--r--  1 dalke  admin  129344 Nov 15 14:41 ChEMBL_CYP3A4_hERG.0009.smi
+-rw-r--r--  1 dalke  admin  141307 Feb 10 15:10 ChEMBL_CYP3A4_hERG.0000.smi
+-rw-r--r--  1 dalke  admin  152002 Feb 10 15:10 ChEMBL_CYP3A4_hERG.0001.smi
+-rw-r--r--  1 dalke  admin  127397 Feb 10 15:10 ChEMBL_CYP3A4_hERG.0002.smi
+-rw-r--r--  1 dalke  admin  137930 Feb 10 15:10 ChEMBL_CYP3A4_hERG.0003.smi
+-rw-r--r--  1 dalke  admin  130585 Feb 10 15:10 ChEMBL_CYP3A4_hERG.0004.smi
+-rw-r--r--  1 dalke  admin  150072 Feb 10 15:10 ChEMBL_CYP3A4_hERG.0005.smi
+-rw-r--r--  1 dalke  admin  139620 Feb 10 15:10 ChEMBL_CYP3A4_hERG.0006.smi
+-rw-r--r--  1 dalke  admin  133347 Feb 10 15:10 ChEMBL_CYP3A4_hERG.0007.smi
+-rw-r--r--  1 dalke  admin  131310 Feb 10 15:10 ChEMBL_CYP3A4_hERG.0008.smi
+-rw-r--r--  1 dalke  admin  129344 Feb 10 15:10 ChEMBL_CYP3A4_hERG.0009.smi
 ```
 
 The output filenames are determined by the `--template` option, which defaults
@@ -702,20 +706,20 @@ NOTE: This step is only needed if you want to use the merged file as a
 `--cache` for new fragmentation. The `fragdb_constants` and `fragdb_partition`
 commands can work directly on the un-merged fragdb files.
 
-About 28 minutes later I have 10 fragdb files:
+About 18 minutes later I have 10 fragdb files:
 
 ```shell
 % ls -l ChEMBL_CYP3A4_hERG.*.fragdb
--rw-r--r--  1 dalke  admin  13701120 Nov 15 15:12 ChEMBL_CYP3A4_hERG.0000.fragdb
--rw-r--r--  1 dalke  admin  30453760 Nov 15 15:28 ChEMBL_CYP3A4_hERG.0001.fragdb
--rw-r--r--  1 dalke  admin  11313152 Nov 15 15:11 ChEMBL_CYP3A4_hERG.0002.fragdb
--rw-r--r--  1 dalke  admin  12333056 Nov 15 15:11 ChEMBL_CYP3A4_hERG.0003.fragdb
--rw-r--r--  1 dalke  admin  14024704 Nov 15 15:21 ChEMBL_CYP3A4_hERG.0004.fragdb
--rw-r--r--  1 dalke  admin  15949824 Nov 15 15:22 ChEMBL_CYP3A4_hERG.0005.fragdb
--rw-r--r--  1 dalke  admin  19251200 Nov 15 15:26 ChEMBL_CYP3A4_hERG.0006.fragdb
--rw-r--r--  1 dalke  admin  12759040 Nov 15 15:29 ChEMBL_CYP3A4_hERG.0007.fragdb
--rw-r--r--  1 dalke  admin   9306112 Nov 15 15:29 ChEMBL_CYP3A4_hERG.0008.fragdb
--rw-r--r--  1 dalke  admin     20480 Nov 15 15:26 ChEMBL_CYP3A4_hERG.0009.fragdb
+-rw-r--r--  1 dalke  admin  17862656 Feb 10 15:17 ChEMBL_CYP3A4_hERG.0000.fragdb
+-rw-r--r--  1 dalke  admin  38285312 Feb 10 15:27 ChEMBL_CYP3A4_hERG.0001.fragdb
+-rw-r--r--  1 dalke  admin  15024128 Feb 10 15:16 ChEMBL_CYP3A4_hERG.0002.fragdb
+-rw-r--r--  1 dalke  admin  15929344 Feb 10 15:16 ChEMBL_CYP3A4_hERG.0003.fragdb
+-rw-r--r--  1 dalke  admin  18063360 Feb 10 15:23 ChEMBL_CYP3A4_hERG.0004.fragdb
+-rw-r--r--  1 dalke  admin  20586496 Feb 10 15:24 ChEMBL_CYP3A4_hERG.0005.fragdb
+-rw-r--r--  1 dalke  admin  24911872 Feb 10 15:26 ChEMBL_CYP3A4_hERG.0006.fragdb
+-rw-r--r--  1 dalke  admin  16875520 Feb 10 15:28 ChEMBL_CYP3A4_hERG.0007.fragdb
+-rw-r--r--  1 dalke  admin  12451840 Feb 10 15:28 ChEMBL_CYP3A4_hERG.0008.fragdb
+-rw-r--r--  1 dalke  admin  11010048 Feb 10 15:29 ChEMBL_CYP3A4_hERG.0009.fragdb
 ```
 
 I'll merge these with the `fragdb_merge` command:
@@ -1043,16 +1047,20 @@ which only works if no two mmpdb files share the same constant:
 
 ```shell
 % mmpdb merge partition.*.mmpdb -o ChEMBL_CYP3A4_hERG_distributed.mmpdb
-Merged 'partition.0000.mmpdb' (1/10). Time: 0.01
-Merged 'partition.0001.mmpdb' (2/10). Time: 0.03
-Merged 'partition.0002.mmpdb' (3/10). Time: 0.09
-Merged 'partition.0003.mmpdb' (4/10). Time: 0.16
-Merged 'partition.0004.mmpdb' (5/10). Time: 0.14
-Merged 'partition.0005.mmpdb' (6/10). Time: 0.22
-Merged 'partition.0006.mmpdb' (7/10). Time: 0.22
-Merged 'partition.0007.mmpdb' (8/10). Time: 0.28
-Merged 'partition.0008.mmpdb' (9/10). Time: 0.37
-Merged 'partition.0009.mmpdb' (10/10). Time: 0.35
+[Stage 1/7] Merging compound records ...
+[Stage 1/7] Merged 4428 compound records in 0.046 seconds.
+[Stage 2/7] Merging rule_smiles tables ...
+[Stage 2/7] Merged 3159 rule_smiles records in 0.030 seconds.
+[Stage 3/7] Merging rule tables ...
+[Stage 3/7] Merged 21282 rule records in 0.072 seconds.
+[Stage 4/7] Merging environment_fingerprint records ...
+[Stage 4/7] Merged 1753 environment_fingerprint records in 0.035 seconds.
+[Stage 5/7] Merging rule environment records ...
+[Stage 5/7] Merged 143661 rule environment records in 0.47 seconds.
+[Stage 6/7] Merging constant_smiles and pair records ...
+[Stage 6/7] Merged 893 constant SMILES and 203856 pair records in 0.26 seconds
+[Stage 7/7] Indexed and analyzed the merged records in 0.33 seconds.
+Merged 10 files in 1.3 seconds.
 ```
 
 Let's take a look:
@@ -1060,8 +1068,35 @@ Let's take a look:
 ```shell
 % mmpdb list ChEMBL_CYP3A4_hERG_distributed.mmpdb
                 Name                 #cmpds #rules #pairs #envs  #stats  |-------- Title --------| Properties
-ChEMBL_CYP3A4_hERG_distributed.mmpdb   1852  21279   2896 143638      0  Merged MMPs from 10 files <none>
+ChEMBL_CYP3A4_hERG_distributed.mmpdb   4428  21282 203856 143661      0  Merged MMPs from 10 files <none>
 ```
+
+Finally, I'll cross-check this with a normal `mmpdb index`. I need to create
+the same subset
+
+```shell
+% mmpdb fragdb_partition ChEMBL_CYP3A4_hERG.fragdb --constants constants.dat \
+      -n 1 --template ChEMBL_CYP3A4_hERG_subset.fragdb
+Exporting 1940 constants to 'ChEMBL_CYP3A4_hERG_subset.fragdb' (#1/1, weight: 3862149)
+```
+
+The index the subset:
+
+```shell
+% mmpdb index ChEMBL_CYP3A4_hERG_subset.fragdb
+WARNING: No --output filename specified. Saving to 'ChEMBL_CYP3A4_hERG_subset.mmpdb'.
+```
+
+And finally, compare the two:
+
+```shell
+% mmpdb list ChEMBL_CYP3A4_hERG_subset.mmpdb ChEMBL_CYP3A4_hERG_distributed.mmpdb
+                Name                 #cmpds #rules #pairs #envs  #stats  |----------------- Title ------------------| Properties
+     ChEMBL_CYP3A4_hERG_subset.mmpdb   4428  21282 203856 143661      0  MMPs from 'ChEMBL_CYP3A4_hERG_subset.fragdb' <none>
+ChEMBL_CYP3A4_hERG_distributed.mmpdb   4428  21282 203856 143661      0  Merged MMPs from 10 files                    <none>
+```
+
+They are the same, except for the title.
 
 
 ------------------
