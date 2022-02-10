@@ -565,15 +565,15 @@ Number of rules for [*:1]O: 3
 These commands enable MMP generation on a distributed compute cluster, rather
 than a single machine.
 
-NOTE: This method does not support properties, and you must use the SQLite-
-based "mmpdb" files, not Postgres databases. The  [Postgres wiki](https://wiki
-.postgresql.org/wiki/Converting_from_other_Databases_to_PostgreSQL) mentions
-[pgloader](https://github.com/dimitri/pgloader) as a possible tool to have
-Postgres load a SQLite database.
+NOTE: This method does not support properties, and you must use the
+SQLite- based "mmpdb" files, not Postgres databases. The
+[Postgres wiki](https://wiki.postgresql.org/wiki/Converting_from_other_Databases_to_PostgreSQL)
+mentions [pgloader](https://github.com/dimitri/pgloader) as a possible
+tool to have Postgres load a SQLite database.
 
-These examples assume you work in a queueing environment with a shared file
-system, and a queueing system which lets you submit a command and a list of
-filenames, to enqueue the command once for each filename.
+These examples assume you work in a queueing environment with a shared
+file system, and a queueing system which lets you submit a command and
+a list of filenames, to enqueue the command once for each filename.
 
 This documentation will use the command 'qsub' as a wrapper around [GNU
 Parallel](https://www.gnu.org/software/parallel/):
@@ -1010,16 +1010,21 @@ Exporting 262 constants to 'partition.0009.fragdb' (#10/10, weight: 382003)
 ```
 
 Use the `--dry-run` option to get an idea of how many files will be created:
-``` % mmpdb fragdb_partition ChEMBL_CYP3A4_hERG.*.fragdb --constants
-constants.dat --dry-run i       #constants      weight  filename 0       10
-423661  'partition.0000.fragdb' 1       10      382376
-'partition.0001.fragdb' 2       10      382044  'partition.0002.fragdb' 3
-10      382013  'partition.0003.fragdb' 4       10      382013
-'partition.0004.fragdb' 5       10      382010  'partition.0005.fragdb' 6
-10      382010  'partition.0006.fragdb' 7       10      382010
-'partition.0007.fragdb' 8       10      382009  'partition.0008.fragdb' 9
-10      382003  'partition.0009.fragdb' ```
-
+```shell
+% mmpdb fragdb_partition ChEMBL_CYP3A4_hERG.*.fragdb --constants constants.dat --dry-run
+i       #constants      weight  filename
+0       10      423661  'partition.0000.fragdb'
+1       10      382376  'partition.0001.fragdb'
+2       10      382044  'partition.0002.fragdb'
+3       10      382013  'partition.0003.fragdb'
+4       10      382013  'partition.0004.fragdb'
+5       10      382010  'partition.0005.fragdb'
+6       10      382010  'partition.0006.fragdb'
+7       10      382010  'partition.0007.fragdb'
+8       10      382009  'partition.0008.fragdb'
+9       10      382003  'partition.0009.fragdb'
+```
+ 
 #### Indexing in parallel
 
 The partitioned fragdb files can be indexed in parallel:

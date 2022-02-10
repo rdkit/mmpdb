@@ -1036,7 +1036,9 @@ Exporting 262 constants to 'partition.0009.fragdb' (#10/10, weight: 382003)
 ```
 
 Use the `--dry-run` option to get an idea of how many files will be created:
-```
+
+\b
+```shell
 % mmpdb fragdb_partition ChEMBL_CYP3A4_hERG.*.fragdb --constants constants.dat --dry-run
 i	#constants	weight	filename
 0	10	423661	'partition.0000.fragdb'
