@@ -711,7 +711,7 @@ NOTE: This step is only needed if you want to use the merged file as a
 `fragdb_partition` commands can work directly on the un-merged fragdb
 files.
 
-About 18 minutes later I have 10 fragdb files:
+About 28 minutes later I have 10 fragdb files:
 
 \b
 ```shell
