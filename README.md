@@ -1165,7 +1165,7 @@ mmpdb 3.0.
 ## Copyright
 
 
-The mmpdb package is copyright 2015-2021 by F. Hoffmann-La Roche Ltd
+The mmpdb package is copyright 2015-2022 by F. Hoffmann-La Roche Ltd
 and Andrew Dalke Scientific AB, and distributed under the 3-clause BSD
 license. See [LICENSE](LICENSE) for details.
 
