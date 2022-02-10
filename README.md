@@ -1085,7 +1085,7 @@ the same subset
 Exporting 1940 constants to 'ChEMBL_CYP3A4_hERG_subset.fragdb' (#1/1, weight: 3862149)
 ```
 
-The index the subset:
+Then index the subset:
 
 ```shell
 % mmpdb index ChEMBL_CYP3A4_hERG_subset.fragdb

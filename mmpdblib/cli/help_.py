@@ -1116,7 +1116,7 @@ Finally, I'll cross-check this with a normal `mmpdb index`. I need to create the
 Exporting 1940 constants to 'ChEMBL_CYP3A4_hERG_subset.fragdb' (#1/1, weight: 3862149)
 ```
 
-The index the subset:
+Then index the subset:
 
 \b
 ```shell
