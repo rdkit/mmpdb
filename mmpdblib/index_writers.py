@@ -187,10 +187,12 @@ ADD_RULE_SQL = (
 ADD_ENVIRONMENT_FINGERPRINT_SQL = (
     "INSERT INTO environment_fingerprint (id, smarts, pseudosmiles, parent_smarts) VALUES (?, ?, ?, ?)"
     )
+# num_pairs will always be set to zero but don't set it in the INSERT statement
+# so it can be used by execute_values() in the pgsql adapter.
 ADD_RULE_ENVIRONMENT_SQL = (
     "INSERT INTO "
     "  rule_environment (id, rule_id, environment_fingerprint_id,  radius, num_pairs) "
-    "  VALUES (?, ?, ?, ?, 0)"
+    "  VALUES (?, ?, ?, ?, ?)"
     )
 ADD_COMPOUND_SQL = (
     "INSERT INTO "
@@ -340,7 +342,7 @@ class SingleIndexWriterMixin(object):
 
     def add_rule_environment(self, rule_env_idx, rule_idx, env_fp_idx, radius):
         self.conn.execute(self.ADD_RULE_ENVIRONMENT_SQL,
-                              (rule_env_idx, rule_idx, env_fp_idx, radius))
+                              (rule_env_idx, rule_idx, env_fp_idx, radius, 0))
 
     def add_compound(self, compound_idx, compound_id, input_smiles,
                      normalized_smiles, num_normalized_heavies):
