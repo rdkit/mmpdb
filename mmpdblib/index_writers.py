@@ -436,8 +436,9 @@ class BatchIndexWriterMixin(object):
             self.flush()
 
     def add_rule_environment(self, rule_env_idx, rule_idx, env_fp_idx, radius):
+        # also initialize num_pairs to 0
         self._rule_environment_values.append(
-            (rule_env_idx, rule_idx, env_fp_idx, radius))
+            (rule_env_idx, rule_idx, env_fp_idx, radius, 0))
         if next(self._check_flush):
             self.flush()
 
