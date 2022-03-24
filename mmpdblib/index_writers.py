@@ -846,7 +846,7 @@ def _open_output(destination, compression):
 def _open_csv(destination, compression,
                 title, fragment_options, fragment_index, index_options, properties,
                 environment_cache):
-    outfile = _open_output(destination, compressionf)
+    outfile = _open_output(destination, compression)
     return CSVPairWriter(outfile, fragment_options, fragment_index,
                          index_options, properties)
 
