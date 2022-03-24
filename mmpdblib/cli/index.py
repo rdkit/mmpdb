@@ -463,6 +463,13 @@ def index(
         output_filename = os.path.splitext(fragment_filename)[0] + ".mmpdb"
         reporter.warning(f"No --output filename specified. Saving to {output_filename!r}.")
 
+    if (output_format == "csvd") and output_filename is None:
+        # Use the directory name based on the fragments filename
+        # replace the extension (if any) with ".csvd"
+        output_filename = os.path.splitext(fragment_filename)[0] + ".csvd"
+        reporter.warning(f"No --output directory specified. Saving to {output_filename!r}.")
+        
+
     # reporter.report("Using fragment filters: %s" % (fragment_filter.get_args(),))
 
     start_fragment_index_memory = get_memory_use()
