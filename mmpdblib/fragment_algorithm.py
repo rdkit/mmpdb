@@ -881,6 +881,18 @@ def get_hydrogen_fragmentations(smiles, num_heavies):
 
 _hydrogen_cut_pat = Chem.MolFromSmarts("[!#1]-[0#1v1!+!-]")
 
+# Get RDKit's representation for "*[H]".
+# Before 2018 or so it was "[*][H]", when it changed to "*[H]".
+# In 2022 it's still "*[H]" and unlikely to change,
+# so this complexity is likely unneeded.
+
+def _get_wildcard_hydrogen_str():
+    mol = Chem.MolFromSmiles("*[1H]") # a bare [H] causes a warning I don't want
+    for atom in mol.GetAtoms():
+        atom.SetIsotope(0)
+    return Chem.MolToSmiles(mol)
+
+_wildcard_hydrogen_str = _get_wildcard_hydrogen_str()
 
 def fragment_molecule_on_explicit_hydrogens(smiles):
     num_heavies = get_num_heavies_from_smiles(smiles)
@@ -899,9 +911,9 @@ def fragment_molecule_on_explicit_hydrogens(smiles):
         left, mid, right = new_smiles.partition(".")
         assert mid == ".", new_smiles
 
-        if left == "[*][H]":  # Hard-coded
+        if left == _wildcard_hydrogen_str:  # Hard-coded
             cut_smiles = right
-        elif right == "[*][H]":
+        elif right == _wildcard_hydrogen_str:
             cut_smiles = left
         else:
             raise AssertionError("did not split hydrogen correctly: %r %r" % (smiles, new_smiles))
