@@ -479,7 +479,7 @@ def _make_smarts(*center_smarts_list):
         B = B.replace(":1", ":2")
         return A + "." + B
     
-    if N == 2:
+    if N == 3:
         A, B, C = center_smarts_list
         A = A.replace(":2", ":1").replace(":3", ":1")
         B = B.replace(":1", ":2").replace(":3", ":2")
