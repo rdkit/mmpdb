@@ -32,8 +32,10 @@
 
 from collections import defaultdict
 
-from scipy import stats
-import numpy as np
+# # Defer imports until needed, due to high import time ovea
+# from scipy import stats
+# import numpy as np
+
 import re
 
 import itertools
@@ -1527,6 +1529,16 @@ aggregate_value_names = (
 
 
 def compute_aggregate_values(value_list):
+    # Defer import to this function because this module is imported
+    # by the "generate" command, and the scipy import overhead is
+    # pretty high; something like 0.5 seconds on my old laptop!
+    #
+    # I tried looking but failed looking for a direct implementation of the
+    # Student t survival distribution function.
+    
+    from scipy import stats
+    import numpy as np
+    
     value_list = sorted(value_list)
 
     results = []
@@ -1595,6 +1607,7 @@ def compute_aggregate_values(value_list):
             # XXX should I return this?
             p = None
         else:
+            3/0
             p = stats.t.sf(np.abs(t), n - 1) * 2
             # MySQL doesn't handle infinity. Use 100000000 as the upper limit
             if p > 100000000:
@@ -1637,7 +1650,7 @@ def test_aggregate_values():
     assert round(p_value, 3) == 0.069, p_value
 
 
-test_aggregate_values()
+#test_aggregate_values()
 
 
 class RuleEnvironment(object):
