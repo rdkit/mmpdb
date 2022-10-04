@@ -58,15 +58,11 @@ def get_default_sqlite_adapter(quiet, apsw_warning=True):
 
 
 def _get_default_sqlite_adapter(quiet, apsw_warning):
-    try:
-        import apsw
-
-        return "apsw"
-    except ImportError:
-        if not quiet and apsw_warning:
-            sys.stderr.write("WARNING: APSW not installed. Falling back to Python's sqlite3 module.\n")
-        return "sqlite"
-
+    # Before mmpdb 3.0 we recommended using apsw because that allowed
+    # copying the database into memory, which resulted in faster
+    # searches. Python 3.7 added sqlite.Connection.backup, which
+    # we can now assume exists for all users.
+    return "sqlite"
 
 def open_as_schema_database(playhouse_db):
     c = playhouse_db.cursor()
@@ -103,34 +99,30 @@ class DBError(Exception):
         return "DBError(%r)" % (self.text,)
 
 
-def _apsw_copy_to_memory(db, quiet):
-    try:
-        import apsw
-    except ImportError:
-        sys.stderr.write("WARNING: 'copy_to_memory' requires the apsw module. Keeping on-disk.\n")
-        return db
-
-    from playhouse.apsw_ext import APSWDatabase
-
-    if not isinstance(db, APSWDatabase):
+def _sqlite_copy_to_memory(db, quiet):
+    import sqlite3
+    
+    db_connection = db.connection()
+    if not isinstance(db_connection, sqlite3.Connection):
         sys.stderr.write(
-            "WARNING: 'copy_to_memory' requires an APSW database, not '%s'. Keeping on-disk.\n" % (db.__class__,)
-        )
+            "WARNING: 'copy_to_memory' requires a SQLite database using Python's built-in sqlite connection, "
+            f"not {db.__class__.__name__}. "
+            "Keeping on-disk.\n"
+            )
         return db
 
-    disk_conn = db.get_conn()  # the low-level APSW connection
-
-    memory_db = APSWDatabase(":memory:", **db.connect_kwargs)
-    memory_conn = memory_db.get_conn()  # the low-level APSW connection
-
+    memory_db = db.__class__(":memory:")
+    
     import time
-
+    
     if not quiet:
         t1 = time.time()
         sys.stderr.write("Copying database to memory...")
         sys.stderr.flush()
-    with memory_conn.backup("main", disk_conn, "main") as backup:
-        backup.step()
+
+    # available starting in Python 3.7
+    db_connection.backup(memory_db.connection())
+        
     if not quiet:
         t2 = time.time()
         sys.stderr.write("\rDatabase copy took %.1f seconds.\n" % (t2 - t1,))
@@ -168,7 +160,7 @@ class DBFile(DBInfo):
         except Exception as err:
             raise DBError(str(err))
         if copy_to_memory:
-            db = _apsw_copy_to_memory(db, quiet)
+            db = _sqlite_copy_to_memory(db, quiet)
         return open_as_schema_database(db)
 
 
@@ -185,7 +177,7 @@ class DBUrl(DBInfo):
         except Exception as err:
             raise DBError(str(err))
         if copy_to_memory:
-            db = _apsw_copy_to_memory(db)
+            db = _sqlite_copy_to_memory(db, quiet)
         return open_as_schema_database(db)
 
 
@@ -253,7 +245,12 @@ class PostgresServer(object):
     
 def is_valid_dburl(url):
     parsed = urlparse(url)
-    return parsed.scheme in playhouse_db_url.schemes
+    if (parsed.scheme in playhouse_db_url.schemes):
+        return True
+    if parsed.scheme == "apsw":
+        sys.stderr.write("Cannot use `apsw:` databases - apsw module not available.")
+
+    return False
 
 
 def get_dbinfo(dburl):

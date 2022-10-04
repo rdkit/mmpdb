@@ -365,7 +365,7 @@ transform.
     )
     
 
-@add_single_database_parameters()
+@add_single_database_parameters(add_in_memory=True)
 @click.option(
     "--explain",
     is_flag=True,
