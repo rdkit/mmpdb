@@ -467,7 +467,6 @@ def generate(
 
     output_file.close()
 
-@profile
 def generate_from_constant(
         dataset,
         cursor,
