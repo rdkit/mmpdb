@@ -467,6 +467,7 @@ def generate(
 
     output_file.close()
 
+@profile
 def generate_from_constant(
         dataset,
         cursor,
@@ -502,19 +503,19 @@ def generate_from_constant(
 
     # Find all rules with the given query environment
     result = db.execute("""
-SELECT rule_id 
+SELECT COUNT(*)
   FROM rule_environment
  WHERE environment_fingerprint_id = ?
 """, (fpid,), cursor=cursor)
 
-    rule_ids = [row[0] for row in result]
-    if not rule_ids:
+    num_rule_ids = list(result)[0][0]
+    if not num_rule_ids:
         reporter.warning(
             f"Found no rules using the SMILES environment fingerprint SMARTS {env_fp.smarts!r}.\n"
             "I don't think this should happen.")
         return
 
-    reporter.explain(f"Number of matching environment rules: {len(rule_ids)}")
+    reporter.explain(f"Number of matching environment rules: {num_rule_ids}")
 
 
     for from_smiles in from_smiles_list:
