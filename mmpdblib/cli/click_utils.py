@@ -317,7 +317,7 @@ def _in_memory_option(command):
         "--in-memory",
         is_flag=True,
         default=False,
-        help="Load the SQLite database into memory before use (requires APSW)",
+        help="Load the SQLite database into memory before use",
     )(command)
 
 
