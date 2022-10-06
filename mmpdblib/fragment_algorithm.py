@@ -78,10 +78,6 @@ _atom_and_dot_disconnect_pat = re.compile(
 )
 
 
-def cansmiles(mol):
-    return Chem.MolToSmiles(mol, isomericSmiles=True)
-
-
 def get_atom_order_in_smiles(mol):
     s = mol.GetProp("_smilesAtomOutputOrder")
     # print("Decode", s)
@@ -143,7 +139,7 @@ def fragment_on_atom_pairs(mol, atom_pairs):
     ## print("bonds:", bonds)
     ## print("dummyLabels:", dummy_labels)
     fragmented_mol = Chem.FragmentOnBonds(mol, bonds, dummyLabels=dummy_labels)
-    ## print("fragmented_mol:", cansmiles(fragmented_mol))
+    ## print("fragmented_mol:", Chem.MolToSmiles(fragmented_mol))
 
     dummy_pairs = [[] for _ in atom_pairs]
     for atom in fragmented_mol.GetAtoms():
@@ -649,7 +645,7 @@ def make_multiple_cuts(mol, atom_pairs, chiral_flags, fragment_filter):
 
         # Work in SMILES space so we find a canonical mapping between the
         # unlabeled canonical variable and canonical constant parts.
-        smiles = cansmiles(fragmented_mol)
+        smiles = Chem.MolToSmiles(fragmented_mol)
         # print("smiles", smiles)
 
         # The up-enumeration may have several ways to generate the same structure.
