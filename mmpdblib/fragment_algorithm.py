@@ -78,10 +78,6 @@ _atom_and_dot_disconnect_pat = re.compile(
 )
 
 
-def count_num_heavies(mol):
-    return sum(1 for atom in mol.GetAtoms() if atom.GetAtomicNum() > 1)
-
-
 def cansmiles(mol):
     return Chem.MolToSmiles(mol, isomericSmiles=True)
 

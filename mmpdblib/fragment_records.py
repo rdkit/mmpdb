@@ -76,7 +76,7 @@ def parse_record(id, smiles, fragment_filter):
     if errmsg is None:
         if "." in normalized_smiles:
             errmsg = "multiple fragments"
-    num_normalized_heavies = fragment_algorithm.count_num_heavies(mol)
+    num_normalized_heavies = mol.GetNumHeavyAtoms()
 
     record = ParsedSmilesRecord(id, smiles, mol, normalized_mol, normalized_smiles, num_normalized_heavies)
     if errmsg is not None:

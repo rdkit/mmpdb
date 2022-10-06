@@ -614,7 +614,7 @@ SELECT COUNT(*)
     for from_smiles in from_smiles_list:
         labeled_from_smiles = add_label_1(from_smiles)
         start_smiles, start_mol = weld_fragments(constant_smiles, labeled_from_smiles)
-        start_num_heavies = fragment_algorithm.count_num_heavies(start_mol)
+        start_num_heavies = start_mol.GetNumHeavyAtoms()
         
         # Get the rule_smiles.id for the query smiles
         labeled_from_smiles_id = dataset.get_rule_smiles_id(labeled_from_smiles, cursor=cursor)
@@ -727,8 +727,7 @@ def weld_result(d):
     start_num_heavies = d.pop("start_num_heavies")
     
     new_smiles, welded_mol = weld_fragments(constant_smiles, to_smiles)
-    #final_num_heavies = fragment_algorithm.count_num_heavies(welded_mol)
-    #assert final_num_heavies == welded_mol.GetNumHeavyAtoms()
+    
     final_num_heavies = welded_mol.GetNumHeavyAtoms()
     d["final"]= new_smiles
     d["heavies_diff"] = final_num_heavies - start_num_heavies
