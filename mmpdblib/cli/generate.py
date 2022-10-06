@@ -1,3 +1,5 @@
+import sys
+
 import click
 from rdkit import Chem
 
@@ -221,6 +223,60 @@ def get_subqueries(dataset, query_smiles, reporter):
     
     return subqueries
 
+
+class SingleWeldProcessor:
+    def add(self, d):
+        return weld_result(d)
+
+    def after_constant(self, constant_smiles):
+        return []
+        
+
+class WeldPoolProcessor:
+    def __init__(self, pool, chunksize, reporter):
+        self.pool = pool
+        self.chunksize = chunksize
+        self.to_process = []
+        self.reporter = reporter
+    
+    def add(self, d):
+        self.to_process.append(d)
+        return None
+
+    def _process(self):
+        to_process = self.to_process
+        self.to_process = []
+        yield from self.pool.imap_unordered(weld_result, to_process, chunksize=self.chunksize)
+
+    def after_constant(self, constant_smiles):
+        to_process = self.to_process
+        self.reporter.report(f"Welding {len(self.to_process)} results for constant {constant_smiles}.")
+        return self._process()
+
+def get_num_available_cpus():
+    import os
+    
+    # The documentation for os.cpu_count() says:
+    #   The number of usable CPUs can be obtained with
+    #     ``len(os.sched_getaffinity(0))``
+    # but that does not exist on my macOS/Python version
+
+    if hasattr(os, "sched_getaffinity"):
+        return len(os.sched_getaffinity(0))
+    
+    # Fallback to the number of CPUs.
+    #
+    # This is what multiprocessing.Pool() does
+    # when processes=None.
+    
+    n = os.cpu_count()
+
+    if n is None:
+        # number is indeterminable so be single threaded
+        return 1
+    
+    return n
+
 # The 'generate' command
 
 generate_epilog = f"""
@@ -364,7 +420,21 @@ transform.
     help = "Use --no-header to exclude the column headers in the output",
     )
     
+@click.option(
+    "--num-jobs",
+    "-j",
+    default = 1,
+    type = click.IntRange(0),
+    help = "Number of processes to use when welding SMILES (0 means use all available CPUs)",
+    )
 
+@click.option(
+    "--chunksize",
+    default = 100,
+    type = click.IntRange(1),
+    help = "Number of SMILES to process in each multiprocessing work unit (default: 100)",
+    )
+    
 @add_single_database_parameters(add_in_memory=True)
 @click.option(
     "--explain",
@@ -387,6 +457,8 @@ def generate(
         columns,
         headers,
         include_header,
+        num_jobs,
+        chunksize,
         explain,
         ):
     """Apply 1-cut database transforms to a molecule"""
@@ -450,23 +522,45 @@ def generate(
 
     if include_header:
         output_file.write(header_line)
+
+    if num_jobs == 0:
+        num_jobs = get_num_available_cpus()
         
-    for constant_smiles, from_smiles_list in queries:
-        for result in generate_from_constant(
-                        dataset = dataset,
-                        cursor = cursor,
-                        pair_cursor = pair_cursor,
-                        constant_smiles = constant_smiles,
-                        from_smiles_list = from_smiles_list,
-                        radius = radius,
-                        min_pairs = min_pairs,
-                        reporter = reporter,
-                        ):
-            output_line = output_format_str.format_map(result)
-            output_file.write(output_line)
+    if num_jobs == 1:
+        import contextlib
+        pool = contextlib.nullcontext()
+        weld_processor = SingleWeldProcessor()
+        reporter.report("Single-threaded.")
+    else:
+        import multiprocessing
+        pool = multiprocessing.Pool(processes=num_jobs)
+        weld_processor = WeldPoolProcessor(pool, chunksize=chunksize, reporter=reporter)
+        reporter.report(f"Multiprocessing with {num_jobs} processors, chunksize={chunksize}.")
 
-    output_file.close()
+    with pool:
+        for constant_smiles, from_smiles_list in queries:
+            for result in generate_from_constant(
+                            dataset = dataset,
+                            cursor = cursor,
+                            pair_cursor = pair_cursor,
+                            constant_smiles = constant_smiles,
+                            from_smiles_list = from_smiles_list,
+                            radius = radius,
+                            min_pairs = min_pairs,
+                            weld_processor = weld_processor,
+                            reporter = reporter,
+                            ):
+                output_line = output_format_str.format_map(result)
+                output_file.write(output_line)
 
+# XXX remove
+try:
+    profile
+except NameError:
+    def profile(f):
+        return f
+    
+@profile
 def generate_from_constant(
         dataset,
         cursor,
@@ -475,6 +569,7 @@ def generate_from_constant(
         from_smiles_list,
         radius,
         min_pairs,
+        weld_processor,
         reporter,
         ):
     # I need to get the database.execute() so "?" is handled portably
@@ -515,7 +610,6 @@ SELECT COUNT(*)
         return
 
     reporter.explain(f"Number of matching environment rules: {num_rule_ids}")
-
 
     for from_smiles in from_smiles_list:
         labeled_from_smiles = add_label_1(from_smiles)
@@ -568,8 +662,12 @@ ORDER BY n DESC
             else:
                 raise AssertionError(from_smiles, to_smiles, labeled_from_smiles)
 
-            new_smiles, welded_mol = weld_fragments(constant_smiles, to_smiles)
-            final_num_heavies = fragment_algorithm.count_num_heavies(welded_mol)
+            ## Welding takes most of the time so don't do the calculation here.
+            # new_smiles, welded_mol = weld_fragments(constant_smiles, to_smiles)
+            # final_num_heavies = fragment_algorithm.count_num_heavies(welded_mol)
+            # 
+            # Instead, use weld_processor.add() to add the task to a list
+            # that will be processed in parallel.
 
             if pair_cursor is not None:
                 # Pick a representative pair
@@ -593,7 +691,9 @@ ORDER BY cmpd1.clean_num_heavies * cmpd1.clean_num_heavies + cmpd2.clean_num_hea
                             )
                 assert have_one
 
-            yield {
+            # The SingleWeldProcessor.add() returns the result now.
+            # The WeldPoolProcessor.add() stores the inputs to a list to process later.
+            result = weld_processor.add({
                 "start": start_smiles,
                 "constant": constant_smiles,
                 "from_smiles": from_smiles,
@@ -601,8 +701,9 @@ ORDER BY cmpd1.clean_num_heavies * cmpd1.clean_num_heavies + cmpd2.clean_num_hea
                 "r": radius,
                 "smarts": env_fp.smarts,
                 "pseudosmiles": env_fp.pseudosmiles,
-                "final": new_smiles,
-                "heavies_diff": final_num_heavies - start_num_heavies,
+                #"final": new_smiles,
+                #"heavies_diff": final_num_heavies - start_num_heavies,
+                "start_num_heavies": start_num_heavies,
                 "#pairs": num_pairs,
                 "pair_from_id": pair_from_id,
                 "pair_from_smiles": pair_from_smiles,
@@ -610,6 +711,25 @@ ORDER BY cmpd1.clean_num_heavies * cmpd1.clean_num_heavies + cmpd2.clean_num_hea
                 "pair_to_smiles": pair_to_smiles,
                 "rule_id": rule_id,
                 "swapped": int(swap),
-                }
-            
+                })
+            if result is not None:
+                yield result
+
         reporter.explain(f"Number of rules for {from_smiles}: {num_matching_rules}")
+
+    # If this is a WeldPoolProcessor then do all the welds now, in parallel.
+    for result in weld_processor.after_constant(constant_smiles):
+        yield result
+
+def weld_result(d):
+    constant_smiles = d["constant"]
+    to_smiles = d["to_smiles"]
+    start_num_heavies = d.pop("start_num_heavies")
+    
+    new_smiles, welded_mol = weld_fragments(constant_smiles, to_smiles)
+    #final_num_heavies = fragment_algorithm.count_num_heavies(welded_mol)
+    #assert final_num_heavies == welded_mol.GetNumHeavyAtoms()
+    final_num_heavies = welded_mol.GetNumHeavyAtoms()
+    d["final"]= new_smiles
+    d["heavies_diff"] = final_num_heavies - start_num_heavies
+    return d
