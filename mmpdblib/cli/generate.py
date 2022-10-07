@@ -224,35 +224,6 @@ def get_subqueries(dataset, query_smiles, reporter):
     return subqueries
 
 
-class SingleWeldProcessor:
-    def add(self, d):
-        return weld_result(d)
-
-    def after_constant(self, constant_smiles):
-        return []
-        
-
-class WeldPoolProcessor:
-    def __init__(self, pool, chunksize, reporter):
-        self.pool = pool
-        self.chunksize = chunksize
-        self.to_process = []
-        self.reporter = reporter
-    
-    def add(self, d):
-        self.to_process.append(d)
-        return None
-
-    def _process(self):
-        to_process = self.to_process
-        self.to_process = []
-        yield from self.pool.imap_unordered(weld_result, to_process, chunksize=self.chunksize)
-
-    def after_constant(self, constant_smiles):
-        to_process = self.to_process
-        self.reporter.report(f"Welding {len(self.to_process)} results for constant {constant_smiles}.")
-        return self._process()
-
 def get_num_available_cpus():
     import os
     
@@ -444,7 +415,10 @@ transform.
 )
 
 @click.pass_obj
-def generate(
+def generate(*args, **kwargs):
+    prof_generate(*args, **kwargs)
+    
+def prof_generate(
         reporter,
         smiles,
         query_smiles,
@@ -529,17 +503,17 @@ def generate(
     if num_jobs == 1:
         import contextlib
         pool = contextlib.nullcontext()
-        weld_processor = SingleWeldProcessor()
+        to_process = None
         reporter.report("Single-threaded.")
     else:
         import multiprocessing
         pool = multiprocessing.Pool(processes=num_jobs)
-        weld_processor = WeldPoolProcessor(pool, chunksize=chunksize, reporter=reporter)
+        to_process = []
         reporter.report(f"Multiprocessing with {num_jobs} processors, chunksize={chunksize}.")
 
     with pool:
         for constant_smiles, from_smiles_list in queries:
-            for result in generate_from_constant(
+            for unwelded_result in generate_unwelded_from_constant(
                             dataset = dataset,
                             cursor = cursor,
                             pair_cursor = pair_cursor,
@@ -547,21 +521,26 @@ def generate(
                             from_smiles_list = from_smiles_list,
                             radius = radius,
                             min_pairs = min_pairs,
-                            weld_processor = weld_processor,
                             reporter = reporter,
                             ):
+                if to_process is None:
+                    result = weld_unwelded_result(unwelded_result)
+                    output_line = output_format_str.format_map(result)
+                    output_file.write(output_line)
+                else:
+                    to_process.append(unwelded_result)
+
+        if to_process is not None:
+            reporter.report(f"Welding {len(to_process)} results.")
+            for result in pool.imap_unordered(
+                    weld_unwelded_result, to_process, chunksize=chunksize):
                 output_line = output_format_str.format_map(result)
                 output_file.write(output_line)
+                
+                    
+            
 
-# XXX remove
-try:
-    profile
-except NameError:
-    def profile(f):
-        return f
-    
-@profile
-def generate_from_constant(
+def generate_unwelded_from_constant(
         dataset,
         cursor,
         pair_cursor,
@@ -569,7 +548,6 @@ def generate_from_constant(
         from_smiles_list,
         radius,
         min_pairs,
-        weld_processor,
         reporter,
         ):
     # I need to get the database.execute() so "?" is handled portably
@@ -648,6 +626,7 @@ ON t1.rule_id = t2.rule_id
    WHERE n >= ?
 ORDER BY n DESC
 """, (labeled_from_smiles_id, labeled_from_smiles_id, fpid, min_pairs), cursor=cursor)
+        print("QQ", labeled_from_smiles_id, labeled_from_smiles_id, fpid, min_pairs)
 
         num_matching_rules = 0
         for rule_id, from_smiles, to_smiles, rule_environment_id, num_pairs in result:
@@ -665,9 +644,6 @@ ORDER BY n DESC
             ## Welding takes most of the time so don't do the calculation here.
             # new_smiles, welded_mol = weld_fragments(constant_smiles, to_smiles)
             # final_num_heavies = fragment_algorithm.count_num_heavies(welded_mol)
-            # 
-            # Instead, use weld_processor.add() to add the task to a list
-            # that will be processed in parallel.
 
             if pair_cursor is not None:
                 # Pick a representative pair
@@ -691,9 +667,7 @@ ORDER BY cmpd1.clean_num_heavies * cmpd1.clean_num_heavies + cmpd2.clean_num_hea
                             )
                 assert have_one
 
-            # The SingleWeldProcessor.add() returns the result now.
-            # The WeldPoolProcessor.add() stores the inputs to a list to process later.
-            result = weld_processor.add({
+            yield {
                 "start": start_smiles,
                 "constant": constant_smiles,
                 "from_smiles": from_smiles,
@@ -711,17 +685,11 @@ ORDER BY cmpd1.clean_num_heavies * cmpd1.clean_num_heavies + cmpd2.clean_num_hea
                 "pair_to_smiles": pair_to_smiles,
                 "rule_id": rule_id,
                 "swapped": int(swap),
-                })
-            if result is not None:
-                yield result
+                }
 
         reporter.explain(f"Number of rules for {from_smiles}: {num_matching_rules}")
 
-    # If this is a WeldPoolProcessor then do all the welds now, in parallel.
-    for result in weld_processor.after_constant(constant_smiles):
-        yield result
-
-def weld_result(d):
+def weld_unwelded_result(d):
     constant_smiles = d["constant"]
     to_smiles = d["to_smiles"]
     start_num_heavies = d.pop("start_num_heavies")
