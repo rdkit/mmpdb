@@ -79,7 +79,7 @@ class IndexOptions(object):
 
         assert (
             (max_variable_ratio is None)
-            or (min_variable_ratio is not None and max_variable_ratio <= 1.0)
+            or (min_variable_ratio is None and max_variable_ratio <= 1.0)
             or (min_variable_ratio <= max_variable_ratio <= 1.0)
         )
         self.max_variable_ratio = max_variable_ratio
