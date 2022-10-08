@@ -86,11 +86,6 @@ dependencies in setup.cfg and should be installed automatically.
 
 Optional components you may find useful are:
 
-  - By default the matched molecular pairs are stored in a SQLite
-database. The APSW module from https://github.com/rogerbinns/apsw
-gives slightly better analysis performance than Python's built-in
-SQLite module.
-
   - The matched molecular pairs may instead by be stored in a Postgres
 database. These were tested using the
 [psycopg2](https://www.psycopg.org/) adapter. See `mmpdb
