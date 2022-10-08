@@ -626,7 +626,6 @@ ON t1.rule_id = t2.rule_id
    WHERE n >= ?
 ORDER BY n DESC
 """, (labeled_from_smiles_id, labeled_from_smiles_id, fpid, min_pairs), cursor=cursor)
-        print("QQ", labeled_from_smiles_id, labeled_from_smiles_id, fpid, min_pairs)
 
         num_matching_rules = 0
         for rule_id, from_smiles, to_smiles, rule_environment_id, num_pairs in result:
