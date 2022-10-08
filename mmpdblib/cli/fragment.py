@@ -121,10 +121,10 @@ input SMILES filename):
 
 3) Read from a gzip-compressed tab-delimited SMILES file. Use 8
 threads to fragment the structures. Save the results to
-dataset.fragdb
+dataset.fragdb:
 
 \b
-  % mmpa fragment --delimiter tab dataset.smi.gz --num-jobs 8 \\
+  % mmpdb fragment --delimiter tab dataset.smi.gz --num-jobs 8 \\
       -o dataset.fragdb
 
 4) Fragment the SMILES in 'dataset.smi.gz'. Reuse fragment information
@@ -133,7 +133,7 @@ computing the fragments from scratch each time. Save the results to
 'new_dataset.fragdb'.
 
 \b
-  % mmpa fragment --cache old_dataset.fragdb dataset.smi.gz \\
+  % mmpdb fragment --cache old_dataset.fragdb dataset.smi.gz \\
       -o new_dataset.fragdb
 
 \b
