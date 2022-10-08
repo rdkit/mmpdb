@@ -326,7 +326,7 @@ fast, rather than do a lot of disk seeks.
 Examples:
 
 1) Index 'csd.fragdb' and save the results to 'csd.mmpdb'. The
-title will be "MMPs from 'csd.fragments'".
+title will be "MMPs from 'csd.fragdb'".
 
 \b
   % mmpdb index csd.fragdb
