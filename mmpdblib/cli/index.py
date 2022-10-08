@@ -295,7 +295,8 @@ to stdout.
 
 The 'mmpdb' format is based on a SQLite database. The 'mmpa' format
 stores the same data in a text file with tab-separated fields. The
-'csv' format is a tab-separated table with the columns:
+'csv' format is a tab-separated (not comma-separated!) table with the
+columns:
 
 \b
   SMILES1  SMILES2  id1  id2  V1>>V2  C
@@ -324,18 +325,18 @@ fast, rather than do a lot of disk seeks.
 
 Examples:
 
-1) Index 'csd.fragments' and save the results to 'csd.mmpdb'. The
+1) Index 'csd.fragdb' and save the results to 'csd.mmpdb'. The
 title will be "MMPs from 'csd.fragments'".
 
 \b
-  % mmpdb index csd.fragments
+  % mmpdb index csd.fragdb
 
-2) Index 'csd.fragments', use properties from 'MP.csv' and limit the
-pair matching to compounds listed in the CSV file, set the title to
+2) Index 'csd.fragdb', use properties from 'csd_MP.tsv' and limit the
+pair matching to compounds listed in the TSV file, set the title to
 'CSD MP', and save the results to 'csd_MP.mmpdb'.
 
 \b
-  % mmpdb index csd.fragments --properties MP.csv --title "CSD MP" -o csd_MP.mmpdb
+  % mmpdb index csd.fragdb --properties csd_MP.tsv --title "CSD MP" -o csd_MP.mmpdb
 
 3) Limit the indexing to variable terms which have at least 12 heavy
 atoms and where the size of the variable is no more than 40% of the
@@ -343,7 +344,7 @@ entire structure, and save the transformation in both A>>B and B>>A
 (symmetric) forms:
 
 \b
-  % mmpdb index CHEMBL_Thrombin_logD.fragments --symmetric \\
+  % mmpdb index CHEMBL_thrombin_Ki_IC50.fragdb --symmetric \\
       --max-variable-ratio 0.4 --max-variable-heavies 12 \\
       --title "CHEMBL ratio 40%" --output CHEMBL_ratio_40.mmpdb
 """
