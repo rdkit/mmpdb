@@ -50,9 +50,9 @@ in the database.
 
 \b
   % mmpdb list
-               Name             #cmpds  #rules  #pairs   #envs    #stats   |-------- Title ---------| Properties
-  CHEMBL_thrombin_Ki_IC50.mmpdb   2985   29513   258294   199631        0  thrombin Ki IC50           
-                      csd.mmpdb  16843 2525166 15328608 15199376 15199376  MMPs from 'csd.fragments'  MP
+               Name             #cmpds  #rules  #pairs   #envs    #stats   |---------------- Title -----------------| Properties
+  CHEMBL_thrombin_Ki_IC50.mmpdb   2985   29513   258294   199657        0  MMPs from 'CHEMBL_thrombin_Ki_IC50.fragdb' <none>
+                     csdP.mmpdb   8473 2018581 12372084 12145254 12145254  CSD MP                                     MP
 
 The output is a set of columns. The first line is the header. The first
 column contains the database name. The next columns contain the number
@@ -72,22 +72,27 @@ the dataset. The following gives more detailed information about the
 database 'csd.mmpdb':
 
 \b
-  % mmpdb list --all csd.mmpdb 
-     Name   #cmpds  #rules  #pairs   #envs    #stats   |-------- Title --------| Properties
-  csd.mmpdb  16843 2525166 15328608 15199376 15199376  MMPs from 'csd.fragments' MP
-        Created: 2017-05-26 15:07:07.775249
-          #compounds/property:  16843/MP
-          #smiles for rules: 81538  for constants: 21520
+  % mmpdb list --all csd.mmpdb
+     Name   #cmpds  #rules  #pairs   #envs    #stats   |Title| Properties
+  csd.mmpdb   8473 2018581 12372084 12145254 12145254  CSD MP  MP
+        Created: 2022-10-08 14:50:16.595104
+          #compounds/property:  8473/MP
+          #smiles for rules: 56778  for constants: 10759
           Fragment options:
             cut_smarts: [#6+0;!$(*=,#[!#6])]!@!=!#[!#0;!#1;!$([CH2]);!$([CH3][CH2])]
             max_heavies: 100
             max_rotatable_bonds: 10
+            max_up_enumerations: 1000
             method: chiral
+            min_heavies_per_const_frag: 0
             num_cuts: 3
             rotatable_smarts: [!$([NH]!@C(=O))&!D1&!$(*#*)]-&!@[!$([NH]!@C(=O))&!D1&!$(*#*)]
             salt_remover: <default>
           Index options:
+            max_radius: 5
             max_variable_heavies: 10
+            min_radius: 0
+            smallest_transformation_only: False
             symmetric: False
 
 'Created' shows the creation time. '#compounds/property' shows how
