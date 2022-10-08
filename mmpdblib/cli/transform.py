@@ -196,29 +196,38 @@ pairs. Also include the predicted effects on the 'MP' property. (Note:
 the output is reformatted and trimmed for use as help text.)
 
 \b
-  % mmpdb transform csd.mmpdb --smiles 'c1ccccc1Oc1ccccc1' --min-pairs 30 -p MP
+  % mmpdb transform csd.mmpdb --smiles 'c1ccccc1Oc1ccccc1' --min-pairs 15 -p MP
   ID                 SMILES MP_from_smiles       MP_to_smiles  MP_radius  \\
-   1  Brc1ccc(Oc2ccccc2)cc1  [*:1]c1ccccc1  [*:1]c1ccc(Br)cc1          0
-   2  COc1ccc(Oc2ccccc2)cc1  [*:1]c1ccccc1  [*:1]c1ccc(OC)cc1          0
-   3             COc1ccccc1  [*:1]c1ccccc1             [*:1]C          0
+   1  COc1ccc(Oc2ccccc2)cc1  [*:1]c1ccccc1  [*:1]c1ccc(OC)cc1          0
+   2             COc1ccccc1  [*:1]c1ccccc1             [*:1]C          0
+   3   Cc1ccc(Oc2ccccc2)cc1  [*:1]c1ccccc1   [*:1]c1ccc(C)cc1          0
+   4  Clc1ccc(Oc2ccccc2)cc1  [*:1]c1ccccc1  [*:1]c1ccc(Cl)cc1          0
+   5              Oc1ccccc1  [*:1]c1ccccc1           [*:1][H]          0
 
 \b
-                               MP_fingerprint  MP_rule_environment_id  \\
-  59SlQURkWt98BOD1VlKTGRkiqFDbG6JVkeTJ3ex3bOA                     947
-  59SlQURkWt98BOD1VlKTGRkiqFDbG6JVkeTJ3ex3bOA                    4560
-  59SlQURkWt98BOD1VlKTGRkiqFDbG6JVkeTJ3ex3bOA                      90
+           MP_smarts  MP_pseudosmiles	MP_rule_environment_id	\\
+  [#0;X1;H0;+0;!R:1]        [*:1](~*)                     1146
+  [#0;X1;H0;+0;!R:1]        [*:1](~*)                      106
+  [#0;X1;H0;+0;!R:1]        [*:1](~*)                      860
+  [#0;X1;H0;+0;!R:1]        [*:1](~*)                     1199
+  [#0;X1;H0;+0;!R:1]        [*:1](~*)                  1206787
 
 \b
-  MP_count   MP_avg  MP_std  MP_kurtosis  MP_skewness  MP_min  MP_q1  \\
-        34  14.5290  30.990    -0.267780      0.32663     -66   -7.0
-        56   8.7143  38.945     7.013600      1.81870    -172  -10.0
-       106 -23.4430  36.987     1.563800      0.65077    -159  -44.0
+  MP_count   MP_avg  MP_std  MP_kurtosis  MP_skewness  MP_min   MP_q1  \\
+        21	 16.333  32.273   2.3626         -1.2771      -22   -8.25
+        28	-17.464  30.068	 -0.57255        -0.60008     -65  -41
+        29	 5.5172  30.952	 -0.52187        -0.20078      45  -16.5
+        20	16.3     33.304	 -0.41847         0.21611     -58   -6.5
+        28	-6.4643  38.197	  0.51164         0.69676     -67  -32
+
 
 \b
-  MP_median  MP_q3  MP_max  MP_paired_t    MP_p_value
-       15.5   37.0      67      -2.7338  9.987200e-03
-       10.5   32.5      79      -1.6745  9.971500e-02
-      -20.0   -3.0      49       6.5256  2.447100e-09
+  MP_median  MP_q3  MP_max  MP_paired_t  MP_p_value
+       10    32.75     116      -2.3193   0.03108
+      -25.5   0.5       47       3.0734   0.0047958
+        4    30         78      -0.9599   0.34532
+       19    41         76      -2.1888   0.041303
+      -10    15         99      -0.89551  0.37843
 
 2) Require a standard deviation of no larger than 4.5 and give
 priority to transformation with at least 20 pairs before following the
