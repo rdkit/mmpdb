@@ -262,17 +262,18 @@ options set limits to |V1| and |V2|. The --min-variable-ratio and
 The --max-frac-trans places a limit on the number of atoms which take
 part in the transformation, defined as |V+C(r)|/|V+C| where C(r) is
 the number of atoms in the circular environment of the constant part
-for a given radius r. C(0) is 0. The goal is to be able to exchange
-transforms and environment fingerprints but minimize the relative
-amount of information revealed about the constant part.
+for a given radius r. C(0) is 0. The goal was to be able to exchange
+transforms and environments but minimize the relative amount of
+information revealed about the constant part.
 
 The --max-radius option's default is set to 5 and can be changed to 
 numbers less than 5, if you want to save DB space.
 
-By default, mmpdb indexes all transformations per pair. To only index one
-minimal transformation per pair, use "--smallest-transformation-only". Note
-that this option is independent of --max-radius, e.g. environment fingerprints
-will still be created for the smallest transformation.  
+By default, mmpdb indexes all transformations per pair. To only index
+one minimal transformation per pair, use
+"--smallest-transformation-only". Note that this option is independent
+of --max-radius, e.g. environment SMARTS/pseudoSMILES will still be
+created for the smallest transformation.
 
 The filter --max-variable-heavies is always used, with a default value
 of 10. Specify "none" if you want no limit.
