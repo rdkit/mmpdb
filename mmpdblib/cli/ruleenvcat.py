@@ -36,11 +36,15 @@ def ruleenvcat(
     pair_c = dataset.get_cursor()
 
     
-    outfile.write(f"from_smiles\tto_smiles\tradius\n")
+    outfile.write(f"from_smiles\tto_smiles\tradius\tSMARTS\tpseudoSMILES\n")
     for rule_env in dataset.iter_rule_environments(rule_env_c):
-        outfile.write(f"{rule_env.from_smiles}\t{rule_env.to_smiles}\t{rule_env.radius}\t{rule_env.smarts}\n")
-        for pair in rule_env.iter_pairs(pair_c):
-            outfile.write(f"\t{pair.compound1_id}\t{pair.compound2_id}\t{pair.constant_id}\n")
+        outfile.write(
+            f"{rule_env.from_smiles}\t{rule_env.to_smiles}\t{rule_env.radius}\t"
+            f"{rule_env.smarts}\t{rule_env.pseudosmiles}\n"
+            )
+        if pairs:
+            for pair in rule_env.iter_pairs(pair_c):
+                outfile.write(f"\t{pair.compound1_id}\t{pair.compound2_id}\t{pair.constant_id}\n")
             
             
             
