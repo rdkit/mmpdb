@@ -625,6 +625,7 @@ SELECT rule.id, from_smiles.smiles, to_smiles.smiles
    WHERE rule_env.rule_id = rule.id
      AND rule.from_smiles_id = from_smiles.id
      AND rule.to_smiles_id = to_smiles.id
+     AND rule_env.environment_fingerprint_id = env_fp.id
 ORDER BY rule_env.rule_id, env_fp.smarts, rule_env.radius
 """, (), cursor=cursor)
         return (RuleEnvironment(self.mmpa_db, *row) for row in c)
