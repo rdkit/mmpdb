@@ -69,9 +69,9 @@ def smicat(
         db = open_fragdb_from_options_or_exit(database_options)
         c = db.cursor()
         if input_smiles:
-            c.execute("SELECT id, input_smiles FROM record UNION SELECT id, input_smiles FROM error_record")
+            c.execute("SELECT title, input_smiles FROM record UNION SELECT title, input_smiles FROM error_record")
         else:
-            c.execute("SELECT id, normalized_smiles FROM record")
+            c.execute("SELECT title, normalized_smiles FROM record")
         iter_id_and_smiles = c
     else:
         dataset = open_dataset_from_options_or_exit(database_options)
