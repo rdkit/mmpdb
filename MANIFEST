@@ -40,7 +40,7 @@ mmpdblib/playhouse/db_url.py
 mmpdblib/playhouse/flask_utils.py
 mmpdblib/playhouse/pool.py
 mmpdblib/playhouse/sqlite_ext.py
-tests/cached.fragments
+tests/cached.fragdb
 tests/comma.smi
 tests/space.smi
 tests/space.smi.gz
@@ -48,7 +48,7 @@ tests/support.py
 tests/tab.smi
 tests/test_analysis.py
 tests/test_data.csv
-tests/test_data.fragments
+tests/test_data.fragdb
 tests/test_data.mmpdb
 tests/test_data.smi
 tests/test_data_2018.mmpdb
