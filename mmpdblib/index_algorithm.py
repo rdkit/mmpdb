@@ -1607,7 +1607,6 @@ def compute_aggregate_values(value_list):
             # XXX should I return this?
             p = None
         else:
-            3/0
             p = stats.t.sf(np.abs(t), n - 1) * 2
             # MySQL doesn't handle infinity. Use 100000000 as the upper limit
             if p > 100000000:
