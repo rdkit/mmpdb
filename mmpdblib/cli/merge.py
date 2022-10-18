@@ -925,6 +925,13 @@ def merge(
     working_db = sqlite3.connect(":memory:")
     schema.create_schema_for_sqlite(working_db)
 
+    # We don't need the safety because this will
+    # be an all-or-nothing operation and we can
+    # simply delete the output file if something
+    # goes wrong.
+    working_db.execute("PRAGMA synchronous=off")
+    working_db.execute("PRAGMA journal_mode=off")
+    
     c = working_db.cursor()
     
     c.execute("ATTACH DATABASE ? AS new", (output_filename,))
