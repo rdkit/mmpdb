@@ -648,7 +648,7 @@ ORDER BY n DESC
    WHERE pair.rule_environment_id = ?
      AND pair.compound1_id = cmpd1.id
      AND pair.compound2_id = cmpd2.id
-ORDER BY cmpd1.clean_num_heavies * cmpd1.clean_num_heavies + cmpd2.clean_num_heavies * cmpd2.clean_num_heavies
+--ORDER BY cmpd1.clean_num_heavies * cmpd1.clean_num_heavies + cmpd2.clean_num_heavies * cmpd2.clean_num_heavies
  LIMIT 1
 """, (rule_environment_id,), cursor = pair_cursor)
                 have_one = False
