@@ -568,21 +568,23 @@ def generate_unwelded_from_constant(
     assert len(fpids) == 1, (env_fp.smarts, fpids)
     fpid = list(fpids)[0]
 
-    # Find all rules with the given query environment
-    result = db.execute("""
-SELECT COUNT(*)
-  FROM rule_environment
- WHERE environment_fingerprint_id = ?
-""", (fpid,), cursor=cursor)
+    ## Commented out since it takes a lot of time and doesn't seem useful.
+    # (1.6 seconds on one benchmark, out of 4.9 seconds total.)
+##     # Find all rules with the given query environment
+##     result = db.execute("""
+## SELECT COUNT(*)
+##   FROM rule_environment
+##  WHERE environment_fingerprint_id = ?
+## """, (fpid,), cursor=cursor)
 
-    num_rule_ids = list(result)[0][0]
-    if not num_rule_ids:
-        reporter.warning(
-            f"Found no rules using the SMILES environment fingerprint SMARTS {env_fp.smarts!r}.\n"
-            "I don't think this should happen.")
-        return
+##     num_rule_ids = list(result)[0][0]
+##     if not num_rule_ids:
+##         reporter.warning(
+##             f"Found no rules using the SMILES environment fingerprint SMARTS {env_fp.smarts!r}.\n"
+##             "I don't think this should happen.")
+##         return
 
-    reporter.explain(f"Number of matching environment rules: {num_rule_ids}")
+##     reporter.explain(f"Number of matching environment rules: {num_rule_ids}")
 
     for from_smiles in from_smiles_list:
         labeled_from_smiles = add_label_1(from_smiles)
