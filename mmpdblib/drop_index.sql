@@ -41,4 +41,6 @@ DROP INDEX IF EXISTS rule_environment_statistics_rule_environment_and_property_n
 DROP INDEX IF EXISTS rule_environment_statistics_count;
 
 DROP INDEX IF EXISTS pair_rule_environment_id;
+DROP INDEX IF EXISTS pair_compound_ids;
+
 DROP INDEX IF EXISTS compound_property_compound_id_property_name_id;

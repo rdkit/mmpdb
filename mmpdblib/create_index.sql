@@ -41,4 +41,6 @@ CREATE INDEX rule_environment_statistics_rule_environment_and_property_name_ids 
 CREATE INDEX rule_environment_statistics_count on rule_environment_statistics(count);
 
 CREATE INDEX pair_rule_environment_id on pair (rule_environment_id);
+CREATE INDEX pair_compound_ids on pair (compound1_id, compound2_id);
+
 CREATE INDEX compound_property_compound_id_property_name_id on compound_property (compound_id, property_name_id);
