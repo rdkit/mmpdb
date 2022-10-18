@@ -415,10 +415,7 @@ transform.
 )
 
 @click.pass_obj
-def generate(*args, **kwargs):
-    prof_generate(*args, **kwargs)
-    
-def prof_generate(
+def generate(
         reporter,
         smiles,
         query_smiles,
