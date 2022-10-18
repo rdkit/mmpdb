@@ -501,12 +501,10 @@ def generate(
         import contextlib
         pool = contextlib.nullcontext()
         to_process = None
-        reporter.report("Single-threaded.")
     else:
         import multiprocessing
         pool = multiprocessing.Pool(processes=num_jobs)
         to_process = []
-        reporter.report(f"Multiprocessing with {num_jobs} processors, chunksize={chunksize}.")
 
     with pool:
         for constant_smiles, from_smiles_list in queries:
