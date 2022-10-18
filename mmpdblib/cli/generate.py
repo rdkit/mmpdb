@@ -365,6 +365,18 @@ transform.
     )
 
 @click.option(
+    "--select-pair",
+    "select_pair_method",
+    type = click.Choice(("first", "quadratic", "min")),
+    default = "first",
+    help = (
+        "If 'first' (fastest), select a representative pair arbitrarily. "
+        "If 'quadratic', minimize sum of num_heavies**2. "
+        "If 'min', use the minimum num_heavies for either side."
+        ),
+    )
+
+@click.option(
     "--output",
     "-o",
     "output_file",
@@ -424,6 +436,7 @@ def generate(
         subqueries,
         radius,
         min_pairs,
+        select_pair_method,
         output_file,
         columns,
         headers,
@@ -516,6 +529,7 @@ def generate(
                             from_smiles_list = from_smiles_list,
                             radius = radius,
                             min_pairs = min_pairs,
+                            select_pair_method = select_pair_method,
                             reporter = reporter,
                             ):
                 if to_process is None:
@@ -532,7 +546,29 @@ def generate(
                 output_line = output_format_str.format_map(result)
                 output_file.write(output_line)
                 
-                    
+
+SELECT_PAIR_SQL = """
+ SELECT cmpd1.public_id, cmpd1.clean_smiles, cmpd2.public_id, cmpd2.clean_smiles
+   FROM pair,
+        compound AS cmpd1,
+        compound AS cmpd2
+  WHERE pair.rule_environment_id = ?
+    AND pair.compound1_id = cmpd1.id
+    AND pair.compound2_id = cmpd2.id
+<ORDER>
+  LIMIT 1
+"""
+_select_pair_sql_table = {
+    "first": SELECT_PAIR_SQL.replace(
+        "<ORDER>\n",
+        ""),
+    "quadratic": SELECT_PAIR_SQL.replace(
+        "<ORDER>",
+        "ORDER BY cmpd1.clean_num_heavies * cmpd1.clean_num_heavies + cmpd2.clean_num_heavies * cmpd2.clean_num_heavies"),
+    "min": SELECT_PAIR_SQL.replace(
+        "<ORDER>",
+        "ORDER BY MIN(cmpd1.clean_num_heavies, cmpd2.clean_num_heavies)"),
+    }
             
 
 def generate_unwelded_from_constant(
@@ -543,6 +579,7 @@ def generate_unwelded_from_constant(
         from_smiles_list,
         radius,
         min_pairs,
+        select_pair_method,
         reporter,
         ):
     # I need to get the database.execute() so "?" is handled portably
@@ -642,17 +679,14 @@ ORDER BY n DESC
 
             if pair_cursor is not None:
                 # Pick a representative pair
-                pair_result = db.execute("""
-  SELECT cmpd1.public_id, cmpd1.clean_smiles, cmpd2.public_id, cmpd2.clean_smiles
-    FROM pair,
-         compound AS cmpd1,
-         compound AS cmpd2
-   WHERE pair.rule_environment_id = ?
-     AND pair.compound1_id = cmpd1.id
-     AND pair.compound2_id = cmpd2.id
---ORDER BY cmpd1.clean_num_heavies * cmpd1.clean_num_heavies + cmpd2.clean_num_heavies * cmpd2.clean_num_heavies
- LIMIT 1
-""", (rule_environment_id,), cursor = pair_cursor)
+                select_pair_sql = _select_pair_sql_table[select_pair_method]
+                    
+                pair_result = db.execute(
+                    select_pair_sql,
+                    (rule_environment_id,),
+                    cursor = pair_cursor,
+                    )
+                
                 have_one = False
                 for pair_from_id, pair_from_smiles, pair_to_id, pair_to_smiles in pair_result:
                     have_one = True
