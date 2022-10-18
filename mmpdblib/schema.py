@@ -31,11 +31,14 @@
 #
 
 import sys
-import os.path
+import os
 import datetime
 from dataclasses import dataclass
 
 import importlib.resources
+
+TIME_EXECUTE = (os.environ.get("MMPDB_TIME_EXECUTE", "") == "1")
+     
 
 _schema_template = None
 
@@ -235,22 +238,17 @@ class MMPDatabase(object):
         if cursor is None:
             cursor = self.db.cursor()
         sql = sql.replace("?", self.db.param)
-        if 0:
+        if TIME_EXECUTE:
             import time
 
-            print("EXECUTE")
-            print(sql)
-            print(repr(args))
+            print("EXECUTE", file=sys.stderr)
+            print(sql, file=sys.stderr)
+            print(repr(args), file=sys.stderr)
             t1 = time.time()
         cursor.execute(sql, args)
-        if 0:
+        if TIME_EXECUTE:
             t2 = time.time()
-            print("Elapsed1:", t2 - t1)
-            ## if "SELECT" in sql:
-            ##     n = len(list(cursor))
-            ##     t3 = time.time()
-            ##     print("Elapsed2:", t3-t1, "for", n, "rows")
-            ##     cursor.execute(sql, args)
+            print("Elapsed time:", t2 - t1, file=sys.stderr)
         return cursor
 
     def atomic(self):
