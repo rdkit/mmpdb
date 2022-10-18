@@ -958,7 +958,9 @@ def merge(
     with transaction(output_db.cursor()) as c:
         schema.create_index(c)
         index_writers.update_counts(c)
-        c.execute("ANALYZE")  # should I .pragma limit the size?
+        # Do an approximate ANALYZE (https://www.sqlite.org/lang_analyze.html)
+        c.execute("PRAGMA analysis_limit=1000")
+        c.execute("ANALYZE")
     end_index_time = time.time()
     reporter.report(
         f"[Stage 7/7] Indexed and analyzed the merged records in {SECS(start_index_time, end_index_time)}."
