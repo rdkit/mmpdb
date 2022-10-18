@@ -38,6 +38,14 @@ from dataclasses import dataclass
 import importlib.resources
 
 TIME_EXECUTE = (os.environ.get("MMPDB_TIME_EXECUTE", "") == "1")
+
+_total_elapsed_time = 0.0
+def report_total_elapsed_time():
+    print("EXECUTE total time:", _total_elapsed_time, file=sys.stderr)
+
+if TIME_EXECUTE:
+    import atexit
+    atexit.register(report_total_elapsed_time)
      
 
 _schema_template = None
@@ -241,14 +249,16 @@ class MMPDatabase(object):
         if TIME_EXECUTE:
             import time
 
-            print("EXECUTE", file=sys.stderr)
+            print("EXECUTE SQL:", file=sys.stderr)
             print(sql, file=sys.stderr)
-            print(repr(args), file=sys.stderr)
+            print("EXECUTE args:", repr(args), file=sys.stderr)
             t1 = time.time()
         cursor.execute(sql, args)
         if TIME_EXECUTE:
             t2 = time.time()
-            print("Elapsed time:", t2 - t1, file=sys.stderr)
+            print("EXECUTE time:", t2 - t1, file=sys.stderr)
+            global _total_elapsed_time
+            _total_elapsed_time += (t2 - t1)
         return cursor
 
     def atomic(self):
