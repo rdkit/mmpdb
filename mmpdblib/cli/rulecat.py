@@ -29,8 +29,8 @@ def rulecat(
     rule_c = dataset.get_cursor()
     rule_env_c = dataset.get_cursor()
 
-    outfile.write(f"from_smiles\tto_smiles\n")
+    outfile.write(f"id\tfrom_smiles\tto_smiles\n")
     for rule in dataset.iter_rules(rule_c):
-        outfile.write(f"{rule.from_smiles}\t{rule.to_smiles}\n")
+        outfile.write(f"{rule.id}\t{rule.from_smiles}\t{rule.to_smiles}\n")
                     
     outfile.close()
