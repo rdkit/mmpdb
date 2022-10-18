@@ -597,10 +597,9 @@ SELECT COUNT(*)
 
         # Find rules with the given SMILES on either side and enough pairs
         result = db.execute("""
-SELECT t1.rule_id, from_smiles, to_smiles, rule_environment_id, n FROM
+SELECT t1.rule_id, from_rule_smiles.smiles, to_rule_smiles.smiles, rule_environment_id, n FROM
+-- Get the pair counts for this rule and environment
 ( SELECT rule.id AS rule_id,
-         rule.from_smiles_id AS from_smiles_id,
-         rule.to_smiles_id AS to_smiles_id,
          rule_environment.id AS rule_environment_id,
          count(*) as n
     FROM rule, rule_environment, pair
@@ -609,17 +608,17 @@ SELECT t1.rule_id, from_smiles, to_smiles, rule_environment_id, n FROM
      AND environment_fingerprint_id = ?
      AND rule_environment.rule_id = rule.id
      AND pair.rule_environment_id = rule_environment.id
-GROUP BY rule.id) t1
-INNER JOIN
-( SELECT rule.id AS rule_id,
-         from_rule_smiles.smiles AS from_smiles,
-         to_rule_smiles.smiles AS to_smiles
-    FROM rule, rule_smiles AS from_rule_smiles, rule_smiles AS to_rule_smiles
-   WHERE rule.from_smiles_id = from_rule_smiles.id 
-     AND rule.to_smiles_id = to_rule_smiles.id) t2
-ON t1.rule_id = t2.rule_id
-   WHERE n >= ?
+GROUP BY rule.id
+HAVING n >= ?
 ORDER BY n DESC
+) t1,
+  -- Also include the from-/to- SMILES
+  rule,
+  rule_smiles AS from_rule_smiles,
+  rule_smiles AS to_rule_smiles
+   WHERE t1.rule_id = rule.id
+     AND rule.from_smiles_id = from_rule_smiles.id
+     AND rule.to_smiles_id = to_rule_smiles.id
 """, (labeled_from_smiles_id, labeled_from_smiles_id, fpid, min_pairs), cursor=cursor)
 
         num_matching_rules = 0
