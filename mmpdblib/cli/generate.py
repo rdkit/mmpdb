@@ -135,6 +135,18 @@ class ColumnHeaders(click.ParamType):
         if not isinstance(value, str):
             return value
         return value.split(",")
+
+class SelectPairMethod(click.Choice):
+    name = "method"
+    def __init__(self):
+        super().__init__(("first", "better", "quadratic", "min", "random"))
+
+    def convert(self, value, param, ctx):
+        value = super().convert(value, param, ctx)
+        if value == "better":
+            value = "quadratic"
+
+        return value
     
 def get_queries_from_smiles(smiles, fragment_filter, reporter):
     record = fragment_records.make_fragment_record_from_smiles(
@@ -367,12 +379,13 @@ transform.
 @click.option(
     "--select-pair",
     "select_pair_method",
-    type = click.Choice(("first", "quadratic", "min")),
+    type = SelectPairMethod(),
     default = "first",
     help = (
         "If 'first' (fastest), select a representative pair arbitrarily. "
-        "If 'quadratic', minimize sum of num_heavies**2. "
-        "If 'min', use the minimum num_heavies for either side."
+        "If 'quadratic' or 'better', minimize sum of num_heavies**2. "
+        "If 'min', use the minimum num_heavies for either side. "
+        "If 'random', select one at random."
         ),
     )
 
@@ -568,6 +581,9 @@ _select_pair_sql_table = {
     "min": SELECT_PAIR_SQL.replace(
         "<ORDER>",
         "ORDER BY MIN(cmpd1.clean_num_heavies, cmpd2.clean_num_heavies)"),
+    "random": SELECT_PAIR_SQL.replace(
+        "<ORDER>",
+        "ORDER BY random()"),
     }
             
 
