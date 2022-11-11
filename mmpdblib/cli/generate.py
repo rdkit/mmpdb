@@ -639,6 +639,7 @@ def generate_unwelded_from_constant(
 
 ##     reporter.explain(f"Number of matching environment rules: {num_rule_ids}")
 
+    print("GENERATE:")
     for from_smiles in from_smiles_list:
         labeled_from_smiles = add_label_1(from_smiles)
         start_smiles, start_mol = weld_fragments(constant_smiles, labeled_from_smiles)
@@ -650,30 +651,38 @@ def generate_unwelded_from_constant(
             reporter.explain(f"Query SMILES {labeled_from_smiles} is not a rule_smiles in the database.")
             continue
 
+        print("  EXEC:", from_smiles, (labeled_from_smiles_id, labeled_from_smiles_id, fpid, min_pairs))
         # Find rules with the given SMILES on either side and enough pairs
         result = db.execute("""
-SELECT t1.rule_id, from_rule_smiles.smiles, to_rule_smiles.smiles, rule_environment_id, n FROM
--- Get the pair counts for this rule and environment
-( SELECT rule.id AS rule_id,
-         rule_environment.id AS rule_environment_id,
-         count(*) as n
-    FROM rule, rule_environment, pair
-   WHERE (rule.from_smiles_id = ?
-          OR rule.to_smiles_id = ?)
+SELECT t1.rule_id,
+       from_rule_smiles.smiles,
+       to_rule_smiles.smiles,
+       t1.rule_environment_id,
+       t1.n
+FROM
+(
+SELECT rule.id AS rule_id,
+       rule.from_smiles_id as from_smiles_id,
+       rule.to_smiles_id as to_smiles_id,
+       rule_environment.id AS rule_environment_id,
+       rule_environment.num_pairs AS n
+    FROM
+        rule,
+        rule_environment
+
+   WHERE (rule.from_smiles_id = ? OR
+          rule.to_smiles_id = ?)
      AND environment_fingerprint_id = ?
      AND rule_environment.rule_id = rule.id
-     AND pair.rule_environment_id = rule_environment.id
-GROUP BY rule.id
-HAVING n >= ?
-ORDER BY n DESC
+     AND rule_environment.num_pairs >= ?
 ) t1,
   -- Also include the from-/to- SMILES
-  rule,
   rule_smiles AS from_rule_smiles,
   rule_smiles AS to_rule_smiles
-   WHERE t1.rule_id = rule.id
-     AND rule.from_smiles_id = from_rule_smiles.id
-     AND rule.to_smiles_id = to_rule_smiles.id
+   WHERE t1.from_smiles_id = from_rule_smiles.id
+     AND t1.to_smiles_id = to_rule_smiles.id
+
+   ORDER BY n DESC, from_rule_smiles.smiles, to_rule_smiles.smiles
 """, (labeled_from_smiles_id, labeled_from_smiles_id, fpid, min_pairs), cursor=cursor)
 
         num_matching_rules = 0
