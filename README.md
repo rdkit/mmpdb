@@ -1,4 +1,4 @@
-# mmpdb 3.0b1 - matched molecular pair database generation and analysis
+# mmpdb 3.0 - matched molecular pair database generation and analysis
 
 
 ## Synopsis

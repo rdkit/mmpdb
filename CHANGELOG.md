@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## mmpdb 3.0b1 - 2021-02-09
+## mmpdb 3.0 - 2023-5-31
 
 A large number of changes to merge three different development tracks
 and add new features.

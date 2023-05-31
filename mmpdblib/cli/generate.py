@@ -480,6 +480,7 @@ def generate(
     
     dataset = open_dataset_from_options_or_exit(database_options, reporter.quiet)
     cursor = dataset.get_cursor()
+#    cursor.execute("PRAGMA mmap_size=2147418112")
 
     # Figure out if I need to get a representative pair
     need_pair_colums = ("pair_from_id", "pair_from_smiles", "pair_to_id", "pair_to_smiles")
