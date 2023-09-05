@@ -640,7 +640,6 @@ def generate_unwelded_from_constant(
 
 ##     reporter.explain(f"Number of matching environment rules: {num_rule_ids}")
 
-    print("GENERATE:")
     for from_smiles in from_smiles_list:
         labeled_from_smiles = add_label_1(from_smiles)
         start_smiles, start_mol = weld_fragments(constant_smiles, labeled_from_smiles)
@@ -652,7 +651,6 @@ def generate_unwelded_from_constant(
             reporter.explain(f"Query SMILES {labeled_from_smiles} is not a rule_smiles in the database.")
             continue
 
-        print("  EXEC:", from_smiles, (labeled_from_smiles_id, labeled_from_smiles_id, fpid, min_pairs))
         # Find rules with the given SMILES on either side and enough pairs
         result = db.execute("""
 SELECT t1.rule_id,
