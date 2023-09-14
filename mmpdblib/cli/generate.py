@@ -26,7 +26,13 @@ def get_num_frags(mol):
     return len(Chem.GetMolFrags(mol))
 
 def add_label_1(smiles):
-    return smiles.replace("*", "[*:1]")
+    return _add_label(smiles, 1)
+
+def _add_label(smiles, i):
+    left, mid, right = smiles.partition("*")
+    if not mid:
+        return smiles
+    return f"{left}[*:{i}]{_add_label(right, i+1)}"
 
 
 class SMILES_MIXIN:
@@ -491,7 +497,7 @@ def generate(
 
     # Get fragmentation options from the database, limited to 1-cut
     options = dataset.get_fragment_options()
-    options.num_cuts = 1
+    #options.num_cuts = 1
     fragment_filter = options.get_fragment_filter()
 
     if num_options == 1:
