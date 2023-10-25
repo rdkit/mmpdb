@@ -1,6 +1,12 @@
 import sys
 
 import click
+
+class MolProcessingError(Exception):
+    def __init__(self, error_message):
+        super().__init__(error_message)
+        self.error_message = error_message
+
 from rdkit import Chem
 
 from .. import environment
@@ -34,63 +40,201 @@ def _add_label(smiles, i):
         return smiles
     return f"{left}[*:{i}]{_add_label(right, i+1)}"
 
+def parse_smiles_then_fragment(smiles):
+    mol = Chem.MolFromSmiles(smiles)
+    if mol is None:
+        raise MolProcessingError("Cannot parse the SMILES")
 
-class SMILES_MIXIN:
-    def check_smiles(self, value, param, ctx):
-        mol = Chem.MolFromSmiles(value)
-        if mol is None:
-            self.fail("Cannot parse the SMILES", param, ctx)
-        if get_num_frags(mol) != 1:
-            self.fail("SMILES must not contain multiple fragments", param, ctx)
-
-        for atom in mol.GetAtoms():
-            atom.SetIsotope(0)
-            if atom.HasProp(ATOM_MAP_PROP):
-                atom.ClearProp(ATOM_MAP_PROP)
-            if atom.GetAtomicNum() == 0:
-                if atom.GetFormalCharge() != 0:
-                    self.fail("SMILES must not contain a '*' term with a charge", param, ctx)
-                if atom.GetNumExplicitHs() != 0:
-                    self.fail("SMILES must not contain a '*' term specified hydrogens", param, ctx)
-                if len(list(atom.GetBonds())) != 1:
-                    self.fail("SMILES '*' term must be a terminal atom", param, ctx)
-
-        return mol
-
-    def convert_smiles(self, value, param, ctx):
-        mol = self.check_smiles(value, param, ctx)
-        return self.cansmi(mol)
-
-    def cansmi(self, mol):
-        return Chem.MolToSmiles(mol)
-        
-class SmilesType(SMILES_MIXIN, click.ParamType):
-    name = "SMILES"
-
-    def convert(self, value, param, ctx):
-        # ignore None or molecule objects
-        if not isinstance(value, str):
-            return value
-        return self.convert_smiles(value, param, ctx)
+    frags = Chem.GetMolFrags(mol)
+    if not frags:
+        raise MolProcessingError("No fragments found in the SMILES")
     
-class FragmentType(SMILES_MIXIN, click.ParamType):
+    return mol, frags
+
+def check_no_wildcards(mol):
+    if any(atom.GetAtomicNum() == 0 for atom in mol.GetAtoms()):
+        # We checked "*" earlier; this checks for "[#0]"
+        raise MolProcessingError("SMILES must not contain a '*' term")
+
+
+WHAT_OPTIONS = IS_MOLECULE, IS_CONSTANT, IS_VARIABLE = (101, 102, 103)
+
+def sanitize_atom_properties(mol, frags, what):
+    assert what in WHAT_OPTIONS
+    
+    num_frags = len(frags)
+    if what == IS_MOLECULE:
+        assert num_frags == 1, "wrong number of fragments"
+        
+    elif what == IS_CONSTANT:
+        assert 1 <= num_frags <= 3, "wrong number of fragments"
+        
+    elif what == IS_VARIABLE:
+        assert num_frags == 1, "wrong number of variable fragments"
+        
+    else:
+        raise AssertionError("what?!")
+
+    # Create a map from atom index to fragment index.
+    # (Not needed when only one fragment, but simplifies the code.)
+
+    atom_to_frag_idx = {}
+    for frag_idx, atom_indices in enumerate(frags):
+        for atom_idx in atom_indices:
+            atom_to_frag_idx[atom_idx] = frag_idx
+            
+    fragments_with_wildcard = set()
+
+    for atom in mol.GetAtoms():
+        # Remove any isotope and atom map
+        atom.SetIsotope(0)
+        if atom.HasProp(ATOM_MAP_PROP):
+            atom.ClearProp(ATOM_MAP_PROP)
+
+        # Done processing non-wildcard atoms.
+        if atom.GetAtomicNum() != 0:
+            continue
+
+        # Now we know we are processing a wildcard atom.
+
+        if what == IS_MOLECULE:
+            raise MolProcessingError("The SMILES may not include a '*' term")
+        
+        # If there is a "*", it must not have properties, and must be terminal
+        
+        if atom.GetFormalCharge() != 0:
+            raise MolProcessingError("SMILES must not contain a '*' term with a charge")
+
+        if atom.GetNumExplicitHs() != 0:
+            raise MolProcessingError("SMILES must not contain a '*' term with a hydrogen count")
+
+        if len(list(atom.GetBonds())) != 1:
+            raise MolProcessingError("SMILES '*' term must be a terminal atom")
+        
+        # Ensure there is only one wildcard per fragment
+        frag_idx = atom_to_frag_idx[atom.GetIdx()]
+        if (what == IS_CONSTANT) and (frag_idx in fragments_with_wildcard):
+            breakpoint()
+            raise MolProcessingError("The constant SMILES may have only one '*' term on each fragment")
+
+        fragments_with_wildcard.add(frag_idx)
+
+
+    if what in (IS_CONSTANT, IS_VARIABLE) and len(fragments_with_wildcard) != num_frags:
+        # Each fragment must have a wildcard
+        if num_frags == 1:
+            raise MolProcessingError("No '*' term found to indicate the attachment point")
+        else:
+            raise MolProcessingError("Each fragment must have a '*' term to indicate the attachment point")
+
+
+# Used to prevent double processing of a click parameter.
+class ProcessedSmiles:
+    def __init__(self, canonical_smiles):
+        self.canonical_smiles = canonical_smiles
+
+class SmilesType(click.ParamType):
     name = "SMILES"
 
     def convert(self, value, param, ctx):
-        # ignore None or molecule objects
+        # ignore None or ProcessedSmiles objects
         if not isinstance(value, str):
             return value
 
-        if "*" not in value:
-            self.fail("fragment SMILES must contain a '*'", param, ctx)
-        if value.count("*") != 1:
-            self.fail("fragment SMILES must contain only one '*'", param, ctx)
-            
-        mol = self.check_smiles(value, param, ctx)
-        if mol.GetNumAtoms() < 2:
-            self.fail("fragment SMILES must contain at least one heavy atom")
+        # Do a quick check for "*"
+        try:
+            if "*" in value:
+                raise MolProcessingError("SMILES must not contain a '*' term")
 
-        return self.cansmi(mol)
+            mol, frags = parse_smiles_then_fragment(value)
+            if len(frags) > 1:
+                raise MolProcessingError("SMILES must contain only one fragment")
+
+            sanitize_atom_properties(mol, frags, what = IS_MOLECULE)
+            
+        except MolProcessingError as err:
+            self.fail(err.error_message, param, ctx)
+
+        return ProcessedSmiles(Chem.MolToSmiles(mol))
+
+    
+class ConstantType(click.ParamType):
+    name = "SMILES"
+
+    def convert(self, value, param, ctx):
+        # ignore None or ProcessedSmiles objects
+        if not isinstance(value, str):
+            return value
+
+        try:
+            mol, frags = parse_smiles_then_fragment(value)
+            
+            if not (1 <= len(frags) <= 3):
+                raise MolProcessingError("Constant SMILES must contain only 1, 2, or 3 fragments")
+
+            sanitize_atom_properties(mol, frags, what = IS_CONSTANT)
+
+        except MolProcessingError as err:
+            self.fail(err.error_message, param, ctx)
+        
+        return ProcessedSmiles(Chem.MolToSmiles(mol))
+    
+class QueryType(click.ParamType):
+    name = "SMILES"
+
+    def convert(self, value, param, ctx):
+        # ignore None or ProcessedSmiles objects
+        if not isinstance(value, str):
+            return value
+
+        try:
+            mol, frags = parse_smiles_then_fragment(value)
+
+            if len(frags) != 1:
+                raise MolProcessingError("Query/variable SMILES must contain only one fragment")
+
+            labeled_atoms = sanitize_atom_properties(mol, frags, what = IS_VARIABLE)
+            
+        except MolProcessingError as err:
+            self.fail(err.error_message, param, ctx)
+        
+        # There may be a chirality loss when 1) there are two or three
+        # wildcards, 2) the user indicates chirality, and 3) the
+        # wildcards induce symmetry causing a center to disappear.
+
+        # This is handled in mmpdb fragmentation by canonically
+        # restoring chirality until the result matches the input.
+        # That's not possible here since we only have the query.
+
+        
+        # I can think ways to restore it, eg, by replacing wildcards
+        # with Sg, Lv and Db atoms, canonicalizing, restoring the
+        # wildcards, recanonicalizing, and being careful about
+        # mapping. I don't know if it will work though, and it sounds
+        # like a lot of effort.
+
+        # Up-enumeration should at least result in a close answer, so
+        # the easy solution, and what I'll do, is to warn about a
+        # difference in the number of chiral centers.
+
+        def get_num_chiral_centers(s):
+            num_double = s.count("@@")
+            num_single = s.count("@") * 2*num_double
+            return num_single + num_double
+
+        new_smiles = Chem.MolToSmiles(mol)
+
+        if new_smiles.count("*") > 1:
+            old_count = get_num_chiral_centers(value)
+            new_count = get_num_chiral_centers(new_smiles)
+            if old_count != new_count:
+                click.secho(
+                    "Warning: Processing changed the number of query chiral centers from "
+                    f"{old_count} to {new_count}.",
+                    fg = "yellow",
+                    err = True)
+
+        return ProcessedSmiles(new_smiles)
 
 COLUMN_DESCRIPTIONS = {
     "start": "initial compound SMILES (constant + from_smiles)",
@@ -169,6 +313,16 @@ def get_queries_from_smiles(smiles, fragment_filter, reporter):
     return queries
 
 def get_queries_from_constant_and_query(constant_smiles, query_smiles):
+    num_constant_attachments = constant_smiles.count("*")
+    num_query_attachments = query_smiles.count("*")
+    
+    if num_constant_attachments != num_query_attachments:
+        raise click.UsageError(
+            "Mismatch between the number of attachment points in the --query "
+            f"({num_query_attachments}) "
+            "and the --constant "
+            f"({num_constant_attachments})")
+
     return [(constant_smiles, [query_smiles])]
 
 def get_queries_from_smiles_and_query(smiles, query_smiles, fragment_filter, reporter):
@@ -351,14 +505,15 @@ transform.
 @click.option(
     "--constant",
     "constant_smiles",
-    type = FragmentType(),
+    type = ConstantType(),
     help = "The constant fragment SMILES",
     )
 
 @click.option(
     "--query",
+    "--variable",
     "query_smiles",
-    type = FragmentType(),
+    type = QueryType(),
     help = "The query/variable fragment SMILES",
     )
 
@@ -464,7 +619,7 @@ def generate(
         chunksize,
         explain,
         ):
-    """Apply 1-cut database transforms to a molecule"""
+    """Apply database transforms to a molecule"""
     reporter.set_explain(explain)
 
     num_options = (smiles is not None) + (query_smiles is not None) + (constant_smiles is not None)
@@ -495,26 +650,33 @@ def generate(
     else:
         pair_cursor = None
 
-    # Get fragmentation options from the database, limited to 1-cut
+    # Get fragmentation options from the database.
     options = dataset.get_fragment_options()
-    #options.num_cuts = 1
     fragment_filter = options.get_fragment_filter()
 
+    # Unwrap the canonical SMILES
+    if smiles is not None:
+        smiles = smiles.canonical_smiles
+    if query_smiles is not None:
+        query_smiles = query_smiles.canonical_smiles
+    if constant_smiles is not None:
+        constant_smiles = constant_smiles.canonical_smiles
+        
     if num_options == 1:
         assert smiles is not None
         queries = get_queries_from_smiles(smiles, fragment_filter, reporter)
-        # XXX Thinking about this
-        ## subqueries = False
     else:
         if smiles is None:
-            queries = get_queries_from_constant_and_query(
-                constant_smiles, query_smiles)
+            queries = get_queries_from_constant_and_query(constant_smiles, query_smiles)
+            
         elif constant_smiles is None:
             queries = get_queries_from_smiles_and_query(
                 smiles, query_smiles, fragment_filter, reporter)
+            
         elif query_smiles is None:
             queries = get_queries_from_smiles_and_constant(
                 smiles, constant_smiles, fragment_filter, reporter)
+            
         else:
             raise AssertionError
 
