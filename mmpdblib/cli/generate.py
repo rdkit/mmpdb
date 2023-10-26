@@ -342,15 +342,29 @@ def get_queries_from_smiles_and_constant(smiles, constant_smiles, fragment_filte
 ###
 
 def get_subqueries(dataset, query_smiles, reporter):
-    # Get the subqueries SMILES by fragmenting the query fragment SMILES
-    
-    # Need to turn the "*" into something that can be processed.
+    # Get the subqueries SMILES by fragmenting the query fragment SMILES.
+    # Replace the wildcards with argon atoms, fragment, and recover the subqueries.
+
+    num_wildcards = query_smiles.count("*")
+    assert num_wildcards > 0, query_smiles
+
+    # Ignore cases where the constants are just the argons trimmed off.
+    constants_to_ignore = {
+        "*[Ar]", "*[Ar].*[Ar]", "*[Ar].*[Ar].*[Ar]",  # The canonical form RDKit generates.
+        "[Ar]*", "[Ar].*[Ar]*", "[Ar]*.[Ar]*.[Ar]*",  # Makes me feel better to be complete.
+        }
+        
+    # Turn the "*" into something that can be processed.
     # Use argon as the placeholder.
     argon_smiles = query_smiles.replace("*", "[Ar]")
 
-    # Need to use the fragmentation options from the database, limited to 1-cut
+    # Use the fragmentation options from the database.
     options = dataset.get_fragment_options()
-    options.num_cuts = 1
+
+    # Pointless to use more cuts than available wildcards.
+    # (num_cuts sets the maximum number of cuts; cannot specify min_num_cuts.)
+    options.num_cuts = min(options.num_cuts, num_wildcards)
+    
     fragment_filter = options.get_fragment_filter()
 
     # Fragment
@@ -364,27 +378,45 @@ def get_subqueries(dataset, query_smiles, reporter):
         reporter.explain("The query SMILES cannot be fragmented using the database's fragmentation options.")
         return []
 
-    # The fragmentations are symmetrical. I can limit my search to the constant_smiles.
     # There may be duplicate subqueries, so use a set to filter them out.
     subqueries = set()
+    
     for frag in record.fragmentations:
-        constant_smiles = frag.constant_smiles
-        assert "[*]" not in constant_smiles
-        if "[Ar]" in constant_smiles:
-            if constant_smiles in ("*[Ar]", "[Ar]*"):
-                # Ignore. Doesn't make sense.
-                continue
-            # Convert the [Ar] to an [H] and recanonicalize.
-            mol = Chem.MolFromSmiles(constant_smiles.replace("[Ar]", "[H]"))
-            assert mol is not None, constant_smiles
-            subquery = Chem.MolToSmiles(mol)
-        else:
-            if frag.variable_smiles in ("*[Ar]", "[Ar]*"):
-                # Isn't meaningful.
-                continue
-            subquery = constant_smiles
+        if frag.num_cuts != num_wildcards:
+            # Can't use as we need to match the number of input cuts.
+            continue
+                    
+        variable_smiles = frag.variable_smiles
+        assert "[*]" not in variable_smiles
+
+        num_argons = variable_smiles.count("[Ar]")
+        adjusted_variable_num_heavies = frag.variable_num_heavies - num_argons
+
+        if num_argons > 0:
+            # There is at least one argon in the variable part.
             
-        subqueries.add((-frag.constant_num_heavies, subquery))
+            # There must be at least one other, non-argon, heavy atom
+            # otherwise we may end up with [H][H].
+            if adjusted_variable_num_heavies == 0:
+                continue
+
+            # Convert the [Ar] atoms to [H] and recanonicalize.
+            mol = Chem.MolFromSmiles(variable_smiles.replace("[Ar]", "[H]"))
+            assert mol is not None, variable_smiles
+            subquery = Chem.MolToSmiles(mol)
+
+        else:
+            # All of the argons have been cut off.
+
+            # Since we are looking for *sub*queries, ignore the
+            # trivial case where only the argons were cut.
+            if frag.constant_smiles in constants_to_ignore:
+                continue
+
+            # Don't need to do more as the variable is already canonical.
+            subquery = variable_smiles
+            
+        subqueries.add((-adjusted_variable_num_heavies, subquery))
 
     # Sort from largest to smallest and extract the SMILES
     subqueries = [subquery for (num_heavies, subquery) in sorted(subqueries)]
