@@ -325,18 +325,31 @@ def get_queries_from_constant_and_query(constant_smiles, query_smiles):
 
     return [(constant_smiles, [query_smiles])]
 
-def get_queries_from_smiles_and_query(smiles, query_smiles, fragment_filter, reporter):
+def get_queries_from_smiles_and_query(smiles, query_smiles, fragment_filter,
+                                      reporter):
+    reporter.explain(
+        f"Fragmenting {smiles} to find the query {query_smiles}")
+    
     for frag_term in get_queries_from_smiles(smiles, fragment_filter, reporter):
         frag_constant, frag_variables = frag_term
         if frag_variables[0] == query_smiles:
+            reporter.explain(f"  => Found query. Constant is {frag_constant}")
             return [frag_term]
+        reporter.explain(f"  Query does not match variable {frag_variables[0]}")
     raise click.UsageError("--query SMILES not found in --smiles")
 
-def get_queries_from_smiles_and_constant(smiles, constant_smiles, fragment_filter, reporter):
+def get_queries_from_smiles_and_constant(smiles, constant_smiles, fragment_filter,
+                                        reporter):
+    reporter.explain(
+        f"Fragmenting {smiles} to find the constant {constant_smiles}")
+    
     for frag_term in get_queries_from_smiles(smiles, fragment_filter, reporter):
         frag_constant, frag_variables = frag_term
         if frag_constant == constant_smiles:
+            variable, = frag_variables
+            reporter.explain(f"  => Found constant. Query is {variable}")
             return [frag_term]
+        reporter.explain(f"  Constant does not match {frag_constant}")
     raise click.UsageError("--constant SMILES not found in --smiles")
 
 ###
