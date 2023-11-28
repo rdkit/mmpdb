@@ -1,6 +1,29 @@
 # CHANGELOG
 
-## mmpdb 3.0 - 2023-5-31
+## mmpdb 3.1 - 2023-11-28
+
+Extended the "generate" command to handle 2-, and 3-cut transforms.
+
+The `generate --explain` option now also explains why the search for a
+matching query or variable part passes or fails. This proved useful in
+determining that an expected fragmentation was instead being filtered.
+
+The new `--min-heavies-total-const-frag N` fragmentation option
+specifies the minimum number of heavy atoms allowed in the constant
+part. The default value is 0.
+
+Changed the fragdb schema version (in the "options" table) from 3 to 4
+to support the new fragmentation option. Version 3 fragment databases
+are still supported, by `min_heavies_total_const_frag` to 0.
+
+Added two indices and a SQLite pragma for the page size. Roche reports
+these improve analysis performance.
+
+Fixed `--from` and `--to` support in proprulecat. These had been left
+behind in the migration to click from argparse for command-line
+processing.
+
+## mmpdb 3.0 - 2023-5-31 
 
 A large number of changes to merge three different development tracks
 and add new features.
