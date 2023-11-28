@@ -56,13 +56,16 @@ import re
 # atoms and that they are formatted correctly.
 # Returns (num_wildcard_atoms:int, is_labeled:bool)
 
-def check_wildcards(parser, where, smiles):
+def check_wildcards(where, smiles):
     from ..smiles_syntax import _atom_pattern
     
     num_wildcards = smiles.count("*")
     if not (1 <= num_wildcards <= 3):
-        parser.error("The --%s SMILES %r must contain 1, 2, or 3 wildcard ('*') atoms, not %d" % (
-                         where, from_smiles, num_wildcards))
+        raise click.UsageError(
+            f"The --{where} SMILES {smiles!r} must contain "
+            f"1, 2, or 3 wildcard ('*') atoms, not {num_wildcards}"
+            )
+
     # The only valid forms are bare '*'s, '[*]', and '[*:1]'/'[*:2]'/'[*:3]'
     atom_tokens = _atom_pattern.findall(smiles)
 
@@ -83,41 +86,50 @@ def check_wildcards(parser, where, smiles):
         # Is it a labeled token?
         if token in ("[*:1]", "[*:2]", "[*:3]"):
             if token in seen_labeled_wildcards:
-                parser.error("Duplicate %r atom found in --%s SMILES %r" % (
-                    token, where, smiles))
+                raise click.UsageError(
+                    f"Duplicate {token!r} atom found in --{where} SMILES {smiles!r}")
+            
             seen_labeled_wildcards.add(token)
             continue
 
         # Some other token with a '*'? How odd!
         if "*" in token:
-            parser.error("Wildcard atom %r with unexpected format found in --%s SMILES %r" % (
-                token, where, smiles))
+            raise click.UsageError(
+                f"Wildcard atom {token!r} with unexpected format found in "
+                f"--{where} SMILES {smiles!r}")
             
     # Don't mix the two types.
     if num_unlabeled_wildcards and seen_labeled_wildcards:
-        parser.error("Cannot mix both labeled (%r) and unlabled (%r) wildcard atoms in --%s SMILES %r" % (
-            sorted(seen_labeled_wildcards)[0], first_unlabeled_token, where, smiles))
+        first_labeled_token = sorted(seen_labeled_wildcards)[0]
+        raise click.UsageError(
+            f"Cannot mix both labeled ({first_labeled_token!r}) and "
+            f"unlabled ({first_unlabeled_token!r}) wildcard atoms in "
+            f"--{where} SMILES {smiles!r}")
 
     # If there are unlabled wildcards, double-check the numbers match then I'm done.
     if num_unlabeled_wildcards:
         if num_unlabeled_wildcards != num_wildcards:
-            parser.error("Internal error. Found mismatching number of unlabeled wildcards in --%s SMILES %r" % (
-                where, smiles))
+            raise click.UsageError(
+                "Internal error. Found mismatching number of unlabeled wildcards "
+                f"in --{where} SMILES {smiles!r}")
         return num_wildcards, False
         
     # Otherwise, if there are unlabled wildcards, double-check the numbers match.
     if len(seen_labeled_wildcards) != num_wildcards:
-        parser.error("Internal error. Found mismatching number of labeled wildcards in --%s SMILES %r" % (
-            where, smiles))
+        raise click.UsageError(
+            "Internal error. Found mismatching number of labeled wildcards "
+            f"in --{where} SMILES {smiles!r}")
 
     # Check that the correct labels were used
     if "[*:3]" in seen_labeled_wildcards and num_wildcards < 3:
-        parser.error("Cannot have '[*:3]' without specifing both '[*:1]' and '[*:2]' in --%s SMILES %r" % (
-            where, smiles))
+        raise click.UsageError(
+            "Cannot have '[*:3]' without specifing both '[*:1]' and '[*:2]' "
+            f"in --{where} SMILES {smiles!r}")
         
     if "[*:2]" in seen_labeled_wildcards and num_wildcards < 2:
-        parser.error("Cannot have '[*:2]' without specifing '[*:1]' --%s SMILES %r" % (
-            where, smiles))
+        raise click.UsageError(
+            "Cannot have '[*:2]' without specifing '[*:1]' in "
+            f"--{where} SMILES {smiles!r}")
     
     return num_wildcards, True
 
@@ -129,7 +141,7 @@ def check_wildcards(parser, where, smiles):
 # a wildcard.
 
 wildcard_match_pat = None
-def check_valid_smiles(parser, where, smiles, num_expected_wildcards):
+def check_valid_smiles(where, smiles, num_expected_wildcards):
     from rdkit import Chem
     
     global wildcard_match_pat
@@ -141,19 +153,21 @@ def check_valid_smiles(parser, where, smiles, num_expected_wildcards):
     # Is it a valid SMILES?
     mol = Chem.MolFromSmiles(smiles)
     if mol is None:
-        parser.error("Cannot parse --%s SMILES %r" % (where, smiles))
+        raise click.UsageError(f"Cannot parse --{where} SMILES {smiles!r}")
 
     # Does it contain only one fragment?
     num_frags = len(Chem.GetMolFrags(mol))
     if num_frags != 1:
-        parser.error("--%s SMILES %r must have one and only one fragment" % (where, smiles))
+        raise click.UsageError(
+            f"--{where} SMILES {smiles!r} must have one and only one fragment")
 
     # Look for the wildcard atoms.
     num_frags = len(Chem.GetMolFrags(mol))        
     matches = mol.GetSubstructMatches(wildcard_match_pat)
     if len(matches) != num_expected_wildcards:
-        parser.error("The wildcard atoms in --%s SMILES %r do not appear to be valid attachment points" % (
-            where, smiles))
+        raise click.UsageError(
+            f"The wildcard atoms in --{where} SMILES {smiles!r} "
+            "do not appear to be valid attachment points")
     return mol, matches
 
 
@@ -164,20 +178,24 @@ unlabeled_wildcard_pat = re.compile(
     "|" +
     re.escape("*")) # Support both "[*]" and "*" forms
 
-def check_from_smiles(parser, from_smiles):
+def check_from_smiles(from_smiles):
     from rdkit import Chem
     
-    num_wildcards, has_labels = check_wildcards(parser, "from", from_smiles)
+    num_wildcards, has_labels = check_wildcards("from", from_smiles)
 
     # Need to put it into canonical form.
     # TODO: This should be a more readily accessible library function.
     
     if has_labels:
         # Remove the labels.
-        from_smiles = from_smiles.replace("[*:3]", "[*]").replace("[*:2]", "[*]").replace("[*:1]", "[*]")
+        from_smiles = (from_smiles
+                           .replace("[*:3]", "[*]")
+                           .replace("[*:2]", "[*]")
+                           .replace("[*:1]", "[*]")
+                           )
 
     # Canonicalize without labels
-    mol, cutlist = check_valid_smiles(parser, "from", from_smiles, num_wildcards)
+    mol, cutlist = check_valid_smiles("from", from_smiles, num_wildcards)
     smiles = Chem.MolToSmiles(mol, isomericSmiles=True)
 
     # Assign the values *:1, *:2, and *:3 in order
@@ -189,15 +207,15 @@ def check_from_smiles(parser, from_smiles):
 
 # The "cansmirks" implementation assumes there are no wildcard atoms.
 # I can fake the algorithm by replacing the '*' atoms with an unused element.
-def prepare_mol_for_cansmirks(parser, where, mol):
+def prepare_mol_for_cansmirks(where, mol):
     atomic_nums = set(a.GetAtomicNum() for a in mol.GetAtoms())
-    for atomic_num in range(120, 1, -1):
+    for atomic_num in range(120, 2, -1):
         if atomic_num not in atomic_nums:
             break
     else:
-        parser.error("Cannot work with --%s SMILES because it contains every usable element" % (
-            where,))
-        
+        raise click.UsageError(
+            f"Cannot work with --{where} SMILES because it contains every usable element")
+    
     for atom in mol.GetAtoms():
         if atom.GetAtomicNum() == 0:
             atom.SetAtomicNum(atomic_num)
@@ -206,29 +224,33 @@ def prepare_mol_for_cansmirks(parser, where, mol):
 # Need to also ensure they are compatible, and do different work if
 # given labled and unlabeled SMILES.
 # Returns a list of unique SMIRKS pairs.
-def check_from_to_smiles(parser, from_smiles, to_smiles):
+def check_from_to_smiles(from_smiles, to_smiles):
     # First, check that the --from and --to SMILES are reasonable
-    num_from_wildcards, from_has_labels = check_wildcards(parser, "from", from_smiles)
-    num_to_wildcards, to_has_labels = check_wildcards(parser, "to", to_smiles)
+    num_from_wildcards, from_has_labels = check_wildcards("from", from_smiles)
+    num_to_wildcards, to_has_labels = check_wildcards("to", to_smiles)
 
     # Check they have the same number of wildcards
     if num_from_wildcards != num_to_wildcards:
-        parser.error("--from SMILES %r and --to SMILES %r must have the same number of wildcard atoms: %d != %d" % (
-            from_smiles, to_smiles, num_from_wildcards, num_to_wildcards))
+        raise click.UsageError(
+            f"--from SMILES {from_smiles!r} and --to SMILES {to_smiles!r} "
+            f"must have the same number of wildcard atoms: "
+            f"{num_from_wildcards} != {num_to_wildcards}")
 
     # Check they are both labeled or both unlabeled
     if from_has_labels != to_has_labels:
-        parser.error("Cannot mix unlabeled atoms in the --from SMILES with labeled atoms in the --to SMILES")
+        raise click.UsageError(
+            "Cannot mix unlabeled atoms in the --from SMILES "
+            "with labeled atoms in the --to SMILES")
 
     if num_from_wildcards == 1:
         # Single cut is easy
         return [(from_smiles, to_smiles)]
 
     # will cut the wildcard atoms off, and cansmirks the corresponding non-wildcard fragments.
-    from_mol, from_cutlist = check_valid_smiles(parser, "from", from_smiles, num_from_wildcards)
-    prepare_mol_for_cansmirks(parser, "from", from_mol)
-    to_mol, to_cutlist = check_valid_smiles(parser, "to", to_smiles, num_to_wildcards)
-    prepare_mol_for_cansmirks(parser, "to", to_mol)
+    from_mol, from_cutlist = check_valid_smiles("from", from_smiles, num_from_wildcards)
+    prepare_mol_for_cansmirks("from", from_mol)
+    to_mol, to_cutlist = check_valid_smiles("to", to_smiles, num_to_wildcards)
+    prepare_mol_for_cansmirks("to", to_mol)
         
     if from_has_labels:
         # Both are labeled
@@ -248,7 +270,7 @@ class FragmentCutlist(object):
 
 
 # This is the easy one since the mapping is already specified.
-def create_labeled_cansmirks(parser, from_mol, from_cutlist, to_mol, to_cutlist):
+def create_labeled_cansmirks(from_mol, from_cutlist, to_mol, to_cutlist):
     from .. import fragment_algorithm
     from .. import index_algorithm
     
@@ -287,7 +309,7 @@ def create_labeled_cansmirks(parser, from_mol, from_cutlist, to_mol, to_cutlist)
         
 
 # The two molecules are unlabeled, so we need to identify up to n! canonical forms.
-def create_unlabeled_cansmirks(parser, from_mol, from_cutlist, to_mol, to_cutlist):
+def create_unlabeled_cansmirks(from_mol, from_cutlist, to_mol, to_cutlist):
     from .. import index_algorithm
     
     num_cuts = len(from_cutlist)
@@ -396,9 +418,6 @@ class EnvironmentSmilesLookup(object):
         return self._cache.get(key, "<missing>") # XXX: shouldn't this always be present?
         
     
-#def proprulecat_command(parser, args):
-
-
 ####
 
 @command()
@@ -494,12 +513,12 @@ def proprulecat(
         
     elif to_smiles is None:
         # Only need to handle the --from SMILES
-        from_smiles = check_from_smiles(parser, from_smiles)
+        from_smiles = check_from_smiles(from_smiles)
         smirks_pairs.append( (from_smiles, None) )
         
     else:
         # Handle both --from and --to SMILES
-        smirks_pairs.extend(check_from_to_smiles(parser, from_smiles, to_smiles))
+        smirks_pairs.extend(check_from_to_smiles(from_smiles, to_smiles))
 
     
     # If the field is None, then replace it with the "*"
