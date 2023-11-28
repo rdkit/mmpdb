@@ -154,6 +154,8 @@ SCHEMA_TABLE_NAMES = [
 
 def create_schema_for_sqlite(sqlite_db):
     c = sqlite_db.cursor()
+    # Roche reports this improves performance.
+    c.execute("PRAGMA page_size=65536")
     _execute_sql(c, get_schema_for_database(SQLiteConfig))
 
 

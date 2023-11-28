@@ -33,6 +33,9 @@
 
 CREATE INDEX rule_environment_rule_id on rule_environment (rule_id);
 CREATE INDEX rule_environment_environment_fingerprint_id on rule_environment (environment_fingerprint_id);
+CREATE INDEX rule_environment_rule_id_num_pairs on rule_environment (rule_id, num_pairs);
+CREATE INDEX rule_environment_rule_id_num_pairs_fingerprint_id on rule_environment (rule_id, num_pairs, environment_fingerprint_id);
+
 CREATE INDEX rule_from_smiles_id on rule (from_smiles_id);
 CREATE INDEX rule_to_smiles_id on rule (to_smiles_id);
 CREATE UNIQUE INDEX rule_smiles_smiles on rule_smiles (smiles);

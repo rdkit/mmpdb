@@ -33,6 +33,9 @@
 
 DROP INDEX IF EXISTS rule_environment_rule_id;
 DROP INDEX IF EXISTS rule_environment_environment_fingerprint_id;
+DROP INDEX IF EXISTS rule_environment_rule_id_num_pairs;
+DROP INDEX IF EXISTS rule_environment_rule_id_num_pairs_fingerprint_id;
+
 DROP INDEX IF EXISTS rule_from_smiles_id;
 DROP INDEX IF EXISTS rule_to_smiles_id;
 DROP INDEX IF EXISTS rule_smiles_smiles;
