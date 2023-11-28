@@ -85,6 +85,7 @@ database 'csd.mmpdb':
             max_up_enumerations: 1000
             method: chiral
             min_heavies_per_const_frag: 0
+            min_heavies_total_const_frag: 0
             num_cuts: 3
             rotatable_smarts: [!$([NH]!@C(=O))&!D1&!$(*#*)]-&!@[!$([NH]!@C(=O))&!D1&!$(*#*)]
             salt_remover: <default>

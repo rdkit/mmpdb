@@ -54,6 +54,7 @@ CREATE TABLE options (
 	rotatable_smarts VARCHAR(1000),
 	salt_remover VARCHAR(200),
 	min_heavies_per_const_frag INTEGER,
+	min_heavies_total_const_frag INTEGER,
         max_up_enumerations INTEGER,
 	PRIMARY KEY (id)
 );

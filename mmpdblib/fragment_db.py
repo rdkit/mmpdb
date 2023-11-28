@@ -124,6 +124,9 @@ def open_fragdb(filename):
 #### options
 
 _option_attrs = [field.name for field in dataclasses.fields(FragmentOptions)]
+_option_attrs_v3 = [s for s in _option_attrs if s != "min_heavies_total_const_frag"]
+_option_attrs_v4 = _option_attrs
+
 _option_cols = ["version"] + _option_attrs
 
 _option_fields = ", ".join(_option_cols)
@@ -133,17 +136,27 @@ _insert_options_sql = f"INSERT INTO options({_option_fields}) VALUES({_option_qs
 
 
 def insert_options(c, options):
-    values = [3] + [getattr(options, attr) for attr in _option_attrs]
+    values = [4] + [getattr(options, attr) for attr in _option_attrs]
     c.execute(_insert_options_sql, values)
 
 
 def select_options(c):
-    sql = f"SELECT {_option_fields} FROM options"
-    for row in c.execute(sql):
-        version, *values = row
-        if version != 3:
-            raise ValueError(f"Expected a version 3 database, not version {version}")
-        return FragmentOptions(*values)
+    for (version,) in c.execute("SELECT version FROM options"):
+        if version == 3:
+            attrs = _option_attrs_v3
+        elif version == 4:
+            attrs = _option_attrs_v4
+        else:
+            raise ValueError("Expected a version 3 or 4 database, not version {version}")
+        break
+    else:
+        raise ValueError("Unable to determine the version")
+
+    option_fields = ", ".join(attrs)
+    sql = f"SELECT {option_fields} FROM options"
+    for values in c.execute(sql):
+        kwargs = dict(zip(attrs, values))
+        return FragmentOptions(**kwargs)
     raise AssertionError("Missing options in fragdb")
 
 

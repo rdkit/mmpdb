@@ -240,6 +240,7 @@ def check_from_to_smiles(parser, from_smiles, to_smiles):
 # Helper class to pass the wildcard cut bonds to fragment_algorithm.fragment_mol()
 class FragmentCutlist(object):
     min_heavies_per_const_frag = 0
+    min_heavies_total_const_frag = 0
     def __init__(self, cutlist):
         self.cutlist = cutlist
     def get_cut_lists(self, mol):

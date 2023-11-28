@@ -72,6 +72,7 @@ class FragmentOptions:
     salt_remover: str
     min_heavies_per_const_frag: int
     max_up_enumerations: int
+    min_heavies_total_const_frag: int = 0 # added in fragment format v4, 28 Nov 2023
 
     def to_dict(self):
         return dataclasses.asdict(self)
@@ -238,6 +239,7 @@ class FragmentFilter(object):
         method,
         options,
         min_heavies_per_const_frag,
+        min_heavies_total_const_frag,
         max_up_enumerations,
     ):
         if rotatable_pattern is None:
@@ -252,6 +254,7 @@ class FragmentFilter(object):
         self.method = method
         self.options = options
         self.min_heavies_per_const_frag = min_heavies_per_const_frag
+        self.min_heavies_total_const_frag = min_heavies_total_const_frag
         self.max_up_enumerations = max_up_enumerations
 
     def normalize(self, mol):
@@ -341,6 +344,7 @@ def get_fragment_filter(fragment_options):
     num_cuts = call(parse_num_cuts, "num_cuts")
     method = call(parse_method, "method")
     min_heavies_per_const_frag = options.min_heavies_per_const_frag
+    min_heavies_total_const_frag = options.min_heavies_total_const_frag
     try:
         salt_remover = call(parse_salt_remover, "salt_remover")
     except IOError as err:
@@ -358,6 +362,7 @@ def get_fragment_filter(fragment_options):
         method=method,
         options=fragment_options,
         min_heavies_per_const_frag=min_heavies_per_const_frag,
+        min_heavies_total_const_frag=min_heavies_total_const_frag,
         max_up_enumerations=max_up_enumerations,
     )
 

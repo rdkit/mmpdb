@@ -177,8 +177,18 @@ def add_fragment_options(command):
         type=nonnegative_int(),
         metavar="N",
         help=(
-            "Ignore fragmentations where one or more constant "
-            f"fragments are very small (default: {OPTS.min_heavies_per_const_frag})"
+            "Ignore fragmentations where one or more constant fragments have "
+            f"fewer than N heavy atoms (default: {OPTS.min_heavies_per_const_frag})"
+        ),
+    )
+    
+    add_option(
+        "--min-heavies-total-const-frag",
+        type=nonnegative_int(),
+        metavar="N",
+        help=(
+            "Ignore fragmentations where there are fewer than N heavy atoms in the "
+            "total constant fragment  (default: {OPTS.min_heavies_total_const_frag})"
         ),
     )
     
@@ -223,6 +233,7 @@ def make_fragment_options(
     num_cuts,
     salt_remover,
     min_heavies_per_const_frag,
+    min_heavies_total_const_frag,
     max_up_enumerations,
 ):
     from .. import (
@@ -272,5 +283,6 @@ def make_fragment_options(
         salt_remover=salt_remover,
         method=method,
         min_heavies_per_const_frag=min_heavies_per_const_frag,
+        min_heavies_total_const_frag=min_heavies_total_const_frag,
         max_up_enumerations=max_up_enumerations,
     )

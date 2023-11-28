@@ -543,6 +543,10 @@ SELECT property_name.name, count(property_name_id)
             #  "rotatable_smarts": "[!$([NH]!@C(=O))&!D1&!$(*#*)]-&!@[!$([NH]!@C(=O))&!D1&!$(*#*)]",
             #  "cut_smarts": "[#6+0;!$(*=,#[!#6])]!@!=!#[!#0;!#1;!$([CH2]);!$([CH3][CH2])]", "num_cuts": 3,
             #   "method": "dalke", "salt_remover": "<default>"
+
+            # Backwards compatibilty for an indexed v3 fragment database.
+            d.setdefault("min_heavies_total_const_frag", 0)
+            
             return fragment_types.FragmentOptions(**d)
         raise AssertionError("dataset 1 is supposed to exist")
 

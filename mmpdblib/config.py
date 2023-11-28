@@ -122,6 +122,7 @@ def cutoff_list(value_s):
 parse_max_heavies_value = positive_int_or_none
 parse_max_rotatable_bonds_value = positive_int_or_none
 parse_min_heavies_per_const_frag_value = nonnegative_int
+parse_min_heavies_total_const_frag_value = nonnegative_int
 
 
 def parse_num_cuts_value(value):
@@ -145,6 +146,7 @@ DEFAULT_FRAGMENT_OPTIONS = fragment_types.FragmentOptions(
     method="chiral",
     salt_remover="<default>",
     min_heavies_per_const_frag=0,
+    min_heavies_total_const_frag=0,
     max_up_enumerations=1000,
 )
 

@@ -371,6 +371,9 @@ def make_single_cut(mol, atom_pair, chiral_flags, fragment_filter):
         ),
     ):
 
+        if constant_num_atoms < fragment_filter.min_heavies_total_const_frag:
+            continue
+        
         if constant_num_atoms < fragment_filter.min_heavies_per_const_frag:
             continue
 
@@ -599,16 +602,8 @@ def make_multiple_cuts(mol, atom_pairs, chiral_flags, fragment_filter):
             # Did not cut into core+rgroups
             return
 
-    #    # Filter out fragmentations with too small fragments in the constant
-    #    if fragment_filter.min_heavies_per_const_frag > 0:
-    #        for frag in Chem.GetMolFrags(fragmented_mol, asMols=True):
-    #            num_wildcards = 0
-    #            for atom in frag.GetAtoms():
-    #                if atom.GetAtomicNum() == 0:
-    #                    num_wildcards += 1
-    #            if num_wildcards == 1 and frag.GetNumHeavyAtoms() < fragment_filter.min_heavies_per_const_frag:
-    #                yield None
-    #                return
+    if len(constant_atom_indices) < fragment_filter.min_heavies_total_const_frag:
+        return
 
     # Determine the symmetry of the variable part
     fragmented_mol.UpdatePropertyCache(strict=False)  # XXX magic; without it I get a RuntimeError
