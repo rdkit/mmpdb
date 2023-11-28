@@ -1,4 +1,4 @@
-# mmpdb 3.0 - matched molecular pair database generation and analysis
+# mmpdb 3.1 - matched molecular pair database generation and analysis
 
 
 ## Synopsis
@@ -12,7 +12,7 @@ property changes and generate new molecular structures.
 
 ## Installation
 
-mmpdb 3.0 must be installed before use. (Earlier versions of mmpdb
+mmpdb 3.1 must be installed before use. (Earlier versions of mmpdb
 could be run in-place, in the top-level directory.) This will also
 ensure that the SciPy, peewee, and click packages are installed.
 
@@ -77,7 +77,8 @@ not recommended.)
 
 ## Requirements
 
-The package has been tested on Python 3.9.
+The package has been tested on Python 3.9 and 3.10. It should work
+under newer versions of Python.
 
 You will need a copy of the RDKit cheminformatics toolkit, available
 from http://rdkit.org/ , which in turn requires NumPy. You will also
@@ -1160,7 +1161,7 @@ mmpdb 3.0.
 ## Copyright
 
 
-The mmpdb package is copyright 2015-2022 by F. Hoffmann-La Roche Ltd
+The mmpdb package is copyright 2015-2023 by F. Hoffmann-La Roche Ltd
 and Andrew Dalke Scientific AB, and distributed under the 3-clause BSD
 license. See [LICENSE](LICENSE) for details.
 
