@@ -830,6 +830,9 @@ def get_hydrogen_fragmentations(smiles, num_heavies):
 
 _hydrogen_cut_pat = Chem.MolFromSmarts("[!#1]-[0#1v1!+!-]")
 
+# Get '*[H]' (or equivalent) from RDKit to make sure it's version-independent.
+_wild_h = Chem.MolToSmiles(Chem.MolFromSmiles('*[H]', sanitize=False))
+
 def fragment_molecule_on_explicit_hydrogens(smiles):
     num_heavies = get_num_heavies_from_smiles(smiles)
     smiles_with_H = Chem.CanonSmiles(smiles)
@@ -847,9 +850,9 @@ def fragment_molecule_on_explicit_hydrogens(smiles):
         left, mid, right = new_smiles.partition(".")
         assert mid == ".", new_smiles
 
-        if left == "[*][H]":  # Hard-coded
+        if left == _wild_h:
             cut_smiles = right
-        elif right == "[*][H]":
+        elif right == _wild_h:
             cut_smiles = left
         else:
             raise AssertionError("did not split hydrogen correctly: %r %r"

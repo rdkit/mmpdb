@@ -58,5 +58,7 @@ include tests/test_data_2018.mmpdb
 include tests/test_data_2019.mmpdb
 include tests/test_frag2smarts.py
 include tests/test_fragment.py
+include tests/test_fragment_algorithm.py
 include tests/test_index.py
+include tests/test_loadprops.py
 include tests/two_tabs.smi
