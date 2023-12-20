@@ -33,12 +33,17 @@
 
 CREATE INDEX rule_environment_rule_id on rule_environment (rule_id);
 CREATE INDEX rule_environment_environment_fingerprint_id on rule_environment (environment_fingerprint_id);
+CREATE INDEX rule_environment_rule_id_num_pairs on rule_environment (rule_id, num_pairs);
+CREATE INDEX rule_environment_rule_id_num_pairs_fingerprint_id on rule_environment (rule_id, num_pairs, environment_fingerprint_id);
+
 CREATE INDEX rule_from_smiles_id on rule (from_smiles_id);
 CREATE INDEX rule_to_smiles_id on rule (to_smiles_id);
-CREATE INDEX rule_smiles_smiles on rule_smiles (smiles);
-CREATE INDEX environment_fingerprint_fingerprint on environment_fingerprint (fingerprint);
+CREATE UNIQUE INDEX rule_smiles_smiles on rule_smiles (smiles);
+CREATE INDEX environment_fingerprint_smarts on environment_fingerprint (smarts);
 CREATE INDEX rule_environment_statistics_rule_environment_and_property_name_ids on rule_environment_statistics (rule_environment_id, property_name_id);
 CREATE INDEX rule_environment_statistics_count on rule_environment_statistics(count);
 
 CREATE INDEX pair_rule_environment_id on pair (rule_environment_id);
+CREATE INDEX pair_compound_ids on pair (compound1_id, compound2_id);
+
 CREATE INDEX compound_property_compound_id_property_name_id on compound_property (compound_id, property_name_id);

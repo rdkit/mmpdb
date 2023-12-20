@@ -1,6 +1,9 @@
+"Implement the 'drop_index' command"
+
 # mmpdb - matched molecular pair database generation and analysis
 #
 # Copyright (c) 2015-2017, F. Hoffmann-La Roche Ltd.
+# Copyright (c) 2021, Andrew Dalke Scientific, AB
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are
@@ -30,44 +33,34 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-import sys
+from .click_utils import (
+    command,
+    add_single_database_parameters,
+    open_database_from_options_or_exit,
+)
 
-if sys.version_info.major == 2:
-    # Python 2
-    import __builtin__
-    basestring = __builtin__.basestring
-    
-    def open_universal(filename):
-        return open(filename, "rU")
+drop_index_epilog = """
 
-    # Treat a gzip binary file as a text files.
-    # This may cause problems mixing newline conventions.
-    def io_wrapper(fileobj):
-        return fileobj
+Drop the database indices from DATABASE. This is mostly used during
+development. The index takes about 1/2 of the size of the database, so
+if you need to save space for data exchange or archival purposes then
+you might drop the indices, and re-create them later when needed.
+"""
 
-    # gzip requires a binary file
-    binary_stdin = sys.stdin
-    binary_stdout = sys.stdout
 
-    # Lazy map available through itertools
-    import itertools
-    imap = itertools.imap
-    
-else:
-    # Python 3
-    import io
-    basestring = (str, bytes)
+@command(name="drop_index", epilog=drop_index_epilog)
+@add_single_database_parameters()
+def drop_index(
+    database_options,
+):
+    """Drop the database indices
 
-    def open_universal(filename):
-        return open(filename, "r", newline=None)
+    DATABASE: the mmpdb database
+    """
+    from .. import schema
 
-    # Convert binary file into text file
-    def io_wrapper(fileobj):
-        return io.TextIOWrapper(fileobj, newline=None)
+    mmpdb = open_database_from_options_or_exit(database_options)
 
-    # gzip requires a binary file
-    binary_stdin = sys.stdin.buffer
-    binary_stdout = getattr(sys.stdout, 'buffer', sys.stdout)
-    
-    # Lazy map is the default
-    imap = map
+    with mmpdb.atomic():
+        schema.drop_index(mmpdb)
+    mmpdb.execute("VACUUM")

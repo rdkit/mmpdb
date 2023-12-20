@@ -33,21 +33,18 @@
 import unittest
 import json
 
-from mmpdblib import commandline
 from mmpdblib import dbutils
 
-from support import get_filename, create_test_filename
+from support import get_filename, create_test_filename, expect_pass
 
-TEST_DATA_FRAGMENTS = get_filename("test_data.fragments")
+TEST_DATA_FRAGDB = get_filename("test_data.fragdb")
 TEST_DATA_CSV = get_filename("test_data.csv")
 
+
 def index(mmpdb_filename, *args):
-    args = ("--quiet", "index", TEST_DATA_FRAGMENTS, "-o", mmpdb_filename) + tuple(args)
-    try:
-        commandline.main(args)
-    except SystemExit as err:
-        raise AssertionError("SystemExit trying to run %r: %s" % (args, err))
-        
+    args = ("--quiet", "index", TEST_DATA_FRAGDB, "-o", mmpdb_filename) + tuple(args)
+    expect_pass(args)
+
 
 class TestIndexCommandline(unittest.TestCase):
     def _get_options(self, *args):
@@ -56,52 +53,75 @@ class TestIndexCommandline(unittest.TestCase):
         db = dbutils.open_database(mmpdb_filename)
         dataset = db.get_dataset()
         return dataset, json.loads(dataset.index_options_str)
-    
+
     def test_default_filters(self):
         dataset, options = self._get_options()
-        self.assertEqual(options,
-                         {u'max_variable_heavies': 10,
-                          u'smallest_transformation_only': False,
-                          u'symmetric': False})
+        self.assertEqual(
+            options,
+            {
+                "min_radius": 0,
+                "max_radius": 5,
+                "max_variable_heavies": 10,
+                "smallest_transformation_only": False,
+                "symmetric": False,
+            },
+        )
         self.assertEqual(dataset.get_num_rules(), 47)
         self.assertEqual(dataset.get_num_pairs(), 342)
         self.assertEqual(dataset.get_property_names(), [])
-        
+
     def test_set_filters(self):
         dataset, options = self._get_options(
-            "--min-variable-heavies", "1",
-            "--max-variable-heavies", "29",
-            "--min-variable-ratio", "0.1",
-            "--max-variable-ratio", "0.99",
-            "--max-heavies-transf", "25",
+            "--min-variable-heavies",
+            "1",
+            "--max-variable-heavies",
+            "29",
+            "--min-variable-ratio",
+            "0.1",
+            "--max-variable-ratio",
+            "0.99",
+            "--max-heavies-transf",
+            "25",
             "--symmetric",
-            "--max-frac-trans", "3")
-        self.assertEqual(options, {
-            u'symmetric': True,
-            u'max_frac_trans': 3.0,
-            u'max_heavies_transf': 25,
-            u'max_variable_heavies': 29,
-            u'max_variable_ratio': 0.99,
-            u'min_variable_heavies': 1,
-            u'min_variable_ratio': 0.1,
-            u'smallest_transformation_only': False})
-        self.assertEqual(dataset.get_num_rules(), 2*47) # because --symmetric
-        self.assertEqual(dataset.get_num_pairs(), 2*342) 
+            "--max-frac-trans",
+            "3",
+        )
+        self.assertEqual(
+            options,
+            {
+                "symmetric": True,
+                "max_frac_trans": 3.0,
+                "max_heavies_transf": 25,
+                "min_radius": 0,
+                "max_radius": 5,
+                "max_variable_heavies": 29,
+                "max_variable_ratio": 0.99,
+                "min_variable_heavies": 1,
+                "min_variable_ratio": 0.1,
+                "smallest_transformation_only": False,
+            },
+        )
+        self.assertEqual(dataset.get_num_rules(), 2 * 47)  # because --symmetric
+        self.assertEqual(dataset.get_num_pairs(), 2 * 342)
         self.assertEqual(dataset.get_property_names(), [])
 
     def test_max_variable_heavies_none(self):
         dataset, options = self._get_options("--max-variable-heavies", "none")
-        self.assertEqual(options, {
-            u'symmetric': False,
-            u'smallest_transformation_only': False,
-            })
-        
+        self.assertEqual(
+            options,
+            {
+                "min_radius": 0,
+                "max_radius": 5,
+                "symmetric": False,
+                "smallest_transformation_only": False,
+            },
+        )
+
     def test_with_properties(self):
         dataset, options = self._get_options("--properties", TEST_DATA_CSV, "--title", "test data")
         self.assertEqual(dataset.title, "test data")
         self.assertEqual(dataset.get_property_names(), ["MW", "MP"])
 
-    
-        
+
 if __name__ == "__main__":
     unittest.main()

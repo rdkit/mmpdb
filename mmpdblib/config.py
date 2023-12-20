@@ -30,17 +30,16 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-from __future__ import absolute_import
-
 #### Handle command-line arguments ####
 
-from collections import OrderedDict
 import argparse
 
-from ._compat import basestring
 from . import smarts_aliases
+from . import fragment_types
+from . import index_types
 
 # Things to pass as the ArgumentParser argument's 'type'
+
 
 def positive_int(value):
     try:
@@ -101,16 +100,15 @@ def cutoff_list(value_s):
         try:
             value = int(term)
         except ValueError as err:
-            raise argparse.ArgumentTypeError("could not parse %r as an integer: %s"
-                                             % (term, err))
-        
+            raise argparse.ArgumentTypeError("could not parse %r as an integer: %s" % (term, err))
+
         if value < 0:
             raise argparse.ArgumentTypeError("threshold values must be non-negative")
-        
+
         if prev is not None and prev <= value:
             raise argparse.ArgumentTypeError("threshold values must be in decreasing order")
         prev = value
-        
+
         values.append(value)
 
     if not values:  # Let people specify ""
@@ -124,12 +122,14 @@ def cutoff_list(value_s):
 parse_max_heavies_value = positive_int_or_none
 parse_max_rotatable_bonds_value = positive_int_or_none
 parse_min_heavies_per_const_frag_value = nonnegative_int
+parse_min_heavies_total_const_frag_value = nonnegative_int
+
 
 def parse_num_cuts_value(value):
     if value not in ("1", "2", "3"):
         raise argparse.ArgumentTypeError("must be '1', '2', or '3'")
     return int(value)
-        
+
 
 def parse_method_value(value):
     if value not in ("chiral",):
@@ -137,59 +137,7 @@ def parse_method_value(value):
     return value
 
 
-class FragmentOptions(object):
-    def __init__(self, max_heavies, max_rotatable_bonds,
-                 rotatable_smarts, cut_smarts, num_cuts,
-                 method, salt_remover, min_heavies_per_const_frag):
-        assert isinstance(max_heavies, int) or max_heavies is None, max_heavies
-        self.max_heavies = max_heavies
-
-        assert isinstance(max_rotatable_bonds, int) or max_rotatable_bonds is None, max_rotatable_bonds
-        self.max_rotatable_bonds = max_rotatable_bonds
-
-        assert isinstance(rotatable_smarts, str), rotatable_smarts
-        self.rotatable_smarts = rotatable_smarts
-        
-        assert isinstance(cut_smarts, str), cut_smarts
-        self.cut_smarts = cut_smarts
-
-        assert num_cuts in (1, 2, 3), num_cuts
-        self.num_cuts = num_cuts
-
-        assert method in ("chiral",)
-        self.method = method
-
-        assert isinstance(salt_remover, basestring), salt_remover
-        self.salt_remover = salt_remover
-
-        assert isinstance(min_heavies_per_const_frag, int), min_heavies_per_const_frag
-        self.min_heavies_per_const_frag = min_heavies_per_const_frag
-
-    def to_dict(self):
-        d = OrderedDict()
-        for name in ("max_heavies", "max_rotatable_bonds", "rotatable_smarts",
-                     "cut_smarts", "num_cuts", "method", "salt_remover",
-                     "min_heavies_per_const_frag"):
-            d[name] = getattr(self, name)
-        return d
-    
-    def to_text_settings(self):
-        def _none(x):
-            return "none" if x is None else str(x)
-        return (
-            ("max_heavies", _none(self.max_heavies)),
-            ("max_rotatable_bonds", _none(self.max_rotatable_bonds)),
-            ("rotatable_smarts", self.rotatable_smarts),
-            ("cut_smarts", self.cut_smarts),
-            ("num_cuts", str(self.num_cuts)),
-            ("method", self.method),
-            ("salt_remover", self.salt_remover),
-            ("min_heavies_per_const_frag", str(self.min_heavies_per_const_frag))
-
-            )
-
-
-DEFAULT_FRAGMENT_OPTIONS = FragmentOptions(
+DEFAULT_FRAGMENT_OPTIONS = fragment_types.FragmentOptions(
     max_heavies=100,
     max_rotatable_bonds=10,
     rotatable_smarts="[!$([NH]!@C(=O))&!D1&!$(*#*)]-&!@[!$([NH]!@C(=O))&!D1&!$(*#*)]",
@@ -198,54 +146,10 @@ DEFAULT_FRAGMENT_OPTIONS = FragmentOptions(
     method="chiral",
     salt_remover="<default>",
     min_heavies_per_const_frag=0,
-    )
+    min_heavies_total_const_frag=0,
+    max_up_enumerations=1000,
+)
 
-def add_fragment_arguments(parser):
-    p = parser
-    OPTS = DEFAULT_FRAGMENT_OPTIONS
-    p.add_argument("--max-heavies", type=parse_max_heavies_value,
-                   metavar="N", default=None,
-                   help="Maximum number of non-hydrogen atoms, or 'none' (default: %r)"
-                         % (OPTS.max_heavies,))
-    
-    p.add_argument("--max-rotatable-bonds", type=parse_max_rotatable_bonds_value,
-                   metavar="N", default=None,
-                   help="Maximum number of rotatable bonds (default: %d)"
-                         % (OPTS.max_rotatable_bonds,))
-    
-    p.add_argument("--rotatable-smarts", metavar="SMARTS",
-                   help="SMARTS pattern to detect rotatable bonds (default: %r)"
-                         % (OPTS.rotatable_smarts,))
-    
-    p.add_argument("--salt-remover", metavar="FILENAME",
-                   help="File containing RDKit SaltRemover definitions. The default ('<default>') "
-                        "uses RDKit's standard salt remover. Use '<none>' to not remove salts.")
-
-    g = p.add_mutually_exclusive_group()
-    alias_names = ", ".join(repr(alias.name) for alias in smarts_aliases.cut_smarts_aliases)
-    
-    g.add_argument("--cut-smarts", metavar="SMARTS",
-                   help="alternate SMARTS pattern to use for cutting (default: %r), or use one of: %s"
-                   % (OPTS.cut_smarts, alias_names))
-    
-    g.add_argument("--cut-rgroup", metavar="SMILES", action="append",
-                   help="cut on the attachment point for the given R-group SMILES")
-    
-    g.add_argument("--cut-rgroup-file", metavar="FILENAME",
-                   help="read R-group SMILES from the named file")
-    
-    p.add_argument("--num-cuts", choices=(1, 2, 3), type=parse_num_cuts_value,
-                   help="number of cuts to use (default: %d)"
-                   % (OPTS.num_cuts,))
-
-    p.add_argument("--min-heavies-per-const-frag", type=parse_min_heavies_per_const_frag_value,
-                   metavar="N", default=None,
-                   help="Ignore fragmentations where one or more constant fragments are very small (default: %r)"
-                         % (OPTS.min_heavies_per_const_frag,))
-    
-    ## p.add_argument("--method", choices=("dalke", "hussain"), type=fragment_io.parse_method_value,
-    ##                help="fragment canonicalization method to use (default: %s)"
-    ##                % (FRAGMENT_OPTIONS.method,))
 
 ###### Index
 
@@ -258,91 +162,103 @@ parse_max_heavies_transf = nonnegative_int
 parse_max_frac_trans = nonnegative_float
 parse_max_radius = nonnegative_int
 
-class IndexingOptions(object):
-    def __init__(self,
-                 min_variable_heavies, max_variable_heavies,
-                 min_variable_ratio, max_variable_ratio,
-                 max_heavies_transf, max_frac_trans,
-                 max_radius):
-        assert min_variable_heavies is None or min_variable_heavies >= 0, min_variable_heavies
-        self.min_variable_heavies = min_variable_heavies
 
-        assert (    (max_variable_heavies is None)
-                 or (min_variable_heavies is None and max_variable_heavies >= 0)
-                 or (min_variable_heavies <= max_variable_heavies)), max_variable_heavies
-        self.max_variable_heavies = max_variable_heavies
+DEFAULT_INDEX_OPTIONS = index_types.IndexOptions(
+    min_variable_heavies=None,  # XXX can this be 0?
+    max_variable_heavies=10,
+    min_variable_ratio=None,  # XXX can this be 0.0?
+    max_variable_ratio=None,
+    max_heavies_transf=None,
+    max_frac_trans=None,  # XXX can this be 1.0?,
+    min_radius=0,
+    max_radius=5,
+    symmetric=False,
+    smallest_transformation_only=False,
+)
 
-        assert min_variable_ratio is None or 0.0 <= min_variable_ratio <= 1.0, min_variable_ratio
-        self.min_variable_ratio = min_variable_ratio
-
-        assert (   (max_variable_ratio is None)
-                or (min_variable_ratio is not None and max_variable_ratio <= 1.0)
-                or (min_variable_ratio <= max_variable_ratio <= 1.0) )
-        self.max_variable_ratio = max_variable_ratio
-
-        assert max_heavies_transf is None or max_heavies_transf >= 0, max_heavies_transf
-        self.max_heavies_transf = max_heavies_transf
-
-        assert max_frac_trans is None or max_frac_trans >= 0, max_heavies_transf
-        self.max_frac_trans = max_frac_trans
-
-        assert max_radius >= 0, max_radius
-        self.max_radius = max_radius
-
-        
-DEFAULT_INDEX_OPTIONS = IndexingOptions(
-    min_variable_heavies = None, # XXX can this be 0?
-    max_variable_heavies = 10,
-    min_variable_ratio = None,   # XXX can this be 0.0?
-    max_variable_ratio = None,
-    max_heavies_transf = None,
-    max_frac_trans = None,  # XXX can this be 1.0?,
-    max_radius = 5
-    )
 
 def add_index_options(parser):
     p = parser
     OPTS = DEFAULT_INDEX_OPTIONS
-    p.add_argument("--min-variable-heavies", type=parse_min_variable_heavies_value,
-                   metavar="N", default=OPTS.min_variable_heavies,
-                    help="Minimum number of non-hydrogen atoms in the variable fragment.")
-    p.add_argument("--max-variable-heavies", type=parse_max_variable_heavies_value,
-                   default=DEFAULT_INDEX_OPTIONS.max_variable_heavies,
-                   metavar="N",
-                   help="Maximum number of non-hydrogen atoms in the variable fragment "
-                        "(default: 10; for no maximum use 'none')")
-    p.add_argument("--min-variable-ratio", type=parse_min_variable_ratio_value, default=None,
-                   metavar="FLT",
-                   help="Minimum ratio of variable fragment heavies to heavies in the (cleaned) structure")
-    p.add_argument("--max-variable-ratio", type=parse_max_variable_ratio_value, default=None,
-                   metavar="FLT",
-                   help="Maximum ratio of variable fragment heavies to heavies in the (cleaned) structure")
-    p.add_argument("--max-heavies-transf", type=parse_max_heavies_transf, default=None,
-                   metavar="N",
-                   help="Maximum difference in the number of heavies transfered in a transformation")
-    p.add_argument("--max-frac-trans", type=parse_max_frac_trans, default=None,
-                   metavar="FLT",
-                   help="Maximum fraction of atoms taking part in a transformation")
-    p.add_argument("--max-radius", type=parse_max_radius, 
-                   default=DEFAULT_INDEX_OPTIONS.max_radius,
-                   metavar="N",
-                   help="Maximum Environment Radius to be indexed in the MMPDB database")
+    p.add_argument(
+        "--min-variable-heavies",
+        type=parse_min_variable_heavies_value,
+        metavar="N",
+        default=OPTS.min_variable_heavies,
+        help="Minimum number of non-hydrogen atoms in the variable fragment.",
+    )
+    p.add_argument(
+        "--max-variable-heavies",
+        type=parse_max_variable_heavies_value,
+        default=DEFAULT_INDEX_OPTIONS.max_variable_heavies,
+        metavar="N",
+        help="Maximum number of non-hydrogen atoms in the variable fragment "
+        "(default: 10; for no maximum use 'none')",
+    )
+    p.add_argument(
+        "--min-variable-ratio",
+        type=parse_min_variable_ratio_value,
+        default=None,
+        metavar="FLT",
+        help="Minimum ratio of variable fragment heavies to heavies in the (cleaned) structure",
+    )
+    p.add_argument(
+        "--max-variable-ratio",
+        type=parse_max_variable_ratio_value,
+        default=None,
+        metavar="FLT",
+        help="Maximum ratio of variable fragment heavies to heavies in the (cleaned) structure",
+    )
+    p.add_argument(
+        "--max-heavies-transf",
+        type=parse_max_heavies_transf,
+        default=None,
+        metavar="N",
+        help="Maximum difference in the number of heavies transfered in a transformation",
+    )
+    p.add_argument(
+        "--max-frac-trans",
+        type=parse_max_frac_trans,
+        default=None,
+        metavar="FLT",
+        help="Maximum fraction of atoms taking part in a transformation",
+    )
+    p.add_argument(
+        "--max-radius",
+        type=parse_max_radius,
+        default=DEFAULT_INDEX_OPTIONS.max_radius,
+        metavar="N",
+        help="Maximum Environment Radius to be indexed in the MMPDB database",
+    )
 
 
-class DEFAULT_RULE_SELECTION_OPTIONS:
-    where = None
-    score = None
-    cutoff_list = (10, 5, 0)
+class RuleSelectionOptions:
+    def __init__(self, where, score, cutoff_list):
+        self.where = where
+        self.score = score
+        self.cutoff_list = cutoff_list
+
+    def get_rule_selection_function(self):
+        from . import analysis_algorithms
+
+        # generate the sort key for the different cutoffs
+        score_function = self.score
+        if score_function is None:
+            score_function = analysis_algorithms.default_score_function
+
+        rule_key_function = analysis_algorithms.ComputeRuleKey(
+            score_function=score_function,
+            cutoffs=self.cutoff_list,
+        )
+        # wrap it together into a selection function
+        return analysis_algorithms.RuleSelectionFunction(
+            self.where,
+            rule_key_function,
+        )
 
 
-def add_rule_selection_arguments(parser):
-    OPTS = DEFAULT_RULE_SELECTION_OPTIONS
-    parser.add_argument("--where", metavar="EXPR", default=OPTS.where,
-                        help="select only rules for which the expression is true")
-    parser.add_argument("--score", metavar="EXPR", default=OPTS.score,
-                        help="use to break ties when multiple rules produce the same SMILES")
-    parser.add_argument("--rule-selection-cutoffs", metavar="LIST", type=cutoff_list, default=OPTS.cutoff_list,
-                        dest="cutoffs",
-                        help="evaluate rule environments with the given minimum pair count. If multiple "
-                             "counts are given, consider them in turn until there is a selected environment. "
-                             "(default: '10,5,0')")
+DEFAULT_RULE_SELECTION_OPTIONS = RuleSelectionOptions(
+    where=None,
+    score=None,
+    cutoff_list=(10, 5, 0),
+)

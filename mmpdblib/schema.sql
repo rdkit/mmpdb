@@ -39,12 +39,19 @@
 -- get the correct database-specific SQL. These are:
 
 --   $PRIMARY_KEY$ - specifies the primary key type
---     SQLite: "INTEGER PRIMARY KEY"
---     MySQL:  "PRIMARY KEY"
+--     SQLite:   "INTEGER PRIMARY KEY"
+--     MySQL:    "PRIMARY KEY"
+--     Postgres: "SERIAL PRIMARY KEY"
 
 --   $COLLATE$ - specifies a case-sensitive collation order
---     SQLite: ""
---     MySQL: "COLLATE latin1_bin"
+--     SQLite:   ""
+--     MySQL:    "COLLATE latin1_bin"
+--     Postgres: 'COLLATE "C"'
+
+--   $DATETIME$ - specifies a case-sensitive collation order
+--     SQLite:   "DATETIME"
+--     MySQL:    "DATETIME"
+--     Postgres: "TIMESTAMP"
 
 -- In addition, to simplify processing, this file must only use
 -- semicolons at the end of a SQL statement.
@@ -54,7 +61,7 @@ CREATE TABLE dataset (
   id $PRIMARY_KEY$,
   mmpdb_version INTEGER NOT NULL,
   title VARCHAR(255) NOT NULL $COLLATE$,    -- human-visible label
-  creation_date DATETIME NOT NULL,
+  creation_date $DATETIME$ NOT NULL,
   fragment_options VARCHAR(2000) NOT NULL $COLLATE$, -- the JSON-encoded options used to fragment the dataset
   index_options VARCHAR(2000) NOT NULL $COLLATE$, -- the JSON-encoded options used to index the dataset
   is_symmetric INTEGER NOT NULL,
@@ -72,10 +79,10 @@ CREATE TABLE dataset (
 
 CREATE TABLE compound (
   id $PRIMARY_KEY$,
-  public_id VARCHAR(255) NOT NULL $COLLATE$,    -- the public compound id (should this have a better name?)
+  public_id VARCHAR(255) NOT NULL $COLLATE$ UNIQUE,    -- the public compound id (should this have a better name?)
   input_smiles VARCHAR(255) NOT NULL $COLLATE$, -- the input SMILES, before salt removal
   clean_smiles VARCHAR(255) NOT NULL $COLLATE$, -- the SMILES after salt removal
-  clean_num_heavies INTEGER NOT NULL $COLLATE$  -- the number of heavies in the cleaned SMILES (needed?)
+  clean_num_heavies INTEGER NOT NULL  -- the number of heavies in the cleaned SMILES (needed?)
   );
 
 
@@ -83,7 +90,7 @@ CREATE TABLE compound (
 
 CREATE TABLE property_name (
   id $PRIMARY_KEY$,
-  name VARCHAR(255) NOT NULL $COLLATE$
+  name VARCHAR(255) NOT NULL $COLLATE$ UNIQUE
   );
 
 
@@ -102,19 +109,10 @@ CREATE TABLE compound_property (
 -- Normalized SMILES for the LHS or RHS of the rule transformation SMILES.
 CREATE TABLE rule_smiles (
   id $PRIMARY_KEY$,
-  smiles VARCHAR(255) NOT NULL $COLLATE$,
+  smiles VARCHAR(255) NOT NULL $COLLATE$ UNIQUE,
   num_heavies INTEGER
 );
 
-
--- The "constant_part" (also called the context) is the substructure
--- which remains constant in the transformation. It typically has one
--- or more R-groups. It is omitted from the transformation A>>B.
-
-CREATE TABLE constant_smiles (
-  id $PRIMARY_KEY$,
-  smiles VARCHAR(255)
-  );
 
 
 -- -- A matched molecular pair rule
@@ -130,33 +128,59 @@ CREATE TABLE rule (
   );
 
 
--- Table with normalized fingerprints for the rule_environment.
+-- Table with normalized SMARTS for the rule_environment.
+
+-- These are based on the RDKit Morgan (ECFP-like) circular
+-- fingerprints but using canonical SMARTS. The "pseudo-SMILES"
+-- is a SMILES-like string which tries to represent the SMARTS
+-- as a depictable SMILES string. It is *not* SMILES because:
+--
+-- 1. ring atoms which may be either aromatic or aliphatic are
+--   represented with [#7], [#8], etc. instead of a symbol.
+-- 2. "(~*)" terms are added to show the number of additional
+--   connections. The bond type isn't known. Note: these
+--   represent additional bonds, not additional atoms. For
+--   example, two (~*) terms may represent bonds going to
+--   the same atom.
+
+-- In my testing I found a 640-byte SMARTS and a 241 byte pseudo-SMILES.
+
 
 -- Fingerprints are based on the RDKit Morgan (ECFP-like) circular
--- fingerprints. They are only used for equality testing. To save
--- space, they are SHA2 hashed then base64 coded, so only 43 bytes
--- (344 bits) are needed.  They cannot be used for similarity testing.
+-- fingerprints, interpreted as a canonical SMARTS pattern.
 
 CREATE TABLE environment_fingerprint (
- id INTEGER PRIMARY KEY,
- fingerprint VARCHAR(43) NOT NULL $COLLATE$,  -- the base64-encoded SHA2
- parent_id INTEGER   --Allow figuring out the parent of a given Env-FP
+ id $PRIMARY_KEY$,
+ smarts VARCHAR(1024) $COLLATE$ NOT NULL,  -- the environment as a SMARTS string
+ pseudosmiles VARCHAR(400) $COLLATE$  NOT NULL,  -- the environment as a SMILES-like string
+ parent_smarts VARCHAR(1024) $COLLATE$ NOT NULL -- the parent SMARTS to this environment
+        -- (it's the empty string "" when there is no parent)
  );
 
 
 -- A rule can have multiple rule environment, one per radius.
 
 CREATE TABLE rule_environment (
- id INTEGER PRIMARY KEY,
+ id $PRIMARY_KEY$,
  rule_id INTEGER REFERENCES rule(id),
  environment_fingerprint_id INTEGER REFERENCES environment_fingerprint(id),
- radius INTEGER
- -- should I keep track of the number of pairs?
+ radius INTEGER,
+ num_pairs INTEGER
  -- (the rule_env..._statistics "count" is the number of pairs with a given property)
  );
 
 
 -- The pairs that belong to a rule_environment
+
+-- The "constant_part" (also called the context) is the substructure
+-- which remains constant in the transformation. It typically has one
+-- or more R-groups. It is omitted from the transformation A>>B.
+
+CREATE TABLE constant_smiles (
+  id $PRIMARY_KEY$,
+  smiles VARCHAR(255)
+  );
+
 
 CREATE TABLE pair (
   id $PRIMARY_KEY$,

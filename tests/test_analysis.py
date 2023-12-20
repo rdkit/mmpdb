@@ -34,60 +34,57 @@ import unittest
 import gzip
 import re
 
-from mmpdblib import commandline
+from mmpdblib import cli
 
-from support import capture_stdout, capture_stderr
-from support import get_filename, create_test_filename
+from support import (
+    get_filename,
+    create_test_filename,
+    expect_pass,
+    expect_fail,
+)
 
+# In 2018/2019 RDKit changed its representation of '*' from '[*]' to '*'.
+# mmpdb for a while supported both options.
+# This code checks that nothing strange happened.
 from rdkit import Chem
+
 wildcard_atom = Chem.CanonSmiles("*")
-if wildcard_atom == "[*]":
-    TEST_DATA_MMPDB = get_filename("test_data_2019.mmpdb")
-elif wildcard_atom == "*":
-    # The dataset was generated with:
-    #   python -m mmpdblib.commandline index test_data.fragments --properties test_data.csv -o test_data_2018.mmpdb
-    TEST_DATA_MMPDB = get_filename("test_data_2019.mmpdb")
-else:
-    raise AssertionError(wildcard_atom)
-    
+assert wildcard_atom == "*", ("Why did RDKit change?", wildcard_atom)
+# The dataset was generated with:
+#   python -m mmpdblib.cli index test_data.fragments --properties test_data.csv -o test_data_2019.mmpdb
+TEST_DATA_MMPDB = get_filename("test_data_2019.mmpdb")
+
 
 class Table(list):
     def get_column(self, column_name):
         i = self[0].index(column_name)
         return [row[i] for row in self[1:]]
 
+
 def parse_table(output):
     rows = [line.split("\t") for line in output.splitlines(False)]
     return Table(rows)
 
+
 def transform(*args):
     args = ("--quiet", "transform", TEST_DATA_MMPDB) + tuple(args)
-    with capture_stdout() as stdout:
-        try:
-            commandline.main(args)
-        except SystemExit as err:
-            raise AssertionError("SystemExit trying to run %r: %s" % (args, err))
-    return parse_table(stdout.value)
+    result = expect_pass(args)
+    return parse_table(result.output)
+
 
 def transform_fail(*args):
     args = ("--quiet", "transform", TEST_DATA_MMPDB) + tuple(args)
-    with capture_stderr() as stderr:
-        try:
-            commandline.main(args)
-        except SystemExit as err:
-            pass
-        else:
-            raise AssertionError("Should have failed: %r" % (args,))
-    return stderr.value
-    
+    return expect_fail(args).stderr
+
 
 class TestTransformCommand(unittest.TestCase):
     def check_property_delta(self, table, property, expected_dict):
         expected_dict = expected_dict.copy()
         for from_smiles, to_smiles, delta in zip(
-                table.get_column(property + "_from_smiles"),
-                table.get_column(property + "_to_smiles"),
-                table.get_column(property + "_avg")):
+            table.get_column(property + "_from_smiles"),
+            table.get_column(property + "_to_smiles"),
+            table.get_column(property + "_avg"),
+        ):
             self.assertEqual(from_smiles, "[*:1]O")
             expected = expected_dict.pop(to_smiles)
             self.assertEqual(float(delta), expected)
@@ -95,58 +92,65 @@ class TestTransformCommand(unittest.TestCase):
 
     def test_basic(self):
         table = transform("--smiles", "c1cccnc1O")
-        self.assertEqual(table[0], [
-            'ID',
-            'SMILES',
-            'MW_from_smiles',
-            'MW_to_smiles',
-            'MW_radius',
-            'MW_fingerprint',
-            'MW_rule_environment_id',
-            'MW_count',
-            'MW_avg',
-            'MW_std',
-            'MW_kurtosis',
-            'MW_skewness',
-            'MW_min',
-            'MW_q1',
-            'MW_median',
-            'MW_q3',
-            'MW_max',
-            'MW_paired_t',
-            'MW_p_value',
-            'MP_from_smiles',
-            'MP_to_smiles',
-            'MP_radius',
-            'MP_fingerprint',
-            'MP_rule_environment_id',
-            'MP_count',
-            'MP_avg',
-            'MP_std',
-            'MP_kurtosis',
-            'MP_skewness',
-            'MP_min',
-            'MP_q1',
-            'MP_median',
-            'MP_q3',
-            'MP_max',
-            'MP_paired_t',
-            'MP_p_value',
-            ])
+        self.assertEqual(
+            table[0],
+            [
+                "ID",
+                "SMILES",
+                "MW_from_smiles",
+                "MW_to_smiles",
+                "MW_radius",
+                "MW_smarts",
+                "MW_pseudosmiles",
+                "MW_rule_environment_id",
+                "MW_count",
+                "MW_avg",
+                "MW_std",
+                "MW_kurtosis",
+                "MW_skewness",
+                "MW_min",
+                "MW_q1",
+                "MW_median",
+                "MW_q3",
+                "MW_max",
+                "MW_paired_t",
+                "MW_p_value",
+                "MP_from_smiles",
+                "MP_to_smiles",
+                "MP_radius",
+                "MP_smarts",
+                "MP_pseudosmiles",
+                "MP_rule_environment_id",
+                "MP_count",
+                "MP_avg",
+                "MP_std",
+                "MP_kurtosis",
+                "MP_skewness",
+                "MP_min",
+                "MP_q1",
+                "MP_median",
+                "MP_q3",
+                "MP_max",
+                "MP_paired_t",
+                "MP_p_value",
+            ],
+        )
 
         # Make sure the changes are as expected
-        self.check_property_delta(table, "MW", {
-            # remember, *O means *[OH] but *Cl is just *[Cl]
-            '[*:1]Cl': 35.5 - 16.0 - 1.0,
-            # *N is *[NH2]
-            '[*:1]N': 14.0 + 2.0 - 16.0 - 1.0,
-            # [*:1][H] is just a hydrogen
-            '[*:1][H]': 1.0 - 16.0 - 1.0})
+        self.check_property_delta(
+            table,
+            "MW",
+            {
+                # remember, *O means *[OH] but *Cl is just *[Cl]
+                "[*:1]Cl": 35.5 - 16.0 - 1.0,
+                # *N is *[NH2]
+                "[*:1]N": 14.0 + 2.0 - 16.0 - 1.0,
+                # [*:1][H] is just a hydrogen
+                "[*:1][H]": 1.0 - 16.0 - 1.0,
+            },
+        )
 
-        self.check_property_delta(table, "MP", {
-            '[*:1]Cl': -97.0,
-            '[*:1]N': -16.667,
-            '[*:1][H]': -93.0})
+        self.check_property_delta(table, "MP", {"[*:1]Cl": -97.0, "[*:1]N": -16.667, "[*:1][H]": -93.0})
 
         self.assertEqual(table.get_column("MW_count"), ["1", "3", "4"])
         self.assertEqual(table.get_column("MP_count"), ["1", "3", "3"])
@@ -155,33 +159,34 @@ class TestTransformCommand(unittest.TestCase):
 
     def test_MP_property(self):
         table = transform("--smiles", "c1cccnc1O", "--property", "MP")
-        self.assertEqual(table[0], [
-            'ID',
-            'SMILES',
-            'MP_from_smiles',
-            'MP_to_smiles',
-            'MP_radius',
-            'MP_fingerprint',
-            'MP_rule_environment_id',
-            'MP_count',
-            'MP_avg',
-            'MP_std',
-            'MP_kurtosis',
-            'MP_skewness',
-            'MP_min',
-            'MP_q1',
-            'MP_median',
-            'MP_q3',
-            'MP_max',
-            'MP_paired_t',
-            'MP_p_value',
-            ])
+        self.assertEqual(
+            table[0],
+            [
+                "ID",
+                "SMILES",
+                "MP_from_smiles",
+                "MP_to_smiles",
+                "MP_radius",
+                "MP_smarts",
+                "MP_pseudosmiles",
+                "MP_rule_environment_id",
+                "MP_count",
+                "MP_avg",
+                "MP_std",
+                "MP_kurtosis",
+                "MP_skewness",
+                "MP_min",
+                "MP_q1",
+                "MP_median",
+                "MP_q3",
+                "MP_max",
+                "MP_paired_t",
+                "MP_p_value",
+            ],
+        )
 
         # Make sure the changes are as expected
-        self.check_property_delta(table, "MP", {
-            '[*:1]Cl': -97.0,
-            '[*:1]N': -16.667,
-            '[*:1][H]': -93.0})
+        self.check_property_delta(table, "MP", {"[*:1]Cl": -97.0, "[*:1]N": -16.667, "[*:1][H]": -93.0})
 
     def test_no_properties(self):
         table = transform("--smiles", "c1cccnc1O", "--no-properties")
@@ -191,10 +196,9 @@ class TestTransformCommand(unittest.TestCase):
     def test_radius(self):
         # radius=1 doesn't change things because that's still the aromatic carbons
         table = transform("--smiles", "c1cccnc1O", "--min-radius", "1", "--property", "MW")
-        self.check_property_delta(table, "MW", {
-            '[*:1]Cl': 35.5 - 16.0 - 1.0,
-            '[*:1]N': 14.0 + 2.0 - 16.0 - 1.0,
-            '[*:1][H]': 1.0 - 16.0 - 1.0})
+        self.check_property_delta(
+            table, "MW", {"[*:1]Cl": 35.5 - 16.0 - 1.0, "[*:1]N": 14.0 + 2.0 - 16.0 - 1.0, "[*:1][H]": 1.0 - 16.0 - 1.0}
+        )
 
         # radius=2 reaches the aromatic nitrogen, so finds no matches
         table = transform("--smiles", "c1cccnc1O", "--min-radius", "2", "--property", "MW")
@@ -202,8 +206,7 @@ class TestTransformCommand(unittest.TestCase):
 
     def test_substructure(self):
         table = transform("--smiles", "c1cccnc1O", "--substructure", "Cl", "--property", "MW")
-        self.check_property_delta(table, "MW", {
-            '[*:1]Cl': 35.5 - 16.0 - 1.0})
+        self.check_property_delta(table, "MW", {"[*:1]Cl": 35.5 - 16.0 - 1.0})
 
     def test_min_pairs(self):
         table = transform("--smiles", "c1cccnc1O", "--min-pairs", "3")
@@ -260,33 +263,35 @@ class TestTransformCommand(unittest.TestCase):
     #### Error conditions
     def test_bad_smiles(self):
         errmsg = transform_fail("--smiles", "NOT_A_SMILES")
-        self.assertIn("error: Unable to fragment --smiles 'NOT_A_SMILES': invalid smiles\n", errmsg)
+        self.assertIn("Unable to fragment --smiles 'NOT_A_SMILES': invalid smiles\n", errmsg)
 
     def test_bad_smiles_not_enough_heavy_atoms(self):
         errmsg = transform_fail("--smiles", "C")
-        self.assertIn("error: Unable to fragment --smiles 'C': not enough heavy atoms\n", errmsg)
+        self.assertIn("Unable to fragment --smiles 'C': not enough heavy atoms\n", errmsg)
 
     def test_bad_min_constant_size(self):
-        #[--min-constant-size N]
+        # [--min-constant-size N]
         errmsg = transform_fail("--smiles", "c1cccnc1O", "--min-constant-size", "Q")
-        self.assertIn("--min-constant-size: must be a positive integer or zero\n", errmsg)
+        self.assertIn("Error: Invalid value for '--min-constant-size': must be a positive integer or zero", errmsg)
         errmsg = transform_fail("--smiles", "c1cccnc1O", "--min-constant-size", "-1")
-        self.assertIn("--min-constant-size: must be a positive integer or zero\n", errmsg)
+        self.assertIn("Error: Invalid value for '--min-constant-size': must be a positive integer or zero", errmsg)
         errmsg = transform_fail("--smiles", "c1cccnc1O", "--min-constant-size", "1.0")
-        self.assertIn("--min-constant-size: must be a positive integer or zero\n", errmsg)
+        self.assertIn("Error: Invalid value for '--min-constant-size': must be a positive integer or zero", errmsg)
 
     def test_bad_radius(self):
         errmsg = transform_fail("--smiles", "c1cccnc1O", "--min-radius", "-1")
-        self.assertIn("--min-radius/-r: invalid choice: '-1'", errmsg)
-        self.assertIn("'0', '1', '2', '3', '4', '5'", errmsg)
+        self.assertIn(
+            "Error: Invalid value for '--min-radius' / '-r': " "'-1' is not one of '0', '1', '2', '3', '4', '5'.",
+            errmsg,
+        )
 
     def test_bad_min_pairs(self):
         errmsg = transform_fail("--smiles", "c1cccnc1O", "--min-pairs", "-1")
-        self.assertIn("--min-pairs: must be a positive integer or zero\n", errmsg)
+        self.assertIn("Error: Invalid value for '--min-pairs': must be a positive integer or zero\n", errmsg)
 
     def test_bad_substructure(self):
         errmsg = transform_fail("--smiles", "c1cccnc1O", "--substructure", "ZZTop")
-        self.assertIn("Cannot parse --substructure 'ZZTop'\n", errmsg)
+        self.assertIn("Invalid value for '--substructure' / '-S': Unable to parse SMARTS: 'ZZTop'\n", errmsg)
 
     def test_bad_property_name(self):
         errmsg = transform_fail("--smiles", "c1cccnc1O", "--property", "BP")
@@ -294,70 +299,70 @@ class TestTransformCommand(unittest.TestCase):
 
     def test_bad_where(self):
         errmsg = transform_fail("--smiles", "c1cccnc1O", "--where", "BAD_VARIABLE")
-        self.assertIn("unsupported variable name 'BAD_VARIABLE', in --where 'BAD_VARIABLE'\n", errmsg)
+        self.assertIn("Error: Invalid value for '--where': unsupported variable name 'BAD_VARIABLE'", errmsg)
         errmsg = transform_fail("--smiles", "c1cccnc1O", "--where", "invalid Python expression")
-        self.assertIn("invalid syntax (--where, line 1), in --where 'invalid Python expression'\n", errmsg)
+        self.assertIn("Error: Invalid value for '--where': Cannot parse: invalid syntax (--where, line 1)", errmsg)
 
     def test_bad_score(self):
         errmsg = transform_fail("--smiles", "c1cccnc1O", "--score", "BAD_VARIABLE")
-        self.assertIn("unsupported variable name 'BAD_VARIABLE', in --score 'BAD_VARIABLE'\n", errmsg)
+        self.assertIn("Error: Invalid value for '--score': unsupported variable name 'BAD_VARIABLE'", errmsg)
         errmsg = transform_fail("--smiles", "c1cccnc1O", "--score", "invalid Python expression")
-        self.assertIn("invalid syntax (--score, line 1), in --score 'invalid Python expression'\n", errmsg)
+        self.assertIn("Error: Invalid value for '--score': Cannot parse: invalid syntax (--score, line 1)", errmsg)
 
     def test_bad_rule_selection_cutoffs(self):
         errmsg = transform_fail("--smiles", "c1cccnc1O", "--rule-selection-cutoffs", "A,B,C")
-        self.assertIn("--rule-selection-cutoffs: could not parse 'A' as an integer: "
-                      "invalid literal for int() with base 10: 'A'\n", errmsg)
+        self.assertIn(
+            "Error: Invalid value for '--rule-selection-cutoffs': could not parse A as an integer: "
+            "invalid literal for int() with base 10: 'A'",
+            errmsg,
+        )
         errmsg = transform_fail("--smiles", "c1cccnc1O", "--rule-selection-cutoffs", "20,10,-4")
-        self.assertIn("--rule-selection-cutoffs: threshold values must be non-negative\n", errmsg)
+        self.assertIn("Invalid value for '--rule-selection-cutoffs': threshold values must be non-negative", errmsg)
         errmsg = transform_fail("--smiles", "c1cccnc1O", "--rule-selection-cutoffs", "10,20")
-        self.assertIn("--rule-selection-cutoffs: threshold values must be in decreasing order\n", errmsg)
+        self.assertIn(
+            "Error: Invalid value for '--rule-selection-cutoffs': " "threshold values must be in decreasing order",
+            errmsg,
+        )
 
     def test_bad_jobs(self):
         errmsg = transform_fail("--smiles", "c1cccnc1O", "--jobs", "-1")
-        self.assertIn("--jobs/-j: must be a positive integer\n", errmsg)
+        self.assertIn("Error: Invalid value for '--jobs' / '-j': must be a positive integer", errmsg)
         errmsg = transform_fail("--smiles", "c1cccnc1O", "--jobs", "0")
-        self.assertIn("--jobs/-j: must be a positive integer\n", errmsg)
+        self.assertIn("Error: Invalid value for '--jobs' / '-j': must be a positive integer", errmsg)
         errmsg = transform_fail("--smiles", "c1cccnc1O", "--jobs", "0 0")
-        self.assertIn("--jobs/-j: must be a positive integer\n", errmsg)
+        self.assertIn("Error: Invalid value for '--jobs' / '-j': must be a positive integer", errmsg)
 
     def test_bad_output(self):
         errmsg = transform_fail("--smiles", "c1cccnc1O", "--output", "/this/directory/does/not/at/all/exist/output.txt")
         self.assertIn("Cannot open --output file:", errmsg)
         self.assertIn("/this/directory/does/not/at/all/exist/output.txt", errmsg)
 
+
 ######
 
 _predict_pat = re.compile(r"^predicted delta: (\S+)( predicted value: (\S+))?$")
 
+
 def parse_predict(text):
     if text == "No rules found.\n":
         return None, None
-        
+
     m = _predict_pat.match(text)
     if m is None:
         raise AssertionError("Could not parse %r" % (text,))
     return m.group(1), m.group(3)
-        
+
+
 def predict(*args):
     args = ("--quiet", "predict", TEST_DATA_MMPDB) + tuple(args)
-    with capture_stdout() as stdout:
-        try:
-            commandline.main(args)
-        except SystemExit as err:
-            raise AssertionError("SystemExit trying to run %r: %s" % (args, err))
-    return parse_predict(stdout.value)
+    result = expect_pass(args)
+    return parse_predict(result.output)
+
 
 def predict_fail(*args):
     args = ("--quiet", "predict", TEST_DATA_MMPDB) + tuple(args)
-    with capture_stderr() as stderr:
-        try:
-            commandline.main(args)
-        except SystemExit as err:
-            pass
-        else:
-            raise AssertionError("Should have failed: %r" % (args,))
-    return stderr.value
+    return expect_fail(args)
+
 
 def read_details(prefix):
     with open(prefix + "_rules.txt") as infile:
@@ -366,53 +371,61 @@ def read_details(prefix):
         pairs_table = parse_table(infile.read())
     return rules_table, pairs_table
 
+
 class TestPredictCommand(unittest.TestCase):
     def test_MW_basic(self):
-        delta, new_value = predict("--smiles", "c1cccnc1O", "--reference", "Clc1ccccn1",
-                                   "--property", "MW")
+        delta, new_value = predict("--smiles", "c1cccnc1O", "--reference", "Clc1ccccn1", "--property", "MW")
         self.assertEqual(delta, "-18.5")
         self.assertIs(new_value, None)
 
     def test_MW_value(self):
-        delta, new_value = predict("--smiles", "c1cccnc1O", "--reference", "Clc1ccccn1",
-                                   "--property", "MW", "--value", "20.1")
+        delta, new_value = predict(
+            "--smiles", "c1cccnc1O", "--reference", "Clc1ccccn1", "--property", "MW", "--value", "20.1"
+        )
         self.assertEqual(delta, "-18.5")
         self.assertEqual(new_value, "1.6")
 
     def test_MP_basic(self):
-        delta, new_value = predict("--smiles", "c1cccnc1O", "--reference", "Clc1ccccn1",
-                                   "--property", "MP")
+        delta, new_value = predict("--smiles", "c1cccnc1O", "--reference", "Clc1ccccn1", "--property", "MP")
         self.assertEqual(delta, "+97")
         self.assertIs(new_value, None)
 
     def test_MP_value(self):
-        delta, new_value = predict("--smiles", "c1cccnc1O", "--reference", "Clc1ccccn1",
-                                   "--property", "MP", "--value", "1.23")
+        delta, new_value = predict(
+            "--smiles", "c1cccnc1O", "--reference", "Clc1ccccn1", "--property", "MP", "--value", "1.23"
+        )
         self.assertEqual(delta, "+97")
         self.assertEqual(new_value, "98.23")
 
     def test_where(self):
-        result = predict("--smiles", "c1cccnc1O", "--reference", "Clc1ccccn1",
-                         "--property", "MP", "--where", "count > 10")
+        result = predict(
+            "--smiles", "c1cccnc1O", "--reference", "Clc1ccccn1", "--property", "MP", "--where", "count > 10"
+        )
         self.assertEqual(result, (None, None))
 
     def test_save_details(self):
         prefix = create_test_filename(self, "predict_details")
-        result = predict("--smiles", "c1cccnc1O", "--reference", "Clc1ccccn1",
-                         "--property", "MW", "--save-details",
-                         "--prefix", prefix)
+        result = predict(
+            "--smiles",
+            "c1cccnc1O",
+            "--reference",
+            "Clc1ccccn1",
+            "--property",
+            "MW",
+            "--save-details",
+            "--prefix",
+            prefix,
+        )
         self.assertEqual(result, ("-18.5", None))
 
         rules_table, pairs_table = read_details(prefix)
         self.assertEqual(rules_table.get_column("from_smiles"), ["[*:1]Cl", "[*:1]Cl"])
         self.assertEqual(rules_table.get_column("to_smiles"), ["[*:1]O", "[*:1]O"])
-        
+
         self.assertEqual(pairs_table.get_column("radius"), ["0", "1"])
         self.assertEqual(pairs_table.get_column("lhs_public_id"), ["2-chlorophenol", "2-chlorophenol"])
         self.assertEqual(pairs_table.get_column("rhs_public_id"), ["catechol", "catechol"])
-        
 
-    
-        
+
 if __name__ == "__main__":
     unittest.main()

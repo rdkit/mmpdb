@@ -4,58 +4,42 @@ import sys
 import os
 import tempfile
 import shutil
-
-if sys.version_info.major == 2:
-    from io import BytesIO
-    class StringIO(BytesIO):
-        def write(self, s):
-            if isinstance(s, unicode):
-                s = s.encode("utf8")
-            return super(StringIO, self).write(s)
-else:
-    from io import StringIO
+from click.testing import CliRunner
+from mmpdblib import cli
 
 
-class redirect_stdin(object):
-    def __init__(self, text):
-        self.text = text
-    def __enter__(self):
-        self._real_stdin = sys.stdin
-        self.stream = sys.stdin = StringIO(self.text)
-        return self
-    def __exit__(self, exc_type, exc_value, traceback):
-        sys.stdin = self._real_stdin
-        self.stream.close()
+def expect_pass(args, input=None):
+    runner = CliRunner(mix_stderr=False)
+    result = runner.invoke(cli.main, args, input=input)
+    if result.exit_code:
+        import shlex
 
-class capture_stdout(object):
-    def __enter__(self):
-        self._real_stdout = sys.stdout
-        self.stream = sys.stdout = StringIO()
-        return self
+        args_msg = " ".join(shlex.quote(word) for word in args)
+        if result.exc_info:
+            import traceback
 
-    def __exit__(self, exc_type, exc_value, traceback):
-        sys.stdout = self._real_stdout
-        self.value = self.stream.getvalue()
-        self.stream.close()
+            traceback.print_exception(*result.exc_info)
+        raise AssertionError(f"SystemExit trying to run '{args_msg}': {result.exit_code}: {result.stderr}")
+    return result
 
-class capture_stderr(object):
-    def __enter__(self):
-        self._real_stderr = sys.stderr
-        self.stream = sys.stderr = StringIO()
-        return self
 
-    def __exit__(self, exc_type, exc_value, traceback):
-        sys.stderr = self._real_stderr
-        self.value = self.stream.getvalue()
-        self.stream.close()
-        
+def expect_fail(args, input=None):
+    runner = CliRunner(mix_stderr=False)
+    result = runner.invoke(cli.main, args, input=input)
+    if not result.exit_code:
+        raise AssertionError(f"Should have failed: {args!r}")
+    return result
+
+
 def get_filename(filename):
     return os.path.join(os.path.dirname(__file__), filename)
+
 
 def create_testdir_and_filename(test_case, filename):
     dirname = tempfile.mkdtemp(prefix="mmpdb_test")
     test_case.addCleanup(shutil.rmtree, dirname)
     return dirname, os.path.join(dirname, filename)
+
 
 def create_test_filename(test_case, filename):
     dirname = tempfile.mkdtemp(prefix="mmpdb_test")

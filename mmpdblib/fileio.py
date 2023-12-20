@@ -24,14 +24,20 @@
 #
 # The modifications to this file are covered under the mmpdb license.
 
-from __future__ import print_function, absolute_import
-
 import sys
 import gzip
-#import io
+import os
 
-from ._compat import basestring, open_universal, io_wrapper
-from ._compat import binary_stdin, binary_stdout
+from io import TextIOWrapper
+
+
+def _get_binary_stdin():
+    return sys.stdin.buffer
+
+
+def _get_binary_stdout():
+    return getattr(sys.stdout, "buffer", sys.stdout)
+
 
 class FileFormatError(ValueError):
     pass
@@ -60,39 +66,42 @@ class Outfile(object):
 
     def writelines(self, lines):
         self._outfile.writelines(lines)
-            
+
 
 def open_input(filename):
     if filename is None:
         return sys.stdin
-    
+
     if filename.endswith(".gz"):
-        return io_wrapper(gzip.open(filename))
-    return open_universal(filename)
+        return TextIOWrapper(gzip.open(filename))
+    return open(filename)
 
 
 def open_output(filename, format_hint):
     if format_hint is None:
-        if isinstance(filename, basestring):
+        if isinstance(filename, str):
             is_compressed = filename.lower().endswith(".gz")
+        elif isinstance(filename, bytes):
+            is_compressed = filename.lower().endswith(b".gz")
         else:
             is_compressed = False
     else:
         is_compressed = format_hint.lower().endswith(".gz")
-        
+
     if filename is None:
         if is_compressed:
-            outfile = gzip.GzipFile(fileobj=binary_stdout, mode="w")
-            outfile = io_wrapper(outfile)
+            outfile = gzip.GzipFile(fileobj=_get_binary_stdout(), mode="w")
+            outfile = TextIOWrapper(outfile)
             return Outfile("<stdout>", outfile, outfile.close)
         else:
             return Outfile("<stdout>", sys.stdout, None)
 
     if is_compressed:
-        outfile = io_wrapper(gzip.open(filename, "w"))
+        outfile = TextIOWrapper(gzip.open(filename, "w"))
     else:
         outfile = open(filename, "w")
     return Outfile(filename, outfile, outfile.close)
+
 
 ## The Location object from chemfp
 
@@ -105,14 +114,15 @@ _where_template = {
     (1, 0, 1): "file %(filename)r, record #%(recno)d",
     (1, 1, 0): "file %(filename)r, line %(lineno)d",
     (1, 1, 1): "file %(filename)r, line %(lineno)d, record #%(recno)d",
-    }
+}
+
 
 class Location(object):
     """Get location and other internal reader and writer state information
 
     A Location instance gives a way to access information like
     the current record number, line number, and molecule object.::
-    
+
       >>> with chemfp.read_molecule_fingerprints("RDKit-MACCS166",
       ...                        "ChEBI_lite.sdf.gz", id_tag="ChEBI ID") as reader:
       ...   for id, fp in reader:
@@ -121,7 +131,7 @@ class Location(object):
       ...         print("Record byte range:", reader.location.offsets)
       ...         print("Number of atoms:", reader.location.mol.GetNumAtoms())
       ...         break
-      ... 
+      ...
       [08:18:12]  S group MUL ignored on line 103
       Record starts at line 3599
       Record byte range: (138171, 141791)
@@ -137,12 +147,12 @@ class Location(object):
       * recno - the current record number
       * record - the record as a text string
       * record_format - the record format, like "sdf" or "can"
-       
+
 
     Most of the readers and writers do not support all of the properties.
     Unsupported properties return a None. The *filename* is a read/write
     attribute and the other attributes are read-only.
-    
+
     If you don't pass a location to the readers and writers then they will
     create a new one based on the source or destination, respectively.
     You can also pass in your own Location, created as ``Location(filename)``
@@ -151,6 +161,7 @@ class Location(object):
     source or destination.
 
     """
+
     _get_recno = None
     _get_output_recno = None
     _get_lineno = None
@@ -158,7 +169,7 @@ class Location(object):
     _get_mol = None
     _get_record = None
     _record_format = None
-    
+
     def __init__(self, filename=None):
         """Use *filename* as the location's filename"""
         self.filename = filename
@@ -178,7 +189,7 @@ class Location(object):
         lineno = self.lineno
         recno = self.recno
 
-        template = _where_template[ (filename is not None, lineno is not None, recno is not None) ]
+        template = _where_template[(filename is not None, lineno is not None, recno is not None)]
         s = template % {"filename": filename, "lineno": lineno, "recno": recno}
 
         first_line = self.first_line
@@ -203,14 +214,14 @@ class Location(object):
         """
         if source is None:
             return cls("<stdin>")
-        if isinstance(source, basestring):
+        if isinstance(source, str):
             return cls(source)
         return cls(getattr(source, "name", None))
 
     @classmethod
     def from_destination(cls, destination):
         """Create a Location instance based on the destination
-        
+
         If *destination* is a string then it's used as the filename.
         If *destination* is None then the location filename is "<stdout>".
         If *destination* is a file object then its ``name`` attribute
@@ -218,7 +229,7 @@ class Location(object):
         """
         if destination is None:
             return cls("<stdout>")
-        if isinstance(destination, basestring):
+        if isinstance(destination, str):
             return cls(destination)
         return cls(getattr(destination, "name", None))
 
@@ -234,7 +245,14 @@ class Location(object):
     def register(self, **kwargs):
         """Part of the internal API, and subject to change."""
         for k, v in kwargs.items():
-            if k in ("get_recno", "get_output_recno", "get_lineno", "get_offsets", "get_mol", "get_record"):
+            if k in (
+                "get_recno",
+                "get_output_recno",
+                "get_lineno",
+                "get_offsets",
+                "get_mol",
+                "get_record",
+            ):
                 setattr(self, "_" + k, v)
             else:
                 raise KeyError(k)
@@ -243,8 +261,10 @@ class Location(object):
         """Part of the internal API, and subject to change."""
         for k, v in kwargs.items():
             if k in ("recno", "output_recno", "lineno", "offsets", "mol", "record"):
+
                 def recall_value(value=v):
                     return value
+
                 setattr(self, "_get_" + k, recall_value)
             elif k == "record_format":
                 self._record_format = v
@@ -253,13 +273,14 @@ class Location(object):
 
     def get_registry(self):
         """Part of the internal API, and subject to change."""
-        return {"get_recno": self._get_recno,
-                "get_output_recno": self._get_output_recno,
-                "get_lineno": self._get_lineno,
-                "get_offsets": self._get_offsets,
-                "get_mol": self._get_mol,
-                "get_record": self._get_record,
-                }
+        return {
+            "get_recno": self._get_recno,
+            "get_output_recno": self._get_output_recno,
+            "get_lineno": self._get_lineno,
+            "get_offsets": self._get_offsets,
+            "get_mol": self._get_mol,
+            "get_record": self._get_record,
+        }
 
     @property
     def recno(self):
@@ -339,10 +360,11 @@ class Location(object):
             return None
         first_line, _, _ = record.partition("\n")
         return first_line.rstrip("\r")
-        
+
 
 #####
-    
+
+
 class SmilesReader(object):
     def __init__(self, reader, location):
         self.reader = reader
@@ -362,9 +384,8 @@ class SmilesReader(object):
     def __exit__(self, exc_type, exc_value, traceback):
         self.reader = None
 
-        
-def _read_smiles_file(infile, close, first_lineno, delimiter_message,
-                      split_delimiter, location):
+
+def _read_smiles_file(infile, close, first_lineno, delimiter_message, split_delimiter, location):
     lineno = 0
     line = None
 
@@ -378,25 +399,24 @@ def _read_smiles_file(infile, close, first_lineno, delimiter_message,
         return line
 
     location.register(
-        get_recno = get_recno,
-        get_lineno = get_lineno,
-        get_record = get_record,
-        )
+        get_recno=get_recno,
+        get_lineno=get_lineno,
+        get_record=get_record,
+    )
 
     yield "ready"
     try:
         for lineno, line in enumerate(infile):
             terms = split_delimiter(line)
             if len(terms) < 2:
-                raise FileFormatError(
-                    "%s, %s" % (delimiter_message, location.where()))
+                raise FileFormatError("%s, %s" % (delimiter_message, location.where()))
             yield terms
     finally:
         location.save(
-            recno = get_recno(),
-            lineno = get_lineno(),
-            record = None,
-            )
+            recno=get_recno(),
+            lineno=get_lineno(),
+            record=None,
+        )
         if close is not None:
             close()
 
@@ -407,8 +427,13 @@ def _split_whitespace(line):
 
 def _read_whitespace(infile, close, first_lineno, location):
     return _read_smiles_file(
-        infile, close, first_lineno,
-        "must contain at least two whitespace-delimited fields", _split_whitespace, location)
+        infile,
+        close,
+        first_lineno,
+        "must contain at least two whitespace-delimited fields",
+        _split_whitespace,
+        location,
+    )
 
 
 def _split_tab(line):
@@ -419,8 +444,13 @@ def _split_tab(line):
 
 def _read_tab(infile, close, first_lineno, location):
     return _read_smiles_file(
-        infile, close, first_lineno,
-        "must contain at least two tab-delimited fields", _split_tab, location)
+        infile,
+        close,
+        first_lineno,
+        "must contain at least two tab-delimited fields",
+        _split_tab,
+        location,
+    )
 
 
 def _split_space(line):
@@ -431,8 +461,13 @@ def _split_space(line):
 
 def _read_space(infile, close, first_lineno, location):
     return _read_smiles_file(
-        infile, close, first_lineno,
-        "must contain at least two space-delimited fields", _split_space, location)
+        infile,
+        close,
+        first_lineno,
+        "must contain at least two space-delimited fields",
+        _split_space,
+        location,
+    )
 
 
 def _split_comma(line):
@@ -443,8 +478,13 @@ def _split_comma(line):
 
 def _read_comma(infile, close, first_lineno, location):
     return _read_smiles_file(
-        infile, close, first_lineno,
-        "must contain at least two comma-delimited fields", _split_comma, location)
+        infile,
+        close,
+        first_lineno,
+        "must contain at least two comma-delimited fields",
+        _split_comma,
+        location,
+    )
 
 
 def _split_to_eol(line):
@@ -455,8 +495,13 @@ def _split_to_eol(line):
 
 def _read_to_eol(infile, close, first_lineno, location):
     return _read_smiles_file(
-        infile, close, first_lineno,
-        "must contain a whitespace to delimit the to-eol fields", _split_to_eol, location)
+        infile,
+        close,
+        first_lineno,
+        "must contain a whitespace to delimit the to-eol fields",
+        _split_to_eol,
+        location,
+    )
 
 
 _delimiter_readers = {
@@ -467,7 +512,21 @@ _delimiter_readers = {
     "comma": _read_comma,
     None: _read_whitespace,
     "native": _read_whitespace,
-    }
+}
+
+
+def remove_suffixes(filename):
+    """Remove .gz (if present) then any additional suffix
+
+    Used to get the '/a/x' in '/a/x.smi.gz' or '/a/x.smi'.
+    """
+    left, ext = os.path.splitext(filename)
+    if ext.lower() == ".gz":
+        left, ext = os.path.splitext(left)
+    if not left:
+        # Handle odd names like ".smi", ".gz, and ".smi.gz".
+        return "input"
+    return left
 
 
 def read_smiles_file(filename, format=None, delimiter="whitespace", has_header=False):
@@ -488,25 +547,25 @@ def read_smiles_file(filename, format=None, delimiter="whitespace", has_header=F
 
     if filename is None:
         if format == "smi.gz":
-            infile = io_wrapper(gzip.GzipFile(fileobj=binary_stdin))
+            infile = TextIOWrapper(gzip.GzipFile(fileobj=_get_binary_stdin()))
             close = None
         else:
             infile = sys.stdin
             close = None
         name = "<stdin>"
-            
+
     else:
         if format == "smi.gz":
-            infile = io_wrapper(gzip.GzipFile(filename))
+            infile = TextIOWrapper(gzip.GzipFile(filename))
             close = infile.close
         else:
-            infile = open_universal(filename)
+            infile = open(filename)
             close = infile.close
         name = filename
 
     location = Location.from_source(name)
     location.save(record_format="smi")
-        
+
     first_lineno = 1
     if has_header:
         if infile.readline():
@@ -516,20 +575,25 @@ def read_smiles_file(filename, format=None, delimiter="whitespace", has_header=F
 
     # initialize the reader by processing up to the first yield
     assert next(reader) == "ready"
-    
+
     return SmilesReader(reader, location)
 
 
 if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser(description = "fileio test code")
+
+    parser = argparse.ArgumentParser(description="fileio test code")
     parser.add_argument("-i", "--in", dest="format")
     parser.add_argument("--has-header", action="store_true", default=False)
     parser.add_argument("--delimiter", default=None)
     parser.add_argument("filename", default=None, nargs="?")
-    
-    import sys
+
     args = parser.parse_args()
     with read_smiles_file(args.filename, args.format, args.delimiter, args.has_header) as reader:
         for x in reader:
-            print(reader.location.filename, reader.location.lineno, reader.location.recno, x)
+            print(
+                reader.location.filename,
+                reader.location.lineno,
+                reader.location.recno,
+                x,
+            )
