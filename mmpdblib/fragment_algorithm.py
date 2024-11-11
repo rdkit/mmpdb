@@ -80,21 +80,7 @@ _atom_and_dot_disconnect_pat = re.compile(
 
 def get_atom_order_in_smiles(mol):
     s = mol.GetProp("_smilesAtomOutputOrder")
-    # print("Decode", s)
-    positions = []
-    assert s[0] == "[", s
-    i = 1
-    while 1:
-        j = s.find(",", i)
-        if j == -1:
-            assert s[i:] == "]", (s, i, s[i:])
-            break
-        assert j > i, (s, i, s[i:])
-        order = s[i:j]
-        assert order.isdigit(), (s, i, j, order)
-        i = j + 1
-        positions.append(int(order))
-
+    positions = list(map(int,s.replace('[', '').replace(']', '').split(',')))
     assert len(positions) == mol.GetNumAtoms(), (s, positions, mol.GetNumAtoms())
     assert len(set(positions)) == len(positions), positions
     return positions
