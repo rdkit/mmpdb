@@ -1,4 +1,4 @@
-# mmpdb 3.1 - matched molecular pair database generation and analysis
+# mmpdb 3.1.1 - matched molecular pair database generation and analysis
 
 
 ## Synopsis
@@ -12,7 +12,7 @@ property changes and generate new molecular structures.
 
 ## Installation
 
-mmpdb 3.1 must be installed before use. (Earlier versions of mmpdb
+mmpdb 3.1.1 must be installed before use. (Earlier versions of mmpdb
 could be run in-place, in the top-level directory.) This will also
 ensure that the SciPy, peewee, and click packages are installed.
 
