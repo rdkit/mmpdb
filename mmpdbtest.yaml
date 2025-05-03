@@ -1,9 +1,0 @@
-name: mmpdbtest
-channels:
-  - conda-forge
-  - nodefaults
-dependencies:
-  - python =3.13.*
-  - rdkit =2025
-
-# conda env create -f /pstore/data/cadd-scratch/hertj1/mmpdb/mmpdbtest.yaml --prefix /projects/site/pred/cadd/hertj1/conda/envs/mmpdbtest
