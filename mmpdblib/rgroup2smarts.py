@@ -130,8 +130,8 @@ def rgroup_mol_to_smarts(mol):
     # is a string like '[0,1,2,3,4,5,6,7,8,13,9,10,11,12,]' which maps
     # between the atom order in the molecule and the output order
     output_order_str = mol.GetProp("_smilesAtomOutputOrder")
-    assert output_order_str[0] == "[" and output_order_str[-2:] == ",]", output_order_str
-    output_order_map = map(int, output_order_str[1:-2].split(","))
+    assert output_order_str[0] == "[" and output_order_str[-1:] == "]", output_order_str
+    output_order_map = map(int, output_order_str[1:-1].split(","))
     invert_order = dict(enumerate(output_order_map))
 
     ## print(converted_smi)

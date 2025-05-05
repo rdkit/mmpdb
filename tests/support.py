@@ -35,13 +35,7 @@ def get_filename(filename):
     return os.path.join(os.path.dirname(__file__), filename)
 
 
-def create_testdir_and_filename(test_case, filename):
-    dirname = tempfile.mkdtemp(prefix="mmpdb_test")
-    test_case.addCleanup(shutil.rmtree, dirname)
-    return dirname, os.path.join(dirname, filename)
-
-
 def create_test_filename(test_case, filename):
-    dirname = tempfile.mkdtemp(prefix="mmpdb_test")
+    dirname = tempfile.mkdtemp(prefix="mmpdb_test_")
     test_case.addCleanup(shutil.rmtree, dirname)
     return os.path.join(dirname, filename)

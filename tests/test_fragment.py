@@ -533,7 +533,7 @@ class TestOptions(unittest.TestCase):
             records = list(db)
             self._check_record(records[1], "entry", "Nc1ccccc1C")
             # This is a fake record to check that the value came from the cache.
-            self.assertIn("P", records[1].fragmentations[0].constant_smiles)
+            self.assertIn("*N", records[1].fragmentations[0].constant_smiles)
 
             # This doesn't come from the cache.
             self._check_record(records[2], "item", "Nc1cc(S)ccc1C")
@@ -577,11 +577,11 @@ class TestSmiFrag(unittest.TestCase):
 
     def test_max_heavies(self):
         errmsg = smifrag_fail("c1ccccc1O", "--max-heavies", "5")
-        self.assertIn("Cannot parse smiles: too many heavy atoms", errmsg)
+        self.assertIn("Cannot process SMILES: too many heavy atoms", errmsg)
 
     def test_rotatable_bonds(self):
         errmsg = smifrag_fail("c1ccccc1O", "--max-rotatable-bonds", "3", "--rotatable-smarts", "**")
-        self.assertIn("Cannot parse smiles: too many rotatable bonds", errmsg)
+        self.assertIn("Cannot process SMILES: too many rotatable bonds", errmsg)
 
     def test_cut_smarts_using_cut_AlkylChains(self):
         result = smifrag("CCCC")
