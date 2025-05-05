@@ -24,6 +24,7 @@ classifiers = [
 dependencies = [
     "click",
     "peewee >= 3.0",
+    "rdkit>=2024.3",
     "scipy",
 ]
 
