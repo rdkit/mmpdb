@@ -1,6 +1,50 @@
+[project]
+name = "mmpdb"
+dynamic = ["version"]
+description = "A package to identify matched molecular pairs and use them to predict property changes"
+readme = "README.md"
+license-files = ["LICENSE.txt"]
+requires-python = ">=3.10"
+authors = [
+    { name = "Andrew Dalke", email = "dalke@dalkescientific.com" },
+]
+keywords = [
+    "MMP",
+    "cheminformatics",
+    "matched molecular pair",
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: Science/Research",
+    "Operating System :: Unix",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Chemistry",
+]
+dependencies = [
+    "click",
+    "peewee >= 3.0",
+    "rdkit>=2024.3",
+    "scipy",
+]
+
+[project.scripts]
+mmpdb = "mmpdblib.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/rdkit/mmpdb"
+
 [build-system]
-requires = ["setuptools >= 40.8.0", "wheel", "click"]
-build-backend = "setuptools.build_meta:__legacy__"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+path = "mmpdblib/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+# Explicitly tell the wheel builder to package the contents
+# of the 'mmpdblib' directory. 
+packages = ["mmpdblib"]
 
 [tool.black]
 line-length = 120
