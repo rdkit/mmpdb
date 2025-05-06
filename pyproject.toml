@@ -10,7 +10,7 @@ readme = "README.md"
 license-files = ["LICENSE.txt"]
 requires-python = ">=3.10"
 authors = [
-  { name = "Andrew Dalke", email = "dalke@dalkescientific.com" },
+  {name = "Andrew Dalke", email = "dalke@dalkescientific.com"},
 ]
 maintainers = [
   {name = "Jerome (chem-bio)", email = "rdkit-discuss@lists.sourceforge.net"},
@@ -45,7 +45,7 @@ Homepage = "https://github.com/rdkit/mmpdb"
 [tool.hatch.version]
 path = "mmpdblib/__init__.py"
 
-[tool.hatch.build.targets.wheel]
+[tool.hatch.build]
 packages = ["mmpdblib"]
 
 [tool.black]
