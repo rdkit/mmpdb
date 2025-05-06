@@ -1,3 +1,7 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "mmpdb"
 dynamic = ["version"]
@@ -6,26 +10,30 @@ readme = "README.md"
 license-files = ["LICENSE.txt"]
 requires-python = ">=3.10"
 authors = [
-    { name = "Andrew Dalke", email = "dalke@dalkescientific.com" },
+  { name = "Andrew Dalke", email = "dalke@dalkescientific.com" },
+]
+maintainers = [
+  {name = "Jerome (chem-bio)", email = "rdkit-discuss@lists.sourceforge.net"}
+  {name = "Christian Kramer", email = "rdkit-discuss@lists.sourceforge.net"}
 ]
 keywords = [
-    "MMP",
-    "cheminformatics",
-    "matched molecular pair",
+  "MMP",
+  "cheminformatics",
+  "matched molecular pair",
 ]
 classifiers = [
-    "Development Status :: 5 - Production/Stable",
-    "Environment :: Console",
-    "Intended Audience :: Science/Research",
-    "Operating System :: Unix",
-    "Programming Language :: Python :: 3",
-    "Topic :: Scientific/Engineering :: Chemistry",
+  "Development Status :: 5 - Production/Stable",
+  "Environment :: Console",
+  "Intended Audience :: Science/Research",
+  "Operating System :: Unix",
+  "Programming Language :: Python :: 3",
+  "Topic :: Scientific/Engineering :: Chemistry",
 ]
 dependencies = [
-    "click",
-    "peewee >= 3.0",
-    "rdkit>=2024.3",
-    "scipy",
+  "click",
+  "peewee >= 3.0",
+  "rdkit >= 2024.3",
+  "scipy",
 ]
 
 [project.scripts]
@@ -34,16 +42,10 @@ mmpdb = "mmpdblib.cli:main"
 [project.urls]
 Homepage = "https://github.com/rdkit/mmpdb"
 
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
 [tool.hatch.version]
 path = "mmpdblib/__init__.py"
 
 [tool.hatch.build.targets.wheel]
-# Explicitly tell the wheel builder to package the contents
-# of the 'mmpdblib' directory. 
 packages = ["mmpdblib"]
 
 [tool.black]

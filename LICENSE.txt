@@ -1,7 +1,7 @@
 mmpdb - matched molecular pair database generation and analysis
 
 
-Copyright (c) 2015-2019 F. Hoffmann-La Roche Ltd., distributed under the
+Copyright (c) 2015-2025 F. Hoffmann-La Roche Ltd., distributed under the
 3-clause BSD license license, below.
 
 Portions may be copyright (c) 2012-2013 by GlaxoSmithKline Research &
@@ -23,7 +23,7 @@ license. These are the files peewee.py and playhouse/*.py.
 Unless otherwise noted, all files in this directory and all
 subdirectories are distributed under the following license:
 
-Copyright (c) 2015-2019, F. Hoffmann-La Roche Ltd.
+Copyright (c) 2015-2025, F. Hoffmann-La Roche Ltd.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
