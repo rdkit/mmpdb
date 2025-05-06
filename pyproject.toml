@@ -13,8 +13,8 @@ authors = [
   { name = "Andrew Dalke", email = "dalke@dalkescientific.com" },
 ]
 maintainers = [
-  {name = "Jerome (chem-bio)", email = "rdkit-discuss@lists.sourceforge.net"}
-  {name = "Christian Kramer", email = "rdkit-discuss@lists.sourceforge.net"}
+  {name = "Jerome (chem-bio)", email = "rdkit-discuss@lists.sourceforge.net"},
+  {name = "Christian Kramer", email = "rdkit-discuss@lists.sourceforge.net"},
 ]
 keywords = [
   "MMP",
