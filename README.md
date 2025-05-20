@@ -29,10 +29,10 @@ On Windows:
 py -m pip install mmpdb
 ```
 
-If you are using a virtual environment (eg, with
+If you are using a virtual environment (e.g. with
 [venv](https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/#creating-a-virtual-environment)
 or
-[conda](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html)
+[conda](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html))
 then the installer will place a copy of the relevant files into the
 virtual environment's Python package directory, and place the
 `mmpdb` command-line driver in your path.
