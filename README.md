@@ -448,7 +448,7 @@ transforming 2-pyridone to pyridone:
 predicted delta: -93 +/- 76.7268
 ```
 
-This is the same MP_value and MP_std from the previous section using
+This is the same MP_avg and MP_std from the previous section using
 '`transform`'.
 
 The reference value may also be included in the calulation, to give a
@@ -477,7 +477,7 @@ rule pairs to `pred_detail_pairs.txt`.
 ### 6) Use MMP to generate new structures
 
 The rules in a MMP database give a sort of "playbook" about the
-transformations which might be explored in medicinal chemistry. These rule can
+transformations which might be explored in medicinal chemistry. These rules can
 be applied to a given structure to generate new related structures, following
 a method related to the transform command but ignoring any property
 information. Here's an example using the default radius of 0, which means the
