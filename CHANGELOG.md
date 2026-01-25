@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## mmpdb 3.1.3 - 2026-01-25
+## mmpdb 3.1.4 - 2026-01-25
 
 Fixed smi_split.py error (and small changes to unittests).
 
