@@ -1,5 +1,24 @@
 # CHANGELOG
 
+## mmpdb 3.1.3 - 2026-01-25
+
+Fixed smi_split.py error (and small changes to unittests).
+
+## mmpdb 3.1.3 - 2025-05-06
+
+Update build system to hatchling.
+
+## mmpdb 3.1.2 - 2025-05-03
+
+Merge pull request [#71](https://github.com/rdkit/mmpdb/pull/71)
+from rdkit/mmpdb-3.1.2-dev
+
+## mmpdb 3.1.1 - 2025-01-12
+
+New release after merge of pull request
+[#66](https://github.com/rdkit/mmpdb/pull/66) to fix
+`_smilesAtomOutputOrder parsing` for RDKit 2024.03.6 or newer.
+
 ## mmpdb 3.1 - 2023-11-28
 
 Extended the "generate" command to handle 2-, and 3-cut transforms.
