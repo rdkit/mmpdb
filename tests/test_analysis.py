@@ -58,7 +58,7 @@ TEST_DATA_MMPDB = get_filename("test_data_2019.mmpdb")
 class Table(list):
     def get_column(self, column_name):
         i = self[0].index(column_name)
-        return [row[i] for row in self[1:]]
+        return [row[i] for row in self[1:] if len(row) > i]
 
 
 def parse_table(output):

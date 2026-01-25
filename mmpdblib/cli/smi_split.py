@@ -1,5 +1,6 @@
 import os
 import click
+import math
 
 from .click_utils import (
     command,
@@ -161,7 +162,7 @@ def smi_split(
         # Can't have more files than entries
         num_files = min(num_files, len(entries))
 
-    num_records_per_file = len(entries) // num_files
+    num_records_per_file = math.ceil(len(entries) / num_files)
 
     i = -1
     for i in range(num_files):

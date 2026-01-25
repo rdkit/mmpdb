@@ -9,7 +9,7 @@ from mmpdblib import cli
 
 
 def expect_pass(args, input=None):
-    runner = CliRunner(mix_stderr=False)
+    runner = CliRunner()
     result = runner.invoke(cli.main, args, input=input)
     if result.exit_code:
         import shlex
@@ -24,7 +24,7 @@ def expect_pass(args, input=None):
 
 
 def expect_fail(args, input=None):
-    runner = CliRunner(mix_stderr=False)
+    runner = CliRunner()
     result = runner.invoke(cli.main, args, input=input)
     if not result.exit_code:
         raise AssertionError(f"Should have failed: {args!r}")

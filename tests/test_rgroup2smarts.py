@@ -30,8 +30,6 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-from __future__ import print_function
-
 import sys
 import unittest
 
@@ -39,6 +37,7 @@ from mmpdblib import rgroup2smarts
 
 import support
 
+import warnings
 
 def run(cmd, stderr_ok=False, input=None):
     if isinstance(cmd, str):
@@ -48,13 +47,15 @@ def run(cmd, stderr_ok=False, input=None):
     if not stderr_ok and result.stderr:
         print(stderr.value, file=sys.stderr)
         raise AssertionError(("unexpected stderr", cmd, stderr.value))
-    return result.output, result.stderr
+    return result.stdout, result.stderr
 
 
 def run_fail(cmd):
     if isinstance(cmd, str):
         cmd = cmd.split()
-    return support.expect_fail(cmd).stderr
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        return support.expect_fail(cmd).stderr
 
 
 class TestSmilesOnCommandline(unittest.TestCase):
@@ -309,9 +310,9 @@ _bad_smiles_inputs = [
         "Cannot convert SMILES ('[*H]F') at --cut-rgroup SMILES #1: wildcard atom must not have implicit hydrogens\n",
     ),
     ("[*-]F", "Cannot convert SMILES ('[*-]F') at --cut-rgroup SMILES #1: wildcard atom must be uncharged\n"),
-    # ("[*+2]F", "Cannot convert SMILES ('[*+2]F') at --cut-rgroup SMILES #1: wildcard atom must be uncharged\n"),
-    # ("Cl*F", "Cannot convert SMILES ('Cl*F') at --cut-rgroup SMILES #1: wildcard atom must only have one bond\n"),
-    # ("*Cl.F", "Cannot convert SMILES ('*Cl.F') at --cut-rgroup SMILES #1: more than one fragment found\n"),
+    ("[*+2]F", "Cannot convert SMILES ('[*+2]F') at --cut-rgroup SMILES #1: wildcard atom must be uncharged\n"),
+    ("Cl*F", "Cannot convert SMILES ('Cl*F') at --cut-rgroup SMILES #1: wildcard atom must only have one bond\n"),
+    ("*Cl.F", "Cannot convert SMILES ('*Cl.F') at --cut-rgroup SMILES #1: more than one fragment found\n"),
 ]
 
 
@@ -327,64 +328,61 @@ class TestCommandlineFailures(unittest.TestCase):
             self.assertEqual(errmsg, stderr)
 
 
-# Commented beccause unstable errors from ResourceWarning: unclosed database in <sqlite3.Connection object at 0xxxxxx>
-# Seems to come from unclose db somewhere after fragment_db.py connects to a db (line 100)
-# Can be traced import tracemalloc and then tracemalloc.start() 
-# class TestFilenameFailures(unittest.TestCase):
-#     def test_bad_smiles(self):
-#         filename = support.create_test_filename(self, "rgroups.dat")
-#         args = ["rgroup2smarts", filename]
-#         for smiles_list, errmsg in _bad_smiles_inputs:
-#             with open(filename, "w") as outfile:
-#                 for smiles in smiles_list.split():
-#                     outfile.write(smiles + "\n")
+class TestFilenameFailures(unittest.TestCase):
+    def test_bad_smiles(self):
+        filename = support.create_test_filename(self, "rgroups.dat")
+        args = ["rgroup2smarts", filename]
+        for smiles_list, errmsg in _bad_smiles_inputs:
+            with open(filename, "w") as outfile:
+                for smiles in smiles_list.split():
+                    outfile.write(smiles + "\n")
 
-#             stderr = run_fail(args)
-#             stderr = fix_stderr(self, stderr, filename)
-#             errmsg = errmsg.replace("--cut-rgroup SMILES #", "frags.smi, line ")
-#             self.assertEqual(stderr, errmsg)
+            stderr = run_fail(args)
+            stderr = fix_stderr(self, stderr, filename)
+            errmsg = errmsg.replace("--cut-rgroup SMILES #", "frags.smi, line ")
+            self.assertEqual(stderr, errmsg)
 
-#     def test_blank_line_not_allowed(self):
-#         filename = support.create_test_filename(self, "rgroups.dat")
-#         with open(filename, "w") as f:
-#             f.write("*C\n\n*N\n")
+    def test_blank_line_not_allowed(self):
+        filename = support.create_test_filename(self, "rgroups.dat")
+        with open(filename, "w") as f:
+            f.write("*C\n\n*N\n")
 
-#         stderr = run_fail(["rgroup2smarts", filename])
-#         stderr = fix_stderr(self, stderr, filename)
-#         self.assertEqual(stderr, "Cannot parse input file: no SMILES found at frags.smi, line 2\n")
+        stderr = run_fail(["rgroup2smarts", filename])
+        stderr = fix_stderr(self, stderr, filename)
+        self.assertEqual(stderr, "Cannot parse input file: no SMILES found at frags.smi, line 2\n")
 
-#     def test_blank_line_not_allowed(self):
-#         filename = support.create_test_filename(self, "rgroups.dat")
-#         with open(filename, "w") as f:
-#             f.write("*C\n\n*N\n")
+    def test_blank_line_not_allowed(self):
+        filename = support.create_test_filename(self, "rgroups.dat")
+        with open(filename, "w") as f:
+            f.write("*C\n\n*N\n")
 
-#         stderr = run_fail(["rgroup2smarts", filename])
-#         stderr = fix_stderr(self, stderr, filename)
-#         self.assertEqual(stderr, "Cannot parse input file: no SMILES found at frags.smi, line 2\n")
+        stderr = run_fail(["rgroup2smarts", filename])
+        stderr = fix_stderr(self, stderr, filename)
+        self.assertEqual(stderr, "Cannot parse input file: no SMILES found at frags.smi, line 2\n")
 
-#     def test_initial_whitespace_not_allowed(self):
-#         filename = support.create_test_filename(self, "rgroups.dat")
-#         with open(filename, "w") as f:
-#             f.write("*C\n *N\n")
+    def test_initial_whitespace_not_allowed(self):
+        filename = support.create_test_filename(self, "rgroups.dat")
+        with open(filename, "w") as f:
+            f.write("*C\n *N\n")
 
-#         stderr = run_fail(["rgroup2smarts", filename])
-#         stderr = fix_stderr(self, stderr, filename)
-#         self.assertEqual(stderr, "Cannot parse input file: expected SMILES at start of line at frags.smi, line 2\n")
+        stderr = run_fail(["rgroup2smarts", filename])
+        stderr = fix_stderr(self, stderr, filename)
+        self.assertEqual(stderr, "Cannot parse input file: expected SMILES at start of line at frags.smi, line 2\n")
 
-#     def test_empty_file_not_allowed(self):
-#         filename = support.create_test_filename(self, "rgroups.dat")
-#         with open(filename, "w") as f:
-#             f.close()
+    def test_empty_file_not_allowed(self):
+        filename = support.create_test_filename(self, "rgroups.dat")
+        with open(filename, "w") as f:
+            f.close()
 
-#         stderr = run_fail(["rgroup2smarts", filename])
-#         stderr = fix_stderr(self, stderr, filename)
-#         self.assertEqual(stderr, "Cannot make a SMARTS: no SMILES strings found in frags.smi\n")
+        stderr = run_fail(["rgroup2smarts", filename])
+        stderr = fix_stderr(self, stderr, filename)
+        self.assertEqual(stderr, "Cannot make a SMARTS: no SMILES strings found in frags.smi\n")
 
-#     def test_file_does_not_exist(self):
-#         filename = support.create_test_filename(self, "rgroups.dat")
-#         stderr = run_fail(["rgroup2smarts", filename])
-#         stderr = fix_stderr(self, stderr, filename)
-#         self.assertEqual(stderr, "Cannot open input file: [Errno 2] No such file or directory: frags.smi\n")
+    def test_file_does_not_exist(self):
+        filename = support.create_test_filename(self, "rgroups.dat")
+        stderr = run_fail(["rgroup2smarts", filename])
+        stderr = fix_stderr(self, stderr, filename)
+        self.assertEqual(stderr, "Cannot open input file: [Errno 2] No such file or directory: frags.smi\n")
 
 
 class TestOtherErrors(unittest.TestCase):

@@ -30,7 +30,7 @@ classifiers = [
   "Topic :: Scientific/Engineering :: Chemistry",
 ]
 dependencies = [
-  "click",
+  "click" >= 8.2,
   "peewee >= 3.0",
   "rdkit >= 2024.3",
   "scipy",
