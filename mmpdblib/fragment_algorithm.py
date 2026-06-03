@@ -234,7 +234,7 @@ def is_potential_chiral_center(atom, atom_ranks):
 
     atomic_num = atom.GetAtomicNum()
     if atomic_num == 16 or atomic_num == 34:
-        valence = atom.GetExplicitValence()
+        valence = atom.GetValence(Chem.ValenceType.EXPLICIT)
         if (valence == 4) or (valence == 3 and atom.GetFormalCharge() == 1):
             return True
     return False
