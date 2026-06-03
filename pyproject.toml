@@ -32,7 +32,7 @@ classifiers = [
 dependencies = [
   "click >= 8.2",
   "peewee >= 3.0",
-  "rdkit >= 2024.3",
+  "rdkit >= 2025.3",
   "scipy",
 ]
 
