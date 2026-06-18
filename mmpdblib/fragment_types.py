@@ -258,6 +258,8 @@ class FragmentFilter(object):
         self.max_up_enumerations = max_up_enumerations
 
     def normalize(self, mol):
+        from rdkit import Chem
+        Chem.SanitizeMol(mol)
         # XXX Remove existing isotope labels?
         if self.salt_remover is not None:
             desalted_mol = self.salt_remover.StripMol(mol)
@@ -269,6 +271,8 @@ class FragmentFilter(object):
         return None, desalted_mol
 
     def apply_filters(self, mol):
+        from rdkit import Chem
+        Chem.SanitizeMol(mol)
         num_heavies = 0
         for atom in mol.GetAtoms():
             atomic_num = atom.GetAtomicNum()
