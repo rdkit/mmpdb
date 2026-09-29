@@ -666,7 +666,7 @@ def get_max_constant_radius_for_fraction_transfer(
 
     # Trivial case
     if max_frac_trans >= 1.0:
-        return 0
+        return max_radius
     variable_smiles1, _, variable_smiles2 = smirks.partition(">>")
     assert _ == ">>", smirks
 
@@ -679,7 +679,10 @@ def get_max_constant_radius_for_fraction_transfer(
     if N1 == 0 or N2 == 0:
         # Might happen if the variable is a hydrogen?
         # Don't want an divide-by-zero error if something odd happens
-        return 0
+        if min_radius == 0:
+            return 0
+        else:
+            return None
 
     # Is r=0 allowed?
     if max(V1 / N1, V2 / N2) > max_frac_trans:
@@ -689,7 +692,7 @@ def get_max_constant_radius_for_fraction_transfer(
     # (It's hard to be more clever. The constant SMILES might be [*]C([*])CCC,
     # where r=1 has only one heavy atom.)
 
-    if max((V1 - 1) / N1, (V2 - 1) / N2) > max_frac_trans:
+    if min_radius == 0 and max((V1 - 1) / N1, (V2 - 1) / N2) > max_frac_trans:
         return 0
 
     # Otherwise we need to compute the number of atoms in the circular regions
@@ -703,7 +706,7 @@ def get_max_constant_radius_for_fraction_transfer(
 
     # If I just cache the center then my test case took
     #    radii = environment_cache.get_or_compute_center_radii(constant_smiles, MAX_RADIUS)
-    radii = environment_cache.get_or_compute_center_radii(constant_smiles, min_radius, max_radius)
+    radii = environment_cache.get_or_compute_center_radii(constant_smiles, 0, max_radius)
 
     ## print("get_max_constant_radius_for_fraction_transfer()")
     ## print("n", n, "N1", N1, "V1", V1, "N2", N2, "V2", V2)
@@ -720,7 +723,11 @@ def get_max_constant_radius_for_fraction_transfer(
             break
 
     ## print("best", smirks, constant_smiles, best_radius)
-    return best_radius
+    assert best_radius is not None  # guaranteed by the r=0 check above
+    if best_radius >= min_radius:
+        return best_radius
+    else:
+        return None
 
 
 class EnvironmentCache(object):
