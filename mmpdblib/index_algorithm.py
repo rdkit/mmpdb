@@ -706,7 +706,7 @@ def get_max_constant_radius_for_fraction_transfer(
 
     # If I just cache the center then my test case took
     #    radii = environment_cache.get_or_compute_center_radii(constant_smiles, MAX_RADIUS)
-    radii = environment_cache.get_or_compute_center_radii(constant_smiles, 0, max_radius)
+    radii = environment_cache.get_or_compute_center_radii(constant_smiles, max_radius)
 
     ## print("get_max_constant_radius_for_fraction_transfer()")
     ## print("n", n, "N1", N1, "V1", V1, "N2", N2, "V2", V2)
@@ -747,12 +747,12 @@ class EnvironmentCache(object):
             self._centers_cache[constant_smiles] = centers
         return centers
 
-    def get_or_compute_center_radii(self, constant_smiles, min_radius, max_radius):
-        key = (constant_smiles, min_radius, max_radius)
+    def get_or_compute_center_radii(self, constant_smiles, max_radius):
+        key = (constant_smiles, max_radius)
         radii = self._radii_cache.get(key, None)
         if radii is None:
             centers = self.get_or_compute_centers(constant_smiles)
-            radii = list(enumerate(environment.iter_num_atoms_for_radii(centers, min_radius, max_radius)))
+            radii = list(enumerate(environment.iter_num_atoms_for_radii(centers, max_radius)))
             self._radii_cache[key] = radii
         return radii
 
@@ -785,13 +785,12 @@ class VariableFragmentsReducer(object):
         self._variable_cache = {}
         self._attachment_masks = set(("Rf", "Db", "Sg"))
         self._substitution_artefacts = set(("*[Db]", "*[Rf]", "*[Sg]", "[*][Db]", "[*][Rf]", "[*][Sg]"))
+        # RDKit has no default valence for Rf/Db/Sg, so it writes the central carbon in
+        # brackets (e.g. "*[CH]([Rf])[Db]"). Use RDKit's canonical form rather than
+        # hard-coding it, so the comparison matches the fragmenter's constant_smiles.
+        oneAtom_multipleCuts = [Chem.CanonSmiles(smi) for smi in ("*C([Rf])[Db]", "*C([Rf])([Db])[Sg]")]
         self._oneAtom_multipleCuts = set(
-            (
-                "*C([Rf])[Db]",
-                "*C([Rf])([Db])[Sg]",
-                "[*]C([Rf])[Db]",
-                "[*]C([Rf])([Db])[Sg]",
-            )
+            oneAtom_multipleCuts + [smi.replace("*", "[*]", 1) for smi in oneAtom_multipleCuts]
         )
 
     def get_or_compute_variable_fragments(self, variable_smiles):

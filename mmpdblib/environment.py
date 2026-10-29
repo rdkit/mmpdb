@@ -123,12 +123,13 @@ def find_centers(smiles):
 
 
 # Get each of the atoms counts radii as it's being computed.
-def iter_num_atoms_for_radii(centers, min_radius, max_radius):
-    return _iter_num_atoms_for_radii(centers.mol, min_radius, max_radius, centers.atom_ids)
+def iter_num_atoms_for_radii(centers, max_radius):
+    return _iter_num_atoms_for_radii(centers.mol, max_radius, centers.atom_ids)
 
 
 # My thought is to use this for testing.
-def _iter_num_atoms_for_radii(mol, min_radius, max_radius, start_atoms):
+# Always starts from radius 0, since each radius is grown from the previous one.
+def _iter_num_atoms_for_radii(mol, max_radius, start_atoms):
     unique_atoms = set(start_atoms)
     assert len(start_atoms) == len(unique_atoms), "duplicate start atom"
     ignore_atoms = set(a for a in start_atoms if not is_heavy_atom(mol.GetAtomWithIdx(a)))
@@ -137,7 +138,7 @@ def _iter_num_atoms_for_radii(mol, min_radius, max_radius, start_atoms):
 
     border_atoms = unique_atoms.copy()
 
-    for radius in range(min_radius, max_radius):  # up to and including max_radius
+    for radius in range(max_radius):  # up to and including max_radius
         new_atoms = set()
 
         for atom in border_atoms:
