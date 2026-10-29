@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## mmpdb 3.1.6 - 2026-10-29
+
+Merge pull request [#84](https://github.com/rdkit/mmpdb/pull/84)
+to fix that --smallest-transformation-only discarded transformations
+with 2 or 3 cuts on the same atom, and to remove the min_radius
+parameter from _iter_num_atoms_for_radii. Added tests for
+--smallest-transformation-only and for --min-radius combined with
+--max-frac-trans.
+
 ## mmpdb 3.1.5 - 2026-10-29
 
 Merge pull request [#82](https://github.com/rdkit/mmpdb/pull/82)
