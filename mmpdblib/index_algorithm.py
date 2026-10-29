@@ -776,19 +776,19 @@ class VariableFragmentsReducer(object):
     def __init__(self, fragment_filter):
         self.fragment_filter = fragment_filter
         self._variable_cache = {}
-        self._attachment_masks = set(("Ne", "Ar", "Kr"))
-        self._substitution_artefacts = set(("*[Ar]", "*[Ne]", "*[Kr]", "[*][Ar]", "[*][Ne]", "[*][Kr]"))
+        self._attachment_masks = set(("Rf", "Db", "Sg"))
+        self._substitution_artefacts = set(("*[Db]", "*[Rf]", "*[Sg]", "[*][Db]", "[*][Rf]", "[*][Sg]"))
         self._oneAtom_multipleCuts = set(
             (
-                "*C([Ne])[Ar]",
-                "*C([Ne])([Ar])[Kr]",
-                "[*]C([Ne])[Ar]",
-                "[*]C([Ne])([Ar])[Kr]",
+                "*C([Rf])[Db]",
+                "*C([Rf])([Db])[Sg]",
+                "[*]C([Rf])[Db]",
+                "[*]C([Rf])([Db])[Sg]",
             )
         )
 
     def get_or_compute_variable_fragments(self, variable_smiles):
-        variable_smiles = variable_smiles.replace("*:1", "Ne").replace("*:2", "Ar").replace("*:3", "Kr")
+        variable_smiles = variable_smiles.replace("*:1", "Rf").replace("*:2", "Db").replace("*:3", "Sg")
         fragments = self._variable_cache.get(variable_smiles, None)
         if fragments is None:
             pieces = fragment_records.make_fragment_record_from_smiles(variable_smiles, self.fragment_filter)
