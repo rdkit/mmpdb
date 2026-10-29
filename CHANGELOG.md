@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## mmpdb 3.1.5 - 2026-10-29
+
+Merge pull request [#82](https://github.com/rdkit/mmpdb/pull/82)
+to change the dummy atoms in VariableFragmentsReducer (needed for
+smallest-transformation-only criteria).
+
+Merge pull request [#83](https://github.com/rdkit/mmpdb/pull/83)
+to fix that a combination of max_frac_trans and min_radius could
+lead to max_radius < min_radius.
+
 ## mmpdb 3.1.4 - 2026-01-25
 
 Fixed smi_split.py error (and small changes to unittests).
